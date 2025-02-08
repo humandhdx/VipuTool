@@ -1,0 +1,755 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1728</width>
+    <height>1109</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Widget</string>
+  </property>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>0</y>
+     <width>631</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>记录关节角度</string>
+   </property>
+   <widget class="QPushButton" name="BtnSetAdjust">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>160</y>
+      <width>101</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>自由拖拽</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnHoldandRecord">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>160</y>
+      <width>101</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保持&amp;&amp;记录</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos1">
+    <property name="geometry">
+     <rect>
+      <x>112</x>
+      <y>280</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>283</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节1</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>40</y>
+      <width>251</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>选择机械臂</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>283</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>330</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节2</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos2">
+    <property name="geometry">
+     <rect>
+      <x>112</x>
+      <y>327</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>330</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>380</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节3</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos3">
+    <property name="geometry">
+     <rect>
+      <x>112</x>
+      <y>377</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>380</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>430</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节4</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos4">
+    <property name="geometry">
+     <rect>
+      <x>112</x>
+      <y>427</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>430</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>331</x>
+      <y>330</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节6</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos5">
+    <property name="geometry">
+     <rect>
+      <x>412</x>
+      <y>277</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_14">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>330</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_15">
+    <property name="geometry">
+     <rect>
+      <x>331</x>
+      <y>380</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节7</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos6">
+    <property name="geometry">
+     <rect>
+      <x>412</x>
+      <y>327</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>380</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_17">
+    <property name="geometry">
+     <rect>
+      <x>331</x>
+      <y>280</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节5</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditJointPos7">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>380</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_18">
+    <property name="geometry">
+     <rect>
+      <x>560</x>
+      <y>280</y>
+      <width>51</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>度</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditRecordCounter">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>160</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_19">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>166</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>计数：</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnSaveData">
+    <property name="geometry">
+     <rect>
+      <x>59</x>
+      <y>220</y>
+      <width>221</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>保存数据</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnConnectRobot">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>110</y>
+      <width>221</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>连接机械臂</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="RbtnLeftArm">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>70</y>
+      <width>173</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>左臂</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="RbtnRightArm">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>70</y>
+      <width>173</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>右臂</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_22">
+    <property name="geometry">
+     <rect>
+      <x>331</x>
+      <y>115</y>
+      <width>81</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>连接状态：</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditArmStatus">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>110</y>
+      <width>141</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>940</x>
+     <y>0</y>
+     <width>551</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>运行点位</string>
+   </property>
+   <widget class="QPushButton" name="BtnIputData">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>140</y>
+      <width>140</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>导入数据</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditDataPath">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>140</y>
+      <width>341</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="BtnMoveToNextPos">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>280</y>
+      <width>140</width>
+      <height>39</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>下一位置</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditCurrentPosNum">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>210</y>
+      <width>121</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_20">
+    <property name="geometry">
+     <rect>
+      <x>296</x>
+      <y>212</y>
+      <width>121</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>当前位置：</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="EditTotalPosNum">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>210</y>
+      <width>121</width>
+      <height>36</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_21">
+    <property name="geometry">
+     <rect>
+      <x>35</x>
+      <y>214</y>
+      <width>121</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>总位置数：</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="RdbJoint">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>50</y>
+      <width>173</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>关节空间运动</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="RdbCastesian">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>50</y>
+      <width>173</width>
+      <height>34</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>工作空间运动</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="CkbRecordFTSensor">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>90</y>
+      <width>161</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>记录力传感器数据</string>
+    </property>
+    <property name="autoRepeatDelay">
+     <number>298</number>
+    </property>
+    <property name="tristate">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>520</y>
+     <width>631</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>左臂精度测试</string>
+   </property>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>110</y>
+      <width>67</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>滑台控制</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>591</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="leftbtn1">
+       <property name="text">
+        <string>左负载测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="leftbtn2">
+       <property name="text">
+        <string>左精度测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="leftbtn3">
+       <property name="text">
+        <string>左工作空间测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="leftbtn4">
+       <property name="text">
+        <string>左重复性测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="leftbtn5">
+       <property name="text">
+        <string>左臂设置tcp</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>140</y>
+      <width>591</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QComboBox" name="comboBox"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="huataibtn2">
+       <property name="text">
+        <string>滑台运动</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="huataibtn1">
+       <property name="text">
+        <string>滑台回零</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="huataibtn3">
+       <property name="text">
+        <string>针头旋转</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="huataibtn4">
+       <property name="text">
+        <string>针头停止</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_4">
+   <property name="geometry">
+    <rect>
+     <x>940</x>
+     <y>520</y>
+     <width>551</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>右臂精度测试</string>
+   </property>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>531</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QPushButton" name="rightbtn1">
+       <property name="text">
+        <string>右负载测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rightbtn2">
+       <property name="text">
+        <string>右精度测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rightbtn3">
+       <property name="text">
+        <string>右工作空间测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rightbtn4">
+       <property name="text">
+        <string>右重复性测试</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rightbtn5">
+       <property name="text">
+        <string>右臂设置tcp</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
