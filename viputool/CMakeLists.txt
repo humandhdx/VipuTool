@@ -7,7 +7,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Concurrent Quick Multimedia)
+find_package(Qt6 6.2 REQUIRED COMPONENTS Concurrent Quick Multimedia Widgets)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
@@ -32,6 +32,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt6::Quick
     Qt6::Concurrent
     Qt6::Multimedia
+    Qt6::Widgets
 )
 
 include(GNUInstallDirs)

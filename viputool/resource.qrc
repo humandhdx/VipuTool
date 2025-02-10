@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Main.qml</file>
+        <file>CameraCalibration.qml</file>
+        <file>HandEyeCalibration.qml</file>
     </qresource>
 </RCC>

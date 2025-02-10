@@ -19,8 +19,9 @@ public:
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
-    bool captureImage(const QString &savePath = QString());
-
+    bool captureImage();
+    // 将 QML VideoOutput 的 videoSink 传递给 QMediaCaptureSession
+    void setVideoOutput(QVideoSink *sink,const int l_r);
 private:
     QImageCapture *m_left_imagecapture;
     QImageCapture *m_right_imagecapture;
@@ -30,6 +31,7 @@ private:
     QMediaCaptureSession m_right_captureSession;  // 媒体会话管理
     QCameraDevice left_camera_device;
     QCameraDevice right_camera_device;
+    QString savePath;
 signals:
     void left_cameraChanged();
     void right_cameraChanged();

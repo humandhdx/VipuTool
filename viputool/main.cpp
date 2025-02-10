@@ -2,9 +2,11 @@
 #include <QQmlApplicationEngine>
 #include "cameramanager.h"
 #include "sshmanager.h"
+#include <QQmlContext>
+#include <QApplication>
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication  app(argc, argv);
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
@@ -19,6 +21,7 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
     cameraManager *m_cameraManager =new cameraManager();
+     engine.rootContext()->setContextProperty("cameraManager", m_cameraManager);
     //创建ssh通道
     // sshManager *my_ssh_manager=new sshManager();
     // QString host="192.168.1.82";
