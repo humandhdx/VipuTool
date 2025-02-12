@@ -1,6 +1,7 @@
 import QtQuick
 
 Item {
+    property bool isCamera: false
     Component.onDestruction: {
         cameraManager.stopCamera()
     }
@@ -13,12 +14,11 @@ Item {
         //anchors.fill: parent
     }
     Connections{
-        target: image_provider_gl
+        target: image_provider_ml
         function onImgChanged (){
-            rightimage.source=""
-            rightimage.source="image://GlImg/"
+            image.source=""
+            image.source="image://MlImg/"
             //rightimage.source="image://GrImg/"+ Math.random()
         }
     }
-
 }
