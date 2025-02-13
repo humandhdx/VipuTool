@@ -7,13 +7,7 @@
 #define CYCLE_MS_ROTOT_STATUS_REPORT 10
 
 UtrRobot::UtrRobot(UtRobotConfig::TestConfig config):config_{config} {
-    ubot_ = new UtraApiTcp(config.ip.data());
 
-    is_robot_connected = !ubot_->is_error();
-
-    utra_report_ = new UtraReportStatus100Hz(config.ip.data(), 7);
-
-    thd_refresh_robot_status_ = std::thread(&UtrRobot::ThreadFunction_UpdateRobotStatus, this);
 }
 
 UtrRobot::~UtrRobot()
@@ -29,6 +23,31 @@ UtrRobot::~UtrRobot()
         delete ubot_;
         ubot_ = nullptr;
     }
+}
+
+bool UtrRobot::InitRobot()
+{
+    ubot_ = new UtraApiTcp(config_.ip.data());
+
+    is_robot_connected = !ubot_->is_error();
+
+    if(!is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " UtraApiTcp connection failed" << std::endl;
+        return false;
+    }
+
+    utra_report_ = new UtraReportStatus100Hz(config_.ip.data(), 7);
+
+    if(!utra_report_->is_error())
+    {
+        std::cout << __FUNCTION__ << " UtraReportStatus100Hz connection failed" << std::endl;;
+        return false;
+    }
+    thd_refresh_robot_status_ = std::thread(&UtrRobot::ThreadFunction_UpdateRobotStatus, this);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+    this->RobotCommand_ResetError();
+    return this->RobotCommand_Hold();
 }
 
 bool UtrRobot::getJointPos(UtRobotConfig::JointPos &jPos)
@@ -56,11 +75,21 @@ bool UtrRobot::getTcpPos(UtRobotConfig::CartesianPos &pose)
 
 bool UtrRobot::RobotTest_Gravity()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     return RobotCommand_JointPtp(config_.gravityTest.target_JointPos);
 }
 
 bool UtrRobot::RobotTest_Accuracy()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     if(!RobotCommand_JointPtp(config_.accuracyTest.initial_JointPose))
     {
         std::cout << __FUNCTION__ << " inital joint position move failed!" << std::endl;
@@ -89,6 +118,11 @@ bool UtrRobot::RobotTest_Accuracy()
 
 bool UtrRobot::RobotTest_Workspace()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     if(!RobotCommand_JointPtp(config_.workspaceTest.initial_JointPose))
     {
         std::cout << __FUNCTION__ << " inital joint position move failed!" << std::endl;
@@ -117,6 +151,11 @@ bool UtrRobot::RobotTest_Workspace()
 
 bool UtrRobot::RobotTest_Repeat()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     if(!RobotCommand_JointPtp(config_.repeatTest.initial_JointPose))
     {
         std::cout << __FUNCTION__ << " inital joint position move failed!" << std::endl;
@@ -145,6 +184,11 @@ bool UtrRobot::RobotTest_Repeat()
 
 bool UtrRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_ms)
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
     ubot_->reset_err();
     std::unique_lock lck{this->mtx_robotState_};
@@ -203,6 +247,11 @@ bool UtrRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_m
 
 bool UtrRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int timeout_ms)
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
     ubot_->reset_err();
     std::unique_lock lck{this->mtx_robotState_};
@@ -262,6 +311,11 @@ bool UtrRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int t
 
 bool UtrRobot::RobotCommand_EnterTeachMode()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
     std::unique_lock lck{this->mtx_robotState_};
     if((this->isDragging) || this->cmd_stop)
@@ -331,6 +385,11 @@ bool UtrRobot::RobotCommand_EnterTeachMode()
 
 bool UtrRobot::RobotCommand_Hold()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     std::unique_lock lck{this->mtx_robotState_};
     this->cmd_stop = true;
     this->cv_robotState_.notify_all();
@@ -385,6 +444,11 @@ bool UtrRobot::RobotCommand_Hold()
 
 bool UtrRobot::RobotCommand_ResetError()
 {
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
     ubot_->reset_err();
     std::cout << __FUNCTION__ << " finish reset error, current error code: " << this->robotState_.err_code <<std::endl;
     std::unique_lock lck{this->mtx_robotState_};

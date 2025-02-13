@@ -49,6 +49,7 @@ public:
         // STANDY      = 0xF0,
         OTHER       = 0xFFFF
     };
+    bool InitRobot();
 
     bool getJointPos(UtRobotConfig::JointPos &jPos);
     bool getTcpPos(UtRobotConfig::CartesianPos &pose);

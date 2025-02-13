@@ -21,7 +21,7 @@ bool UtraRobot_QWrapper::robot_connect()
     QEventLoop spinner;
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
-        executionResult = this->RobotCommand_Hold();
+        executionResult = this->InitRobot();
         spinner.exit();
         return executionResult;
     });
