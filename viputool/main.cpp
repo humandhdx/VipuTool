@@ -8,6 +8,7 @@
 #include <QQuickWindow>
 #include "imageprovider.h"
 #include "handeyecalculate.h"
+#include "ut_robot_wrapper/utrrobotqwrapper.hpp"
 int main(int argc, char *argv[])
 {
     //QQuickWindow::setSceneGraphBackend("opengl");
@@ -19,6 +20,9 @@ int main(int argc, char *argv[])
     cameraManager *m_cameraManager =new cameraManager();
     //handeye
     handeyecalculate *m_heculate=new handeyecalculate();
+    //robot
+    UtraRobot_QWrapper *m_urtrobot_left=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotLeft);
+    UtraRobot_QWrapper *m_urtrobot_right=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotRight);
     //video
     ImageProvider *image_provider_gl = new ImageProvider();
     ImageProvider *image_provider_gr = new ImageProvider();
@@ -31,6 +35,8 @@ int main(int argc, char *argv[])
         m_cameraManager, &cameraManager::signalSendMiddleImage, image_provider_ml, &ImageProvider::recvEmitImg);
     //regester qml
     engine.rootContext()->setContextProperty("cameraManager", m_cameraManager);
+    engine.rootContext()->setContextProperty("urtrobot_left", m_urtrobot_left);
+    engine.rootContext()->setContextProperty("urtrobot_right", m_urtrobot_right);
     engine.rootContext()->setContextProperty("image_provider_gl", image_provider_gl);
     engine.rootContext()->setContextProperty("image_provider_gr", image_provider_gr);
     engine.rootContext()->setContextProperty("image_provider_ml", image_provider_ml);

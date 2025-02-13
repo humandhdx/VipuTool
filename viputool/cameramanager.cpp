@@ -1,5 +1,4 @@
 #include "cameramanager.h"
-
 #include <QThread>
 
 cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(CalibritionType::Null),

@@ -14,6 +14,17 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
 endif()
 add_subdirectory(3rdparty/cbdetect)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utapi)
+
+set(src_robot_wrapper
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/robot_config.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/robot_config.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobotqwrapper.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobotqwrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobot.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobot.cpp
+)
+
 qt_add_executable(${PROJECT_NAME}
     main.cpp
     resource.qrc
@@ -32,7 +43,7 @@ qt_add_executable(${PROJECT_NAME}
     Handeye/stereo_calibration_mat.hpp Handeye/stereo_calibration_mat.cpp
     imageprovider.h imageprovider.cpp
     handeyecalculate.h handeyecalculate.cpp
-
+    ${src_robot_wrapper}
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")
@@ -45,6 +56,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<TARGET_PROPERTY:utapi,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC libssh.so)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -55,6 +72,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${OpenCV_LIBS}
     yaml-cpp
     cbdetect
+    utapi
 )
 
 include(GNUInstallDirs)

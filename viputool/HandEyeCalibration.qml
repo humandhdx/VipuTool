@@ -117,16 +117,30 @@ Item {
             width: parent.width-20
             height: 240
             color: "#D9D9D9"
-            Button{
-                width: 200
-                height: 40
-                text: "开始计算"
-                onClicked: {
-                    handeyeCulate.runCalibration()
+            Row{
+                Button{
+                    width: 200
+                    height: 40
+                    text: "开始计算"
+                    onClicked: {
+                        mask.open()
+                        handeyeCulate.startCalibration()
+                    }
+                }
+                Button{
+                    width: 200
+                    height: 40
+                    text: "link"
+                    onClicked: {
+                      urtrobot_left.robot_connect()
+                    }
                 }
             }
+
+
         }
     }
+
     FolderDialog {
         id: folderDialog
         title: qsTr("选择图片保存路径")
@@ -139,6 +153,12 @@ Item {
         }
         onRejected: {
             console.log("取消选择")
+        }
+    }
+    Connections{
+        target: handeyeCulate
+        function onCalculateSucess (){
+          mask.close()
         }
     }
     Connections{

@@ -1,8 +1,18 @@
 #include "handeyecalculate.h"
-
+#include <QtConcurrent>
 handeyecalculate::handeyecalculate(QObject *parent):QObject{parent}
 {
 
+}
+
+void handeyecalculate::startCalibration()
+{
+    // 使用 QPointer 防止对象在后台线程中被意外销毁
+    QPointer<handeyecalculate> self(this);
+    QtConcurrent::run([self]() {
+        if (self)
+            self->runCalibration();
+    });
 }
 
 bool handeyecalculate::runCalibration()
@@ -95,6 +105,10 @@ bool handeyecalculate::runCalibration()
     else{
         std::cout << "Not enough valid patterns! Hand eye fail!" << std::endl;
     }
+    QMetaObject::invokeMethod(this, [this]() {
+            qDebug()<<"Calculate  Sucess";
+            emit calculateSucess();
+        }, Qt::QueuedConnection);
     return true;
 }
 

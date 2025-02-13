@@ -29,11 +29,15 @@ public:
     handeyecalculate(QObject *parent = nullptr);
 
 public slots:
-    bool runCalibration();
+     void startCalibration();
 
 private:
     std::vector<std::vector<double>> readArmPose(const std::string &path);
     bool handEyeCalibration(const std::vector<CaliFrameInfo> &frame_list, std::vector<double> &pose, int min_num);
+    bool runCalibration();
+signals:
+    void calculateSucess();
+    void calculateError(const QString &message);
 };
 
 #endif // HANDEYECALCULATE_H

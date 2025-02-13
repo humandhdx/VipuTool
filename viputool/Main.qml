@@ -80,6 +80,39 @@ Window {
         anchors.right: parent.right
         source: "qrc:/HandEyeCalibration.qml"
     }
+    Popup{
+        id:mask
+        anchors.centerIn: parent
+        width: 300
+        height: 180
+        modal: true
+        closePolicy: Popup.NoAutoClose
+        background: Rectangle{
+            color: "#00000000"
+        }
+        contentItem: Rectangle{
+            color: "#C9C9C9"
+            radius: 20
+            anchors.fill: parent
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.topMargin: 10
+                font.pixelSize: 24
+                text: qsTr("等待完成")
+            }
+            BusyIndicator {
+                anchors.centerIn: parent
+                implicitWidth: 96
+                implicitHeight: 96
+                opacity: 1.0
+            }
+       }
+        Overlay.modal:Rectangle{
+            color: Qt.rgba(0, 0, 0, 0.5)
+        }
+
+    }
 
     // Button{
     //     width: 200
