@@ -38,7 +38,8 @@ public:
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
-    bool captureImage();
+    QString getCaptureImageSavePath();
+    bool captureImage(QString path,CalibritionType type);
 private:
     void init_cam();
     bool start_left_capture();
@@ -53,6 +54,7 @@ private:
     void shutdown_leftcapture();
     void shutdown_rightcapture();
     void shutdown_middlecapture();
+    QImage cvMatToQImage(cv::Mat &mat);
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;
@@ -86,7 +88,6 @@ private:
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_left_ = nullptr;
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_right_ = nullptr;
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_middle_ = nullptr;
-    QString savePath;
     int left_id_, right_id_,middle_id_;
     CalibritionType cali_type_;
     //控制相关

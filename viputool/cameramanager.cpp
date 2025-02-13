@@ -6,7 +6,6 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     left_id_(-1),
     right_id_(-1),
     middle_id_(-1),
-    savePath(QString()),
     capture_left_flag_(false),
     capture_middle_flag_(false),
     capture_right_flag_(false),
@@ -69,12 +68,9 @@ void cameraManager::stopCamera()
     shutdown_middlecapture();
 }
 
-bool cameraManager::captureImage()
+QString cameraManager::getCaptureImageSavePath()
 {
-    // if(!m_left_camera){
-    //     return false;
-    // }
-    // 如果 savePath 为空，则打开系统文件选择器
+    QString savePath=QString();
     if (savePath.isEmpty()) {
         savePath = QFileDialog::getExistingDirectory(nullptr,
                                                      tr("选择保存图片的文件夹"),
@@ -82,12 +78,64 @@ bool cameraManager::captureImage()
 
         if (savePath.isEmpty()) {
             qWarning() << "用户取消了保存路径选择";
-            return false;
+            return QString();
         }
     }
-    QString savePath2 = savePath+"/test.jpg";
-    qDebug()<<savePath2;
-    //m_right_imagecapture->captureToFile(savePath2);
+    return savePath;
+}
+
+bool cameraManager::captureImage(QString path, CalibritionType type)
+{
+    bool result=false;
+    std::string save_path="";
+    switch (type) {
+    case CalibritionType::HandEyeCalibrition:
+        save_path= path.toStdString()+"/test_output.jpg";
+        result = cv::imwrite(save_path, right_image_0_);
+        if (result) {
+            std::cout << "图像已成功保存到: " << save_path << std::endl;
+        } else {
+            std::cerr << "保存图像失败" << std::endl;
+        }
+        break;
+    case CalibritionType::GlobalCalibrition:
+        save_path= path.toStdString()+"/test_output.jpg";
+        result = cv::imwrite(save_path, left_image_0_);
+        if (result) {
+            std::cout << "图像已成功保存到: " << save_path << std::endl;
+        } else {
+            std::cerr << "保存图像失败" << std::endl;
+        }
+        save_path= path.toStdString()+"/test_output.jpg";
+        result = cv::imwrite(save_path, right_image_0_);
+        if (result) {
+            std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
+        } else {
+            std::cerr << "保存图像失败" << std::endl;
+        }
+        break;
+    case CalibritionType::MiddleCalibrition:
+        save_path= path.toStdString()+"/test_output.jpg";
+        result = cv::imwrite(save_path, right_image_0_);
+        if (result) {
+            std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
+        } else {
+            std::cerr << "保存图像失败" << std::endl;
+        }
+        break;
+    default:
+        break;
+    }
+    return result;
+    // std::string save_path = path.toStdString()+"/test_output.jpg";
+    //  result = cv::imwrite(path.toStdString(), right_image_0_);
+
+    // if (result) {
+    //     std::cout << "图像已成功保存到: " << save_path << std::endl;
+    // } else {
+    //     std::cerr << "保存图像失败" << std::endl;
+    // }
+
 }
 
 void cameraManager::init_cam()
@@ -288,13 +336,23 @@ void cameraManager::capture_left()
                 vec_buff_left_->clear();
                 vec_buff_left_->resize(rsize + 1);
                 vec_buff_left_->assign(buff_left_, buff_left_ + rsize);
-                left_image_0_ = cv::imdecode(*vec_buff_left_, cv::IMREAD_COLOR);
+                try {
+                    // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
+                    left_image_0_ = cv::imdecode(*vec_buff_left_, cv::IMREAD_COLOR);
+                } catch (const std::exception &e) {
+                    qWarning() << "cv::imdecode 异常:" << e.what();
+                    return;
+                }
                 //if (left_image_0_.empty()) return;
                 // left_image_available_0_.pImage = &left_image_0_;
                 // left_image_available_0_.time = left_imgae_available_time_;
                 // UpdateLeftImage();
                 if(left_image_0_.empty())return;
-                QImage image=QImage::fromData(&left_image_0_.data[0],vec_buff_left_->size(),"jpeg");
+                QImage image(left_image_0_.data,
+                             left_image_0_.cols,
+                             left_image_0_.rows,
+                             static_cast<int>(left_image_0_.step),
+                             QImage::Format_BGR888);
                 emit signalSendLeftImage(image);
             }
             else {
@@ -355,11 +413,17 @@ void cameraManager::capture_right()
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
             suc_capture_right_flag_ = true;
             if (camera_right_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                // std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                 std::lock_guard<std::mutex> lck{mtx_camera_left_};
                 vec_buff_right_->clear();
                 vec_buff_right_->resize(rsize + 1);
                 vec_buff_right_->assign(buff_right_, buff_right_ + rsize);
-                right_image_0_ = cv::imdecode(*vec_buff_right_, cv::IMREAD_COLOR);
+                try {
+                    // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
+                    right_image_0_ = cv::imdecode(*vec_buff_right_, cv::IMREAD_COLOR);
+                } catch (const std::exception &e) {
+                    qWarning() << "cv::imdecode 异常:" << e.what();
+                    return;
+                }
                 //if (left_image_0_.empty()) return;
                 // left_image_available_0_.pImage = &left_image_0_;
                 // left_image_available_0_.time = left_imgae_available_time_;
@@ -501,6 +565,11 @@ void cameraManager::shutdown_middlecapture()
         delete camera_middle_;
         camera_middle_ = nullptr;
     }
+}
+
+QImage cameraManager::cvMatToQImage(cv::Mat &mat)
+{
+
 }
 
 

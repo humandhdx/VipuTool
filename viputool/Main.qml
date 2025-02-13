@@ -75,7 +75,9 @@ Window {
     }
     Loader{
         id:loader
-        anchors.fill: parent
+        width: parent.width- parent.width/8
+        height: parent.height
+        anchors.right: parent.right
         source: "qrc:/HandEyeCalibration.qml"
     }
 

@@ -3,6 +3,7 @@
 
 #include <QQuickImageProvider>
 #include <QTimer>
+#include "cameramanager.h"
 
 class ImageProvider : public QQuickImageProvider
 {

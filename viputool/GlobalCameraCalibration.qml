@@ -3,10 +3,12 @@ import QtQuick.Controls
 import QtMultimedia
 Item {
     property bool isCamera: false
+    Component.onCompleted: {
+    }
+
     Component.onDestruction: {
         cameraManager.stopCamera()
     }
-
     Image {
         id:rightimage
         width: 1200
@@ -48,6 +50,9 @@ Item {
     Connections{
         target: image_provider_gr
         function onImgChanged (){
+            if(!isCamera){
+                return
+            }
             rightimage.source=""
             rightimage.source="image://GrImg/"
             //rightimage.source="image://GrImg/"+ Math.random()
