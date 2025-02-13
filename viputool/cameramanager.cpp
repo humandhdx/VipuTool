@@ -11,7 +11,11 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     capture_right_flag_(false),
     failed_count_left_(0),
     failed_count_middle_(0),
-    failed_count_right_(0)
+    failed_count_right_(0),
+    handeye_image_count_(0),
+    global_left_image_count_(0),
+    global_right_image_count_(0),
+    middle_image_count_(0)
 {
     buff_left_ = new uchar[4000 * 3000];
     buff_middle_=new uchar[1920 * 1080];
@@ -88,9 +92,17 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
 {
     bool result=false;
     std::string save_path="";
+    std::ostringstream oss;
     switch (type) {
     case CalibritionType::HandEyeCalibrition:
-        save_path= path.toStdString()+"/test_output.jpg";
+        if(right_image_0_.empty()){
+            return false;
+        }
+        handeye_image_count_++; // 编号自增
+        oss << path.toStdString() << "/HandEye_Image"
+            << std::setw(3) << std::setfill('0') << handeye_image_count_
+            << ".jpg";
+        save_path = oss.str();
         result = cv::imwrite(save_path, right_image_0_);
         if (result) {
             std::cout << "图像已成功保存到: " << save_path << std::endl;
@@ -99,14 +111,25 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
         }
         break;
     case CalibritionType::GlobalCalibrition:
-        save_path= path.toStdString()+"/test_output.jpg";
+        if(right_image_0_.empty()||left_image_0_.empty()){
+            return false;
+        }
+         global_left_image_count_++;
+         global_right_image_count_++;
+        oss << path.toStdString() << "/Global_Left_Image"
+            << std::setw(3) << std::setfill('0') << global_left_image_count_
+            << ".jpg";
+        save_path = oss.str();
         result = cv::imwrite(save_path, left_image_0_);
         if (result) {
             std::cout << "图像已成功保存到: " << save_path << std::endl;
         } else {
             std::cerr << "保存图像失败" << std::endl;
         }
-        save_path= path.toStdString()+"/test_output.jpg";
+        oss << path.toStdString() << "/Global_Right_Image"
+            << std::setw(3) << std::setfill('0') << global_right_image_count_
+            << ".jpg";
+        save_path = oss.str();
         result = cv::imwrite(save_path, right_image_0_);
         if (result) {
             std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
@@ -115,27 +138,33 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
         }
         break;
     case CalibritionType::MiddleCalibrition:
-        save_path= path.toStdString()+"/test_output.jpg";
-        result = cv::imwrite(save_path, right_image_0_);
+        if(middle_image_0_.empty()){
+            return false;
+        }
+        middle_image_count_++; // 编号自增
+        oss << path.toStdString() << "/Middle_Image"
+            << std::setw(3) << std::setfill('0') << middle_image_count_
+            << ".jpg";
+        save_path = oss.str();
+        result = cv::imwrite(save_path, middle_image_0_);
         if (result) {
             std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
         } else {
             std::cerr << "保存图像失败" << std::endl;
         }
         break;
+        break;
     default:
         break;
     }
     return result;
-    // std::string save_path = path.toStdString()+"/test_output.jpg";
-    //  result = cv::imwrite(path.toStdString(), right_image_0_);
+}
 
-    // if (result) {
-    //     std::cout << "图像已成功保存到: " << save_path << std::endl;
-    // } else {
-    //     std::cerr << "保存图像失败" << std::endl;
-    // }
-
+void cameraManager::resetCaptureCount()
+{
+     handeye_image_count_=0;
+     global_left_image_count_=0;
+     global_right_image_count_=0;
 }
 
 void cameraManager::init_cam()

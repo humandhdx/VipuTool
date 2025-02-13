@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QQuickWindow>
 #include "imageprovider.h"
+#include "handeyecalculate.h"
 int main(int argc, char *argv[])
 {
     //QQuickWindow::setSceneGraphBackend("opengl");
@@ -16,6 +17,8 @@ int main(int argc, char *argv[])
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     //camera
     cameraManager *m_cameraManager =new cameraManager();
+    //handeye
+    handeyecalculate *m_heculate=new handeyecalculate();
     //video
     ImageProvider *image_provider_gl = new ImageProvider();
     ImageProvider *image_provider_gr = new ImageProvider();
@@ -31,6 +34,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("image_provider_gl", image_provider_gl);
     engine.rootContext()->setContextProperty("image_provider_gr", image_provider_gr);
     engine.rootContext()->setContextProperty("image_provider_ml", image_provider_ml);
+    engine.rootContext()->setContextProperty("handeyeCulate", m_heculate);
     engine.addImageProvider(QLatin1String("GlImg"), image_provider_gl);
     engine.addImageProvider(QLatin1String("GrImg"), image_provider_gr);
     engine.addImageProvider(QLatin1String("MlImg"), image_provider_ml);
@@ -51,5 +55,6 @@ int main(int argc, char *argv[])
     // QString password="foxpg1348";
     // int port=22;
     // my_ssh_manager->sshConnect(host,user,password,port);
+    //m_heculate->runCalibration();
     return app.exec();
 }

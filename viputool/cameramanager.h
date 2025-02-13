@@ -4,10 +4,10 @@
 #include <mutex>
 #include <QtWidgets/QFileDialog>
 #include <QStandardPaths>
-#include "Periodlc_rt2.hpp"
+#include "v4l2/Periodlc_rt2.hpp"
 #include "libv4l2.h"
 #include "libv4lconvert.h"
-#include "v4l2capture.h"
+#include "v4l2/v4l2capture.h"
 #include <dirent.h>
 #include <charconv>
 #include <sys/ioctl.h>
@@ -20,7 +20,7 @@
 #include <string>
 #include <chrono>
 #include <opencv2/opencv.hpp>
-#include "struct.h"
+#include "v4l2/struct.h"
 #include <thread>
 
 class cameraManager: public QObject
@@ -40,6 +40,7 @@ public slots:
     void stopCamera();
     QString getCaptureImageSavePath();
     bool captureImage(QString path,CalibritionType type);
+    void resetCaptureCount();
 private:
     void init_cam();
     bool start_left_capture();
@@ -117,6 +118,11 @@ private:
     int restart_failed_left_ = 0;
     int restart_failed_right_ = 0;
     int restart_failed_middle_ = 0;
+    // 用于记录当前保存的图片编号
+    int handeye_image_count_;
+    int middle_image_count_;
+    int global_left_image_count_;
+    int global_right_image_count_;
 
 signals:
     void signalSendLeftImage(QImage image);

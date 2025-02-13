@@ -1,8 +1,12 @@
 import QtQuick
 import QtQuick.Controls
+import Qt.labs.platform
 Item {
     property bool isCamera: false
     property string capturePath: ""
+    Component.onCompleted: {
+        cameraManager.resetCaptureCount()
+    }
     Component.onDestruction: {
         cameraManager.stopCamera()
     }
@@ -10,9 +14,9 @@ Item {
         width: 800
         height: 600
         anchors.left: parent.left
-        anchors.leftMargin: 20
+        anchors.leftMargin: 10
         anchors.top: parent.top
-        anchors.topMargin: 20
+        anchors.topMargin: 10
         color: "#D9D9D9"
         Image {
             id:image
@@ -37,6 +41,7 @@ Item {
             width: 200
             height: 40
             text: "采集图片"
+            enabled: isCamera
             onClicked: {
                 if(capturePath===""){
                     nopath.visible=true
@@ -88,26 +93,63 @@ Item {
                 height: 40
                 text: "修改地址"
                 onClicked: {
-                    var result = cameraManager.getCaptureImageSavePath()
-                    if(result!==""){
-                       capturePath=  result;
-                       nopath.visible=false
-                    }
+                    folderDialog.open()
+                    //var result = cameraManager.getCaptureImageSavePath()
+                    // if(result!==""){
+                    //    capturePath=  result;
+                    //    nopath.visible=false
+                    // }
                 }
             }
         }
+    }
+    Column{
+        width: parent.width
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10
+        Text {
+            font.pixelSize: 24
+            text: qsTr("机械臂控制:")
+        }
+        Rectangle{
+            width: parent.width-20
+            height: 240
+            color: "#D9D9D9"
+            Button{
+                width: 200
+                height: 40
+                text: "开始计算"
+                onClicked: {
+                    handeyeCulate.runCalibration()
+                }
+            }
+        }
+    }
+    FolderDialog {
+        id: folderDialog
+        title: qsTr("选择图片保存路径")
+        folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        onAccepted: {
+            console.log("你选择的文件夹为: " + folderDialog.folder)
+            var localFolder = folderDialog.folder.toString().replace("file://", "");
+            capturePath=localFolder
+            nopath.visible=false
+        }
+        onRejected: {
+            console.log("取消选择")
+        }
+    }
+    Connections{
+        target: image_provider_gl
+        function onImgChanged (){
+            rightimage.source=""
+            rightimage.source="image://GlImg/"
+            //rightimage.source="image://GrImg/"+ Math.random()
+        }
 
     }
-
-    // Connections{
-    //     target: image_provider_gl
-    //     function onImgChanged (){
-    //         rightimage.source=""
-    //         rightimage.source="image://GlImg/"
-    //         //rightimage.source="image://GrImg/"+ Math.random()
-    //     }
-
-    // }
     Connections{
         target: image_provider_gr
         function onImgChanged (){
