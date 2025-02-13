@@ -102,6 +102,27 @@ Item {
                 }
             }
         }
+        Rectangle{
+            width:400
+            height: 435
+            radius: 5
+            color: "#F5F5F5"
+            border.width: 1
+            border.color: "#000000"
+            Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 5
+                font.pixelSize: 24
+                text: qsTr("log:")
+            }
+            ListView{
+                anchors.top: parent.top
+                anchors.topMargin: : parent.top
+                width: 400
+                height: 435
+
+            }
+        }
     }
     Column{
         width: parent.width
@@ -140,7 +161,6 @@ Item {
 
         }
     }
-
     FolderDialog {
         id: folderDialog
         title: qsTr("选择图片保存路径")
