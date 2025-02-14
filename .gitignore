@@ -1,0 +1,11 @@
+build/
+install/
+log/
+build-*/
+
+CMakeLists.txt.*
+*.o
+*.obj
+# *.so
+# *.so.*
+*.log
