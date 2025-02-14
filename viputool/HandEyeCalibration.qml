@@ -116,11 +116,28 @@ Item {
                 text: qsTr("log:")
             }
             ListView{
+                id:loglistview
                 anchors.top: parent.top
-                anchors.topMargin: : parent.top
-                width: 400
-                height: 435
+                anchors.topMargin: 30
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 390
+                height: 405
+                clip: true
+                orientation: ListView.Vertical
+                boundsBehavior: Flickable.StopAtBounds
+                snapMode :ListView.NoSnap
+                model:ListModel{
+                    id:loggerModel
 
+                }
+                delegate: Text {
+                    text: loginfo
+                    font.pixelSize: 12
+                    width: 395
+                    wrapMode:Text.WordWrap
+                    color: "#000000"
+                }
+                spacing: 2
             }
         }
     }
@@ -173,6 +190,13 @@ Item {
         }
         onRejected: {
             console.log("取消选择")
+        }
+    }
+    Connections{
+        target: logger
+        function onSendLogMesseg (msg ,level){
+            loggerModel.append({"loginfo":msg,"level":level})
+            loglistview.positionViewAtEnd()
         }
     }
     Connections{

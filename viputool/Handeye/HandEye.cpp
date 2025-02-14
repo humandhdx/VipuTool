@@ -337,6 +337,7 @@ std::vector<double> handEye(const cv::Mat_<double> &CalPose, const cv::Mat_<doub
     //test
     // Tool_In_Base*Hcg*Cal_In_Cam，用第一组和第二组进行对比验证
     std::cout << "第一组和第二组手眼数据验证：" << std::endl;
+
     std::cout << vecHg[0] * Hcg * vecHc[0] << std::endl
               << vecHg[1] * Hcg * vecHc[1] << std::endl
               << std::endl;  //.inv()

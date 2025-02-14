@@ -5,6 +5,11 @@ handeyecalculate::handeyecalculate(QObject *parent):QObject{parent}
 
 }
 
+handeyecalculate::~handeyecalculate()
+{
+
+}
+
 void handeyecalculate::startCalibration()
 {
     // 使用 QPointer 防止对象在后台线程中被意外销毁
@@ -18,7 +23,7 @@ void handeyecalculate::startCalibration()
 bool handeyecalculate::runCalibration()
 {
     //YAML::Node cfg = YAML::LoadFile(configPath);
-    int min_hand_eye_num = 5;//cfg["min_hand_eye_num"].as<int>();
+    int min_hand_eye_num = 30;//cfg["min_hand_eye_num"].as<int>();
     //std::string pattern_folder = cfg["image_folder"].as<std::string>();
     //std::string camera_file = cfg["camera_model_file"].as<std::string>();
     //std::string arm_pose_file = cfg["arm_pose_file"].as<std::string>();
@@ -43,10 +48,11 @@ bool handeyecalculate::runCalibration()
     }
 
     std::vector<std::vector<double>> arm_pose = readArmPose(arm_pose_file.toStdString());
-    std::cout << "pattern size: " << arm_pose.size() << std::endl;
-
+    qDebug()<< "获取机械臂姿态成功 pattern size: " << arm_pose.size();
+    //std::cout << "pattern size: " << arm_pose.size() << std::endl;
     if(arm_pose.size() != image_files.size()){
-        std::cout << "image size != arm pose size! Hand eye fail!" << std::endl;
+        //std::cout << "image size != arm pose size! Hand eye fail!" << std::endl;
+        qDebug() << "image size != arm pose size! Hand eye fail!";
         return 0;
     }
 
@@ -54,7 +60,7 @@ bool handeyecalculate::runCalibration()
 
     for (int i = 0 ; i < image_files.size() ; i++){
         auto file = image_files[i];
-        std::cout << file << std::endl;
+        //std::cout << file << std::endl;
         CaliFrameInfo frame_info;
         cv::Mat image = cv::imread(file);
 
@@ -62,7 +68,7 @@ bool handeyecalculate::runCalibration()
         bool state = detectCB(image, pt, pattern_size);
 
         if(state){
-            std::cout << "success" << std::endl;
+            qDebug().noquote()<< "获取当前图片数据成功:\n"+QString::fromStdString(file);
             cv::Vec3d rvec;
             cv::Vec3d tvec;
             cv::solvePnP(world_points, pt, camera_model.M, camera_model.dist, rvec, tvec);
@@ -79,7 +85,7 @@ bool handeyecalculate::runCalibration()
             // cv::waitKey();
         }
         else{
-            std::cout << "fail" << std::endl;
+            qDebug().noquote()<< "获取当前图片数据失败\n"+QString::fromStdString(file);
             frame_info.valid = false;
         }
 
@@ -90,23 +96,25 @@ bool handeyecalculate::runCalibration()
     bool rt = handEyeCalibration(frame_list, pose, min_hand_eye_num);
 
     if(rt){
-        std::cout << "Hand eye success!" << std::endl;
+        //qDebug() << "手眼标定成功";
+        //std::cout << "Hand eye success!" << std::endl;
         Eigen::Quaterniond q(pose[6], pose[3], pose[4], pose[5]);
         Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
         T.rotate(q);
         T.pretranslate(Eigen::Vector3d(pose[0], pose[1], pose[2]));
-        std::cout << std::setprecision(10);
-        std::cout << "hand eye result is: " << std::endl;
-        std::cout << T.matrix() << std::endl;
-
-        std::cout << "translation error: " << pose[7] << std::endl;
-        // std::cout << "rotation error: " << pose[8] << std::endl;
+        //std::cout << std::setprecision(10);
+        //std::cout << "hand eye result is: " << std::endl;
+        //std::cout << T.matrix() << std::endl;
+        std::ostringstream oss;
+        oss << T.matrix().format(Eigen::IOFormat(10));
+        qDebug() << "手眼标定结果: ";
+        qDebug().noquote() << QString::fromStdString(oss.str());
     }
     else{
-        std::cout << "Not enough valid patterns! Hand eye fail!" << std::endl;
+        qDebug() << "没有足够的有效图片，手眼标定失败";
     }
     QMetaObject::invokeMethod(this, [this]() {
-            qDebug()<<"Calculate  Sucess";
+            qDebug()<<"手眼标定结束";
             emit calculateSucess();
         }, Qt::QueuedConnection);
     return true;
@@ -144,12 +152,15 @@ bool handeyecalculate::handEyeCalibration(const std::vector<CaliFrameInfo> &fram
             num++;
         }
     }
-    std::cout << "valid pattern size = " << num << std::endl;
+    //std::cout << "valid pattern size = " << num << std::endl;
+    qDebug()<<"采集图片数量: "<<num;
+    qDebug()<<"最小采集图片数量: "<<min_num;
     if(num < min_num){
+        qDebug()<<"手眼标定失败：采集图片数量少于最小采集数量";
         return false;
     }
-
-    std::cout << "valid frames: " << num << std::endl;
+    qDebug()<<"有效图片数量: "<<num;
+    //std::cout << "valid frames: " << num << std::endl;
 
     cv::Mat_<double> cam_pose(num, 6);
     cv::Mat_<double> arm_pose(num, 6);

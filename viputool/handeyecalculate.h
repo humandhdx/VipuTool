@@ -27,6 +27,7 @@ class handeyecalculate:public QObject
     Q_OBJECT
 public:
     handeyecalculate(QObject *parent = nullptr);
+    ~handeyecalculate();
 
 public slots:
      void startCalibration();

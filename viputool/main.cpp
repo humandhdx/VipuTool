@@ -6,14 +6,17 @@
 #include <QQmlContext>
 #include <QApplication>
 #include <QQuickWindow>
+#include <logger.h>
 #include "imageprovider.h"
 #include "handeyecalculate.h"
 #include "ut_robot_wrapper/utrrobotqwrapper.hpp"
+#include <QtMessageHandler>
 int main(int argc, char *argv[])
 {
     //QQuickWindow::setSceneGraphBackend("opengl");
-    QApplication  app(argc, argv);
-
+    QGuiApplication  app(argc, argv);
+    logger* logInstance = logger::instance();
+    qInstallMessageHandler(logger::myMessageHandler);
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     //camera
@@ -41,6 +44,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("image_provider_gr", image_provider_gr);
     engine.rootContext()->setContextProperty("image_provider_ml", image_provider_ml);
     engine.rootContext()->setContextProperty("handeyeCulate", m_heculate);
+    engine.rootContext()->setContextProperty("logger", logInstance);
     engine.addImageProvider(QLatin1String("GlImg"), image_provider_gl);
     engine.addImageProvider(QLatin1String("GrImg"), image_provider_gr);
     engine.addImageProvider(QLatin1String("MlImg"), image_provider_ml);
