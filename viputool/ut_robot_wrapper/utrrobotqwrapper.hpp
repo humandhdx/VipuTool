@@ -49,6 +49,15 @@ private:
     };
 
     Laser_Calibration_Context context_laser_calib_;
+
+    class QMutexTryLocker {
+        QMutex &m_;
+        bool locked_;
+    public:
+        QMutexTryLocker(QMutex &m) : m_(m), locked_(m.tryLock()) {}
+        ~QMutexTryLocker() { if (locked_) m_.unlock(); }
+        bool isLocked() const { return locked_; }
+    };
 };
 
 #endif // UTRROBOT_QWRAPPER_H

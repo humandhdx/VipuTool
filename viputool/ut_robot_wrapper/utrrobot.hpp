@@ -111,6 +111,8 @@ private:
 
     bool Predicate_Robot_Moving_Without_Error();
 
+    void Print_Error_Info();
+
 };
 
 #endif // UTRROBOT_HPP

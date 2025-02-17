@@ -13,7 +13,8 @@ UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject
 
 bool UtraRobot_QWrapper::robot_connect()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -33,7 +34,8 @@ bool UtraRobot_QWrapper::robot_connect()
 
 bool UtraRobot_QWrapper::robot_drag_activate(bool on)
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -67,7 +69,8 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
 
 bool UtraRobot_QWrapper::test_graivty_and_spin()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -85,7 +88,8 @@ bool UtraRobot_QWrapper::test_graivty_and_spin()
 
 bool UtraRobot_QWrapper::test_accuracy_and_spin()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -103,7 +107,8 @@ bool UtraRobot_QWrapper::test_accuracy_and_spin()
 
 bool UtraRobot_QWrapper::test_workspace_and_spin()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -121,7 +126,8 @@ bool UtraRobot_QWrapper::test_workspace_and_spin()
 
 bool UtraRobot_QWrapper::test_repeatability_and_spin()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
@@ -181,7 +187,8 @@ bool UtraRobot_QWrapper::laserCalib_load_file(QString filePath)
 
 bool UtraRobot_QWrapper::laserCalib_Robot_MoveTo_NextPos_and_spin()
 {
-    if(!mutext.tryLock())
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
     {
         qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
         return false;
