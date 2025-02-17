@@ -5,9 +5,11 @@
  * Author: Jimy Zhang <jimy.zhang@umbratek.com> <jimy92@163.com>
  ============================================================================*/
 #include "socket_udp.h"
+
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include "linuxcvl.h"
 #include "print.h"
 
@@ -30,16 +32,21 @@ SocketUdp::SocketUdp(char *ip, int port, int rxque_max, SerialDecode *decode, in
     is_decode_ = true;
 
   flush();
-  recv_task_ = new RtPeriodicMemberFun<SocketUdp>(0, "recv_task", 1024 * 1024, priority, &SocketUdp::recv_proc, this);
+  recv_task_ = new RtPeriodicMemberFun<SocketUdp>(00003, "recv_task", 1024 * 1024, priority, &SocketUdp::recv_proc, this);
   recv_task_->start();
 }
 
 SocketUdp::~SocketUdp(void) {
   is_error_ = true;
-  delete recv_task_;
-  delete rx_que_;
+  if (recv_task_ != NULL) {
+    close_port();
+    recv_task_->stop();
+    delete recv_task_;
+  }
+  if (rx_que_ != NULL) delete rx_que_;
 }
 
+bool SocketUdp::is_ok(void) { return !is_error_; }
 bool SocketUdp::is_error(void) { return is_error_; }
 
 void SocketUdp::close_port(void) {

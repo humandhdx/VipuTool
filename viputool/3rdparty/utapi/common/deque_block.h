@@ -9,110 +9,103 @@
 
 #pragma once
 
-#include "linuxcvl.h"
-#include "queue_memcpy.h"
 #include <condition_variable>
 #include <deque>
 #include <mutex>
+#include "linuxcvl.h"
+#include "queue_memcpy.h"
 
-template<class T>
+template <class T>
 class BlockDeque {
-public:
-    BlockDeque(int max_size = 1)
-    {
-        ts_.tv_sec = 0;
-        ts_.tv_nsec = 1000;
-        que_ = new QueueMemcpy<T>(max_size);
-    }
+ public:
+  BlockDeque(int max_size = 1) {
+    ts_.tv_sec = 0;
+    ts_.tv_nsec = 1000;
+    que_ = new QueueMemcpy<T>(max_size);
+  }
 
-    ~BlockDeque(void) { delete que_; }
+  ~BlockDeque(void) { delete que_; }
 
-    int flush(void) { return que_->clear(); }
+  int flush(void) { return que_->clear(); }
 
-    int clear(void) { return flush(); }
+  int clear(void) { return flush(); }
 
-    int push(T* data, bool is_block = true)
-    {
-        std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);  //初始化时是默认上锁的
-        if (lock.owns_lock()) {
-            if (que_->is_full()) {
-                if (is_block) {
-                    while (que_->is_full()) m_not_full_.wait(lock);
-                }
-                else {
-                    //que_->pop(&temp_data_);
-                    return -1;
-                }
-            }
+  int push(T *data, bool is_block = true) {
+    std::unique_lock<std::mutex> lock(mutex_);  // 初始化时是默认上锁的
 
-            int ret = que_->push_back(data);
-            m_not_empty_.notify_all();
-            return ret;
-        }
+    if (que_->is_full()) {
+      if (is_block) {
+        while (que_->is_full()) m_not_full_.wait(lock);
+      } else {
+        // que_->pop(&temp_data_);
         return -1;
+      }
     }
 
-    int push_back(T* data, bool is_block = true) { return push(data, is_block); }
+    int ret = que_->push_back(data);
+    m_not_empty_.notify_all();
+    return ret;
+  }
 
-    int pop(T* data, float timeout_s = 0.001)
-    {
-        //当前有数据，直接获取
+  int push_back(T *data, bool is_block = true) { return push(data, is_block); }
+
+  int pop(T *data, float timeout_s = 0) {
+    // 当前有数据，直接获取
+    if (!que_->empty()) {
+      que_->pop(data);
+      m_not_full_.notify_all();
+      return 0;
+    }
+
+    // 当前没数据，有限时间阻塞等待
+    long timeout_us = (int)(timeout_s * 1000000);
+    if (timeout_us > 0) {
+      time_start_us_ = LinuxCvl::get_us();
+      while (true) {
         if (!que_->empty()) {
-            que_->pop(data);
-            m_not_full_.notify_all();
-            return 0;
+          que_->pop(data);
+          m_not_full_.notify_all();
+          return 0;
         }
 
-        //当前没数据，有限时间阻塞等待
-        long timeout_us = (int)(timeout_s * 1000000);
-        if (timeout_us > 0) {
-            time_start_us_ = LinuxCvl::get_us();
-            while (true) {
-                if (!que_->empty()) {
-                    que_->pop(data);
-                    m_not_full_.notify_all();
-                    return 0;
-                }
-
-                time_curr_us_ = LinuxCvl::get_us();
-                if ((time_curr_us_ - time_start_us_) > timeout_us) return -1;
-                nanosleep(&ts_, NULL);
-            }
-        }
-
-        //当前没数据，无时间限制阻塞等待
-        std::unique_lock<std::mutex> lock(mutex_);
-        while (que_->empty()) {
-            m_not_empty_.wait(lock);
-        }
-
-        int ret = que_->pop(data);
-        m_not_full_.notify_all();
-        return ret;
+        time_curr_us_ = LinuxCvl::get_us();
+        if ((time_curr_us_ - time_start_us_) > timeout_us) return -1;
+        nanosleep(&ts_, NULL);
+      }
     }
 
-    int begin(T* data, float timeout_s = 0) { return pop(data, timeout_s); }
+    // 当前没数据，无时间限制阻塞等待
+    std::unique_lock<std::mutex> lock(mutex_);
+    while (que_->empty()) {
+      m_not_empty_.wait(lock);
+    }
 
-    size_t size() { return que_->size(); }
+    int ret = que_->pop(data);
+    m_not_full_.notify_all();
+    return ret;
+  }
 
-    bool is_full() { return que_->is_full(); }
+  int begin(T *data, float timeout_s = 0) { return pop(data, timeout_s); }
 
-    bool empty() { return que_->empty(); }
+  size_t size() { return que_->size(); }
 
-    bool is_empty() { return que_->empty(); }
+  bool is_full() { return que_->is_full(); }
 
-    int get(T* data) { return que_->get(data); }
+  bool empty() { return que_->empty(); }
+  bool is_empty() { return que_->empty(); }
 
-private:
-    QueueMemcpy<T>* que_;
-    T temp_data_;
-    struct timespec ts_;
-    signed long long time_start_us_;
-    signed long long time_curr_us_;
+  int get(T *data) { return que_->get(data); }
 
-    std::mutex mutex_;
-    std::condition_variable m_not_empty_;
-    std::condition_variable m_not_full_;
+ private:
+  QueueMemcpy<T> *que_;
+  T temp_data_;
+  struct timespec ts_;
+  signed long long time_start_us_;
+  signed long long time_curr_us_;
+
+  std::mutex mutex_;
+  std::condition_variable m_not_empty_;
+  std::condition_variable m_not_full_;
 };
 
 #endif
