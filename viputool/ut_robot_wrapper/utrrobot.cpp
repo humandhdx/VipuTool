@@ -39,7 +39,7 @@ bool UtrRobot::InitRobot()
 
     utra_report_ = new UtraReportStatus100Hz(config_.ip.data(), 7);
 
-    if(!utra_report_->is_error())
+    if(utra_report_->is_error())
     {
         std::cout << __FUNCTION__ << " UtraReportStatus100Hz connection failed" << std::endl;;
         return false;

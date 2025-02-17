@@ -45,6 +45,7 @@ qt_add_executable(${PROJECT_NAME}
     handeyecalculate.h handeyecalculate.cpp
     ${src_robot_wrapper}
     logger.h logger.cpp
+    filedialogwrap.h filedialogwrap.cpp
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")

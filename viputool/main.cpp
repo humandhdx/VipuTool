@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <filedialogwrap.h>
 #include "cameramanager.h"
 #include "imageprovider.h"
 #include "sshmanager.h"
@@ -11,12 +12,15 @@
 #include "handeyecalculate.h"
 #include "ut_robot_wrapper/utrrobotqwrapper.hpp"
 #include <QtMessageHandler>
+#include "filedialogwrap.h"
 int main(int argc, char *argv[])
 {
     //QQuickWindow::setSceneGraphBackend("opengl");
-    QGuiApplication  app(argc, argv);
+    //QGuiApplication  app(argc, argv);
+    QApplication app(argc, argv);
     logger* logInstance = logger::instance();
     qInstallMessageHandler(logger::myMessageHandler);
+    qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     //camera

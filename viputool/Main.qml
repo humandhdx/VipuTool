@@ -101,13 +101,12 @@ Window {
                 font.pixelSize: 24
                 text: qsTr("等待完成")
             }
-            BusyIndicator {
+            BusyLoder{
                 anchors.centerIn: parent
                 implicitWidth: 96
                 implicitHeight: 96
-                opacity: 1.0
             }
-       }
+        }
         Overlay.modal:Rectangle{
             color: Qt.rgba(0, 0, 0, 0.5)
         }

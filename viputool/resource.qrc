@@ -4,5 +4,6 @@
         <file>GlobalCameraCalibration.qml</file>
         <file>HandEyeCalibration.qml</file>
         <file>FollowCmaeraCalibration.qml</file>
+        <file>BusyLoder.qml</file>
     </qresource>
 </RCC>
