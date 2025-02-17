@@ -4,6 +4,8 @@
 #include <QEventLoop>
 #include <future>
 
+#define RAD_TO_DEGREE (180.0/3.14)
+
 UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject *parent):QObject(parent), UtrRobot(config)
 {
     connect(&timer_refresh_robot_joint_pos_, &QTimer::timeout, this, &UtraRobot_QWrapper::refresh_Robot_Joint_Pos);
@@ -216,7 +218,7 @@ QVariantList UtraRobot_QWrapper::convert_JPos_To_VariantList(UtRobotConfig::Join
     QVariantList list;
     for(auto singleJointPos: Jpos)
     {
-        list.append(singleJointPos);
+        list.append(singleJointPos * RAD_TO_DEGREE);
     }
     return list;
 }

@@ -392,7 +392,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm1Jpos
+                                text: arm1Jpos.toFixed(1)
                             }
                         }
                     }
@@ -417,7 +417,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm2Jpos
+                                text: arm2Jpos.toFixed(1)
                             }
                         }
                     }
@@ -430,7 +430,7 @@ Item {
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节3:"+arm3Jpos)
+                            text: qsTr("关节3:")
                             font.pixelSize: 12
                         }
                         Rectangle{
@@ -445,7 +445,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm3Jpos
+                                text: arm3Jpos.toFixed(1)
                             }
                         }
                     }
@@ -470,7 +470,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm4Jpos
+                                text: arm4Jpos.toFixed(1)
                             }
                         }
                     }
@@ -498,7 +498,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm5Jpos
+                                text: arm5Jpos.toFixed(1)
                             }
                         }
                     }
@@ -523,7 +523,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm6Jpos
+                                text: arm6Jpos.toFixed(1)
                             }
                         }
                     }
@@ -549,7 +549,7 @@ Item {
                             anchors.left: parent.left
                             anchors.leftMargin: 20
                             anchors.verticalCenter: parent.verticalCenter
-                            text: arm7Jpos
+                            text: arm7Jpos.toFixed(1)
                         }
                     }
                 }
@@ -579,6 +579,13 @@ Item {
     Connections{
         target: urtrobot_right
         function onUpdate_Robot_Joint_Pos (current_Jpos){
+            arm1Jpos=current_Jpos[0]
+            arm2Jpos=current_Jpos[1]
+            arm3Jpos=current_Jpos[2]
+            arm4Jpos=current_Jpos[3]
+            arm5Jpos=current_Jpos[4]
+            arm6Jpos=current_Jpos[5]
+            arm7Jpos=current_Jpos[6]
 
         }
     }
