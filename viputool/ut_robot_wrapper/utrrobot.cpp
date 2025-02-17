@@ -8,6 +8,7 @@
 #define DALAY_MS_TEACH_TO_POSITION_MODE 1050
 
 UtrRobot::UtrRobot(UtRobotConfig::TestConfig config):config_{config} {
+    memset(&this->rx_data_, 0x00, sizeof(this->rx_data_));
 }
 
 UtrRobot::~UtrRobot()
@@ -27,6 +28,11 @@ UtrRobot::~UtrRobot()
 
 bool UtrRobot::InitRobot()
 {
+    if(is_robot_connected)
+    {
+        return true;
+    }
+
     ubot_ = new UtraApiTcp(config_.ip.data());
 
     is_robot_connected = !ubot_->is_error();
