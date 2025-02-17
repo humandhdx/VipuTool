@@ -25,14 +25,20 @@ public:
 
     Q_INVOKABLE bool laserCalib_load_file(QString filePath);
     Q_INVOKABLE bool laserCalib_Robot_MoveTo_NextPos_and_spin();
+    Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
+
+    bool arm_connect() const;
+    void setArm_connect(bool newArm_connect);
 
 signals:
     //robotIndex:  0->left 1-right
-    void update_Robot_Joint_Pos(QVariant jointpos);
+    void update_Robot_Joint_Pos(QVariantList jointpos);
     void laserCalib_file_loaded(int pos_number);
     void laserCalib_next_pos_updated(int pos_number);
     void Robot_Drag_Activate(bool activate);
     void Robot_Connection_State_Updated(bool connect);
+
+    void arm_connectChanged();
 
 private:
     QMutex mutext;
@@ -58,6 +64,7 @@ private:
         ~QMutexTryLocker() { if (locked_) m_.unlock(); }
         bool isLocked() const { return locked_; }
     };
+    bool m_arm_connect=false;
 };
 
 #endif // UTRROBOT_QWRAPPER_H

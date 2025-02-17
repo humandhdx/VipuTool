@@ -4,11 +4,19 @@ import Qt.labs.platform
 import VTool 1.0
 Item {
     property bool isCamera: false
-    property bool isArmConnect: false
+    property bool isArmConnect: urtrobot_right.arm_connect
     property bool isCalibrtion: false
     property string capturePath: ""
+    property double arm1Jpos: 0
+    property double arm2Jpos: 0
+    property double arm3Jpos: 0
+    property double arm4Jpos: 0
+    property double arm5Jpos: 0
+    property double arm6Jpos: 0
+    property double arm7Jpos: 0
     Component.onCompleted: {
         cameraManager.resetCaptureCount()
+        capturePath=cameraManager.currentDirectory()
     }
     Component.onDestruction: {
         cameraManager.stopCamera()
@@ -32,28 +40,80 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 20
         spacing: 10
-        Button{
-            width: 200
-            height: 40
-            text: "开启相机"
-            onClicked: {
-                isCamera= cameraManager.startCamera(2)
+        Row{
+            spacing: 20
+            Button{
+                width: 200
+                height: 40
+                text: "开启相机"
+                onClicked: {
+                    isCamera= cameraManager.startCamera(2)
+                }
+            }
+            Item {
+                width: 200
+                height: 40
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("连接状态:")
+                    font.pixelSize: 12
+                }
+                Rectangle{
+                    anchors.right: parent.right
+                    width: 140
+                    height: 40
+                    radius: 5
+                    color: "#F5F5F5"
+                    border.width: 1
+                    border.color: "#c9c9c9"
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: isCamera?qsTr("已连接"):qsTr("未连接")
+                        color: isCamera?"green":"red"
+                    }
+                }
             }
         }
-        Button{
-            width: 200
-            height: 40
-            text: "采集图片"
-            enabled: isCamera
-            onClicked: {
-                if(capturePath===""){
-                    nopath.visible=true
-                    return
-                }
-                enabled=false
-                cameraManager.captureImage(capturePath,1)
-                enabled=true
+        Row{
+            spacing: 20
+            Button{
+                width: 200
+                height: 40
+                text: "采集图片"
+                enabled: isCamera
+                onClicked: {
+                    if(capturePath===""){
+                        nopath.visible=true
+                        return
+                    }
+                    enabled=false
+                    cameraManager.captureImage(capturePath,1)
+                    enabled=true
 
+                }
+            }
+            Item {
+                width: 200
+                height: 40
+                Text {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("采集次数:")
+                    font.pixelSize: 12
+                    color: isCamera?"#000":"#c9c9c9"
+                }
+                Rectangle{
+                    anchors.right: parent.right
+                    width: 140
+                    height: 40
+                    radius: 5
+                    color: "#F5F5F5"
+                    border.width: 1
+                    border.color: "#c9c9c9"
+                }
             }
         }
         Row{
@@ -70,6 +130,7 @@ Item {
                     anchors.left: parent.left
                     anchors.leftMargin: 10
                     anchors.verticalCenter: parent.verticalCenter
+                    font.pixelSize: 12
                     text: qsTr("保存路径："+capturePath)
                 }
                 Rectangle{
@@ -96,6 +157,7 @@ Item {
                 height: 40
                 text: "修改地址"
                 onClicked: {
+                    folderDialog.selectUrl(capturePath)
                     folderDialog.open()
                     //var result = cameraManager.getCaptureImageSavePath()
                     // if(result!==""){
@@ -192,7 +254,7 @@ Item {
                         text: "连接机械臂"
                         onClicked: {
                             mask.open()
-                            isArmConnect= urtrobot_right.robot_connect()
+                            var result= urtrobot_right.robot_connect()
                             mask.close()
                         }
                     }
@@ -213,6 +275,13 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: isArmConnect?qsTr("已连接"):qsTr("未连接")
+                                color: isArmConnect?"green":"red"
+                            }
                         }
                     }
                 }
@@ -303,6 +372,12 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm1Jpos
+                            }
                         }
                     }
                     Item {
@@ -322,9 +397,14 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm2Jpos
+                            }
                         }
                     }
-
                 }
                 Row{
                     spacing: 20
@@ -334,7 +414,7 @@ Item {
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节3:")
+                            text: qsTr("关节3:"+arm3Jpos)
                             font.pixelSize: 12
                         }
                         Rectangle{
@@ -345,6 +425,12 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm3Jpos
+                            }
                         }
                     }
                     Item {
@@ -364,6 +450,12 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm4Jpos
+                            }
                         }
                     }
                 }
@@ -386,6 +478,12 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm5Jpos
+                            }
                         }
                     }
                     Item {
@@ -405,9 +503,14 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: arm6Jpos
+                            }
                         }
                     }
-
                 }
                 Item {
                     width: 235
@@ -426,6 +529,12 @@ Item {
                         color: "#F5F5F5"
                         border.width: 1
                         border.color: "#c9c9c9"
+                        Text {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 20
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: arm7Jpos
+                        }
                     }
                 }
             }
@@ -451,28 +560,21 @@ Item {
             }
         }
     }
-    // FolderDialog {
-    //     id: folderDialog
-    //     title: qsTr("选择图片保存路径")
-    //     folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-    //     onAccepted: {
-    //         console.log("你选择的文件夹为: " + folderDialog.folder)
-    //         var localFolder = folderDialog.folder.toString().replace("file://", "");
-    //         capturePath=localFolder
-    //         nopath.visible=false
-    //     }
-    //     onRejected: {
-    //         console.log("取消选择")
-    //     }
-    // }
     VFileDialog {
         id: folderDialog
         mode: VFileDialog.SelectDir
+        title:"选择图片保存的文件路径"
         onAccepted: {
             console.log("你选择的文件夹为:"+ folderDialog.currentUrl.toString().replace("file://", ""))
             var localFolder = folderDialog.currentUrl.toString().replace("file://", "");
             capturePath=localFolder
             nopath.visible=false
+        }
+    }
+    Connections{
+        target: urtrobot_right
+        function onUpdate_Robot_Joint_Pos (current_Jpos){
+
         }
     }
     Connections{
@@ -504,5 +606,18 @@ Item {
             image.source="image://GrImg/"
         }
     }
-
+    // FolderDialog {
+    //     id: folderDialog
+    //     title: qsTr("选择图片保存路径")
+    //     folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+    //     onAccepted: {
+    //         console.log("你选择的文件夹为: " + folderDialog.folder)
+    //         var localFolder = folderDialog.folder.toString().replace("file://", "");
+    //         capturePath=localFolder
+    //         nopath.visible=false
+    //     }
+    //     onRejected: {
+    //         console.log("取消选择")
+    //     }
+    // }
 }

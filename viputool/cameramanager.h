@@ -41,6 +41,9 @@ public slots:
     QString getCaptureImageSavePath();
     bool captureImage(QString path,CalibritionType type);
     void resetCaptureCount();
+    QString currentDirectory() const {
+        return QDir::currentPath();
+    }
 private:
     void init_cam();
     bool start_left_capture();

@@ -27,9 +27,9 @@ bool UtraRobot_QWrapper::robot_connect()
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    setArm_connect(executionResult);
     emit Robot_Connection_State_Updated(this->is_robot_connected);
-    return this->is_robot_connected;
+    return executionResult;
 }
 
 bool UtraRobot_QWrapper::robot_drag_activate(bool on)
@@ -226,4 +226,17 @@ void UtraRobot_QWrapper::refresh_Robot_Joint_Pos()
     UtRobotConfig::JointPos current_Jpos;
     this->getJointPos(current_Jpos);
     emit update_Robot_Joint_Pos(convert_JPos_To_VariantList(current_Jpos));
+}
+
+bool UtraRobot_QWrapper::arm_connect() const
+{
+    return m_arm_connect;
+}
+
+void UtraRobot_QWrapper::setArm_connect(bool newArm_connect)
+{
+    if (m_arm_connect == newArm_connect)
+        return;
+    m_arm_connect = newArm_connect;
+    emit arm_connectChanged();
 }
