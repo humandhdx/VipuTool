@@ -42,7 +42,7 @@ public slots:
     bool captureImage(QString path,CalibritionType type);
     void resetCaptureCount();
     QString currentDirectory() const {
-        return QDir::currentPath();
+        return QDir::currentPath()+"/HandEyeImages";
     }
 private:
     void init_cam();

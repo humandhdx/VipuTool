@@ -14,6 +14,8 @@ Item {
     property double arm5Jpos: 0
     property double arm6Jpos: 0
     property double arm7Jpos: 0
+    property int captureCount: 0
+    property int saveArmCount: 0
     Component.onCompleted: {
         cameraManager.resetCaptureCount()
         capturePath=cameraManager.currentDirectory()
@@ -91,6 +93,7 @@ Item {
                     }
                     enabled=false
                     cameraManager.captureImage(capturePath,1)
+                    captureCount++
                     enabled=true
 
                 }
@@ -113,6 +116,12 @@ Item {
                     color: "#F5F5F5"
                     border.width: 1
                     border.color: "#c9c9c9"
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: captureCount
+                    }
                 }
             }
         }
@@ -132,6 +141,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     font.pixelSize: 12
                     text: qsTr("保存路径："+capturePath)
+                    elide: Text.ElideRight
                 }
                 Rectangle{
                     id:nopath
@@ -157,13 +167,8 @@ Item {
                 height: 40
                 text: "修改地址"
                 onClicked: {
-                    folderDialog.selectUrl(capturePath)
+                    folderDialog.currentFolder =capturePath
                     folderDialog.open()
-                    //var result = cameraManager.getCaptureImageSavePath()
-                    // if(result!==""){
-                    //    capturePath=  result;
-                    //    nopath.visible=false
-                    // }
                 }
             }
         }
@@ -293,7 +298,9 @@ Item {
                         text: "自由拖拽"
                         enabled: isArmConnect
                         onClicked: {
-                            //mask.open()
+                            mask.open()
+                            var result= urtrobot_right.robot_drag_activate(true)
+                            mask.close()
                         }
                     }
                     Button{
@@ -302,7 +309,10 @@ Item {
                         enabled: isArmConnect
                         text: "保持&&记录"
                         onClicked: {
-                            //mask.open()
+                            mask.open()
+                            var result= urtrobot_right.robot_drag_activate(false)
+                            saveArmCount++
+                            mask.close()
                         }
                     }
                     Item {
@@ -322,6 +332,12 @@ Item {
                             color: "#F5F5F5"
                             border.width: 1
                             border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: saveArmCount
+                            }
                         }
                     }
                 }
@@ -560,17 +576,6 @@ Item {
             }
         }
     }
-    VFileDialog {
-        id: folderDialog
-        mode: VFileDialog.SelectDir
-        title:"选择图片保存的文件路径"
-        onAccepted: {
-            console.log("你选择的文件夹为:"+ folderDialog.currentUrl.toString().replace("file://", ""))
-            var localFolder = folderDialog.currentUrl.toString().replace("file://", "");
-            capturePath=localFolder
-            nopath.visible=false
-        }
-    }
     Connections{
         target: urtrobot_right
         function onUpdate_Robot_Joint_Pos (current_Jpos){
@@ -606,18 +611,29 @@ Item {
             image.source="image://GrImg/"
         }
     }
-    // FolderDialog {
+    FolderDialog {
+        id: folderDialog
+        title: qsTr("选择图片保存路径")
+        folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+        onAccepted: {
+            var localFolder = folderDialog.folder.toString().replace("file://", "");
+            console.log("你选择的文件夹为: " + localFolder)
+            capturePath=localFolder
+            nopath.visible=false
+        }
+        onRejected: {
+            console.log("取消选择")
+        }
+    }
+    // VFileDialog {
     //     id: folderDialog
-    //     title: qsTr("选择图片保存路径")
-    //     folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
+    //     mode: VFileDialog.SelectDir
+    //     //title:"选择图片保存的文件路径"
     //     onAccepted: {
-    //         console.log("你选择的文件夹为: " + folderDialog.folder)
-    //         var localFolder = folderDialog.folder.toString().replace("file://", "");
+    //         console.log("你选择的文件夹为:"+ folderDialog.currentUrl.toString().replace("file://", ""))
+    //         var localFolder = folderDialog.currentUrl.toString().replace("file://", "");
     //         capturePath=localFolder
     //         nopath.visible=false
-    //     }
-    //     onRejected: {
-    //         console.log("取消选择")
     //     }
     // }
 }

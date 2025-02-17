@@ -159,12 +159,18 @@ void FileDialogWrap::openDialog()
     break;
     case SelectDir:
     {
-        dialog->setOption(QFileDialog::ShowDirsOnly);
-        //参考源码中的写法
-        QT_WARNING_PUSH
-            QT_WARNING_DISABLE_DEPRECATED
-                dialog->setFileMode(QFileDialog::Directory);
-        QT_WARNING_POP
+        dialog->setFileMode(QFileDialog::Directory);
+        dialog->setOption(QFileDialog::ShowDirsOnly, true);
+        dialog->setOption(QFileDialog::DontUseNativeDialog, true);  // 强制使用 Qt 自带对话框
+        dialog->setFilter(QDir::AllDirs); // 支持隐藏文件
+        dialog->setNameFilters(QStringList() << "All Files (*.*)"); // 允许显示所有文件和目录
+        dialog->selectUrl(nextUrl);
+        // dialog->setOption(QFileDialog::ShowDirsOnly);
+        // //参考源码中的写法
+        // QT_WARNING_PUSH
+        //     QT_WARNING_DISABLE_DEPRECATED
+        //         dialog->setFileMode(QFileDialog::Directory);
+        // QT_WARNING_POP
 
     }
     break;
