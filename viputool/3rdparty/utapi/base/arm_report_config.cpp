@@ -1,5 +1,6 @@
 
 #include "base/arm_report_config.h"
+
 #include "common/hex_data.h"
 #include "common/print.h"
 
@@ -7,9 +8,19 @@ ArmReportConfig::ArmReportConfig(void) {}
 ArmReportConfig::ArmReportConfig(Socket* socket_fp) { arminit(socket_fp); }
 ArmReportConfig::~ArmReportConfig(void) {
   is_error_ = true;
-  delete socket_fp_;
+  if (recv_task_ != NULL) {
+    recv_task_->stop();
+    delete recv_task_;
+  }
 }
 void ArmReportConfig::arminit(Socket* socket_fp) {
+  if (recv_task_ != NULL) {
+    if (recv_task_ != NULL) {
+      socket_fp->close_port();
+      recv_task_->stop();
+      delete recv_task_;
+    }
+  }
   frame_len = 80;
   socket_fp_ = socket_fp;
   recv_task_ = new RtPeriodicMemberFun<ArmReportConfig>(0.0005, "recv_task", 1024 * 512, 30, &ArmReportConfig::recv_proc, this);
@@ -27,7 +38,7 @@ bool ArmReportConfig::is_update(void) {
 }
 
 void ArmReportConfig::recv_proc(void) {
-  int ret = socket_fp_->read_frame(&rxdata_, 0);
+  int ret = socket_fp_->read_frame(&rxdata_, 0.00003);
   if (ret == 0) flush_data(rxdata_.data, rxdata_.len);
 }
 

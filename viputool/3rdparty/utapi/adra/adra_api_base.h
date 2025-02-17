@@ -121,12 +121,17 @@ class AdraApiBase : private ServoApiBase {
   int set_tau_adrc_param(int id, uint8_t i, float param);
 
   int set_cpos_target(uint8_t sid, uint8_t eid, float* pos);
+  int set_cvel_target(uint8_t sid, uint8_t eid, float* vel);
   int set_ctau_target(uint8_t sid, uint8_t eid, float* tau);
   int set_cpostau_target(uint8_t sid, uint8_t eid, float* pos, float* tau);
   int set_cposvel_target(uint8_t sid, uint8_t eid, float* pos, float* vel);
   int get_spostau_current(uint8_t id, int* num, float* pos, float* tau);
   int get_cpostau_current(uint8_t sid, uint8_t eid, int* num, float* pos, float* tau, int* ret);
   int get_cpvt_current(uint8_t sid, uint8_t eid, int* num, float* pos, float* vel, float* tau, int* ret);
+
+  int cal_linear_svpwm(int id);
+  int cal_electrical(int id);
+  int cal_multi(int id);
 
  private:
 };

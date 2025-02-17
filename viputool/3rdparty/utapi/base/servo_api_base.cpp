@@ -473,6 +473,23 @@ int ServoApiBase::set_cposvel_target_(uint8_t sid, uint8_t eid, float* pos, floa
   return 0;
 }
 
+int ServoApiBase::set_cvel_target_(uint8_t sid, uint8_t eid, float* vel) {
+  int num = eid - sid + 1;
+
+  uint8_t data[4 * num + 2];
+  data[0] = sid;
+  data[1] = eid;
+  HexData::fp32_to_hex_big(vel, &data[2], num);
+
+  pthread_mutex_lock(&mutex_);
+  id_ = 0x55;
+  utrc_tx_.slave_id = id_;
+  reg_.CVEL_TARGET[3] = 2 + 4 * num;
+  send(SERVO_RW::W, reg_.CVEL_TARGET[0], num * 4 + 2, data);
+  pthread_mutex_unlock(&mutex_);
+  return 0;
+}
+
 int ServoApiBase::get_spostau_current_(int id, int* num, float* pos, float* tau) {
   pthread_mutex_lock(&mutex_);
   int ret = sendpend(id, SERVO_RW::R, reg_.SPOSTAU_CURRENT, NULL);
@@ -565,3 +582,9 @@ int ServoApiBase::get_cpvt_current_(uint8_t sid, uint8_t eid, int* num, float* p
 
   return temp;
 }
+
+int ServoApiBase::cal_linear_svpwm_(int id) {
+  return set_reg_int8(id, (reg_.CAL_LINEAR_SVPWM[0] & 0x0F) | 0xA0, reg_.CAL_LINEAR_SVPWM);
+}
+int ServoApiBase::cal_electrical_(int id) { return set_reg_int8(id, (reg_.CAL_ELEC[0] & 0x0F) | 0xA0, reg_.CAL_ELEC); }
+int ServoApiBase::cal_multi_(int id) { return set_reg_int8(id, (reg_.CAL_MULTI[0] & 0x0F) | 0xA0, reg_.CAL_MULTI); }

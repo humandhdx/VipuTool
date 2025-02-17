@@ -14,6 +14,7 @@ class UtraApiTcp : public ArmApiBase {
  public:
   UtraApiTcp(char *ip);
   ~UtraApiTcp(void);
+
  private:
   UtrcDecode *utrc_decode_ = NULL;
   SocketTcp *socket_tcp_ = NULL;
