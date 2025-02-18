@@ -1,5 +1,7 @@
 #include "cameramanager.h"
 #include <QThread>
+#include <QEventLoop>
+
 
 cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(CalibritionType::Null),
     left_id_(-1),
@@ -12,8 +14,7 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     failed_count_middle_(0),
     failed_count_right_(0),
     handeye_image_count_(0),
-    global_left_image_count_(0),
-    global_right_image_count_(0),
+    global_cali_count_(0),
     middle_image_count_(0)
 {
     buff_left_ = new uchar[4000 * 3000];
@@ -71,20 +72,17 @@ void cameraManager::stopCamera()
     shutdown_middlecapture();
 }
 
-QString cameraManager::getCaptureImageSavePath()
+bool cameraManager::start_camera_capture(QString path, CalibritionType type)
 {
-    QString savePath=QString();
-    if (savePath.isEmpty()) {
-        savePath = QFileDialog::getExistingDirectory(nullptr,
-                                                     tr("选择保存图片的文件夹"),
-                                                     QStandardPaths::writableLocation(QStandardPaths::PicturesLocation));
-
-        if (savePath.isEmpty()) {
-            qWarning() << "用户取消了保存路径选择";
-            return QString();
-        }
-    }
-    return savePath;
+    QEventLoop spinner;
+    bool executionResult=false;
+    std::future<bool> fut=std::async(std::launch::async ,[&spinner,&executionResult,&path,&type,this](){
+        executionResult=this->captureImage(path,type);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
 }
 
 bool cameraManager::captureImage(QString path, CalibritionType type)
@@ -104,36 +102,35 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
         save_path = oss.str();
         result = cv::imwrite(save_path, right_image_0_);
         if (result) {
-            std::cout << "图像已成功保存到: " << save_path << std::endl;
+            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
         } else {
-            std::cerr << "保存图像失败" << std::endl;
+            qDebug()<< "保存图像失败" ;
         }
         break;
     case CalibritionType::GlobalCalibrition:
         if(right_image_0_.empty()||left_image_0_.empty()){
             return false;
         }
-         global_left_image_count_++;
-         global_right_image_count_++;
+        global_cali_count_++;
         oss << path.toStdString() << "/Global_Left_Image"
-            << std::setw(3) << std::setfill('0') << global_left_image_count_
+            << std::setw(3) << std::setfill('0') << global_cali_count_
             << ".jpg";
         save_path = oss.str();
         result = cv::imwrite(save_path, left_image_0_);
         if (result) {
-            std::cout << "图像已成功保存到: " << save_path << std::endl;
+            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
         } else {
-            std::cerr << "保存图像失败" << std::endl;
+            qDebug()<< "保存图像失败" ;
         }
         oss << path.toStdString() << "/Global_Right_Image"
-            << std::setw(3) << std::setfill('0') << global_right_image_count_
+            << std::setw(3) << std::setfill('0') << global_cali_count_
             << ".jpg";
         save_path = oss.str();
         result = cv::imwrite(save_path, right_image_0_);
         if (result) {
-            std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
+            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
         } else {
-            std::cerr << "保存图像失败" << std::endl;
+            qDebug()<< "保存图像失败" ;
         }
         break;
     case CalibritionType::MiddleCalibrition:
@@ -147,9 +144,9 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
         save_path = oss.str();
         result = cv::imwrite(save_path, middle_image_0_);
         if (result) {
-            std::cout << "图像已成功保存到: " << path.toStdString() << std::endl;
+            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
         } else {
-            std::cerr << "保存图像失败" << std::endl;
+            qDebug()<< "保存图像失败" ;
         }
         break;
         break;
@@ -161,9 +158,51 @@ bool cameraManager::captureImage(QString path, CalibritionType type)
 
 void cameraManager::resetCaptureCount()
 {
-     handeye_image_count_=0;
-     global_left_image_count_=0;
-     global_right_image_count_=0;
+    handeye_image_count_=0;
+    global_cali_count_=0;
+
+}
+
+void cameraManager::clearCaptureCount(QString path,CalibritionType type)
+{
+    QDir dir(path);
+    QStringList filters;
+    QFileInfoList fileList;
+    switch (type) {
+    case CalibritionType::HandEyeCalibrition:
+        handeye_image_count_=0;
+        // 确保目录存在
+        if (!dir.exists()) {
+            qWarning() << "清空目录不存在：" << path;
+            return;
+        }
+        // 设置文件筛选器，删除所有 ".jpg" 文件
+         filters;
+        filters << "*.jpg" << "*.jpeg"; // 支持 jpg 和 jpeg
+        dir.setNameFilters(filters);
+        // 获取所有匹配的文件
+         fileList = dir.entryInfoList(QDir::Files);
+
+        // 删除文件
+        for (const QFileInfo &fileInfo : fileList) {
+            QString filePath = fileInfo.absoluteFilePath();
+            if (QFile::remove(filePath)) {
+                qDebug() << "已删除：" << filePath;
+            } else {
+                qWarning() << "删除失败：" << filePath;
+            }
+        }
+        qDebug() << "删除完成，共删除" << fileList.size() << "个文件。";
+        break;
+    case CalibritionType::GlobalCalibrition:
+        global_cali_count_=0;
+        break;
+    case CalibritionType::MiddleCalibrition:
+        middle_image_count_=0;
+        break;
+    default:
+        break;
+    }
 }
 
 void cameraManager::init_cam()
@@ -441,7 +480,7 @@ void cameraManager::capture_right()
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
             suc_capture_right_flag_ = true;
             if (camera_right_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                 std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                std::lock_guard<std::mutex> lck{mtx_camera_left_};
                 vec_buff_right_->clear();
                 vec_buff_right_->resize(rsize + 1);
                 vec_buff_right_->assign(buff_right_, buff_right_ + rsize);

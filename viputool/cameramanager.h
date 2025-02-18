@@ -38,9 +38,9 @@ public:
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
-    QString getCaptureImageSavePath();
-    bool captureImage(QString path,CalibritionType type);
+    bool start_camera_capture(QString path,CalibritionType type);
     void resetCaptureCount();
+    void clearCaptureCount(QString path,CalibritionType type);
     QString currentDirectory() const {
         return QDir::currentPath()+"/HandEyeImages";
     }
@@ -59,6 +59,8 @@ private:
     void shutdown_rightcapture();
     void shutdown_middlecapture();
     QImage cvMatToQImage(cv::Mat &mat);
+
+    bool captureImage(QString path,CalibritionType type);
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;
@@ -124,8 +126,7 @@ private:
     // 用于记录当前保存的图片编号
     int handeye_image_count_;
     int middle_image_count_;
-    int global_left_image_count_;
-    int global_right_image_count_;
+    int global_cali_count_;
 
 signals:
     void signalSendLeftImage(QImage image);

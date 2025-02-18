@@ -112,22 +112,190 @@ Window {
         }
 
     }
-
-    // Button{
-    //     width: 200
-    //     height: 50
-    //     text:"Switch"
-    //     property bool test: true
-    //     onClicked: {
-    //         if(test){
-    //             loader.source="qrc:/HandEyeCalibration.qml"
-    //         }
-    //         else{
-    //           loader.source="qrc:/CameraCalibration.qml"
-    //         }
-    //         test=!test
-    //     }
-    // }
-
-
+    /*
+    Row{
+        spacing: 20
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节1:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm1Jpos.toFixed(1)
+                }
+            }
+        }
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节2:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm2Jpos.toFixed(1)
+                }
+            }
+        }
+    }
+    Row{
+        spacing: 20
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节3:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm3Jpos.toFixed(1)
+                }
+            }
+        }
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节4:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm4Jpos.toFixed(1)
+                }
+            }
+        }
+    }
+    Row{
+        spacing: 20
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节5:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm5Jpos.toFixed(1)
+                }
+            }
+        }
+        Item {
+            width: 235
+            height: 40
+            Text {
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("关节6:")
+                font.pixelSize: 12
+            }
+            Rectangle{
+                anchors.right: parent.right
+                width: 175
+                height: 40
+                radius: 5
+                color: "#F5F5F5"
+                border.width: 1
+                border.color: "#c9c9c9"
+                Text {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: arm6Jpos.toFixed(1)
+                }
+            }
+        }
+    }
+    Item {
+        width: 235
+        height: 40
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            text: qsTr("关节7:")
+            font.pixelSize: 12
+        }
+        Rectangle{
+            anchors.right: parent.right
+            width: 175
+            height: 40
+            radius: 5
+            color: "#F5F5F5"
+            border.width: 1
+            border.color: "#c9c9c9"
+            Text {
+                anchors.left: parent.left
+                anchors.leftMargin: 20
+                anchors.verticalCenter: parent.verticalCenter
+                text: arm7Jpos.toFixed(1)
+            }
+        }
+    }
+    */
 }

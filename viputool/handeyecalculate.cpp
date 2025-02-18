@@ -2,7 +2,7 @@
 #include <QtConcurrent>
 handeyecalculate::handeyecalculate(QObject *parent):QObject{parent}
 {
-
+   arm_pose.clear();
 }
 
 handeyecalculate::~handeyecalculate()
@@ -10,27 +10,93 @@ handeyecalculate::~handeyecalculate()
 
 }
 
-void handeyecalculate::startCalibration()
+bool handeyecalculate::startCalibration(QString patternfolder,QString armposefile,QString camerafile)
 {
-    // 使用 QPointer 防止对象在后台线程中被意外销毁
-    QPointer<handeyecalculate> self(this);
-    QtConcurrent::run([self]() {
-        if (self)
-            self->runCalibration();
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult,&patternfolder,&armposefile,&camerafile,this](){
+        executionResult = this->runCalibration(patternfolder,armposefile,camerafile);
+        spinner.exit();
+        return executionResult;
     });
+    spinner.exec();
+    return executionResult;
 }
 
-bool handeyecalculate::runCalibration()
+bool handeyecalculate::recordArmPose(QVariantList armpose)
+{
+    // 预先分配足够的空间，避免多次扩容
+    std::vector<double> vecArmpose;
+    vecArmpose.reserve(armpose.size());
+    for(auto a :armpose){
+      vecArmpose.push_back(a.toDouble());
+    }
+    arm_pose.push_back(vecArmpose);
+    qDebug()<<"记录当前机械臂姿态成功："<<arm_pose.size();
+    emit arm_pose_countChanged();
+    return true;
+}
+
+QString handeyecalculate::saveArmPose()
+{
+    QString filename=QDir::currentPath()+"/arm_pose.txt";
+    std::ofstream ofs(filename.toStdString(),std::ios::out | std::ios::trunc);
+    if (!ofs) {
+        qDebug()<<"无法打开文件进行写入机械臂姿态";
+        return QString();
+    }
+    // 设置固定格式和精度（8位小数，根据示例数据）
+    ofs << std::fixed << std::setprecision(8);
+    // 遍历外层 vector
+    for (const auto &vec : arm_pose) {
+        // 如果每个子集必须有6个数据，可以进行检查
+        if (vec.size() != 6) {
+            std::cerr << "警告：子向量的元素数量不等于6，跳过该行。" << std::endl;
+            continue;
+        }
+        // 遍历子向量，将每个数据后跟一个空格（最后一个数据后不加空格）
+        for (size_t i = 0; i < vec.size(); ++i) {
+            ofs << vec[i];
+            if (i < vec.size() - 1)
+                ofs << " ";
+        }
+        ofs << "\n"; // 换行
+    }
+    ofs.close();
+    qDebug()<<"保存机械臂姿态成功："<<filename;
+    return filename;
+}
+
+bool handeyecalculate::resetCalibration()
+{
+    arm_pose.clear();
+    emit arm_pose_countChanged();
+    qDebug()<<"重置机械臂姿态数量成功";
+    return true;
+}
+
+bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile,QString camerafile)
 {
     //YAML::Node cfg = YAML::LoadFile(configPath);
-    int min_hand_eye_num = 30;//cfg["min_hand_eye_num"].as<int>();
+    int min_hand_eye_num = 5;//cfg["min_hand_eye_num"].as<int>();
     //std::string pattern_folder = cfg["image_folder"].as<std::string>();
     //std::string camera_file = cfg["camera_model_file"].as<std::string>();
     //std::string arm_pose_file = cfg["arm_pose_file"].as<std::string>();
-    QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
-    QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
-    QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
-
+    QString pattern_folder=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
+    QString arm_pose_file=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
+    QString camera_file=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
+    if (!QFile::exists(arm_pose_file)) {
+        qWarning()<< "图片保存路径不存在:" << pattern_folder;
+        return false;
+    }
+    if (!QFile::exists(arm_pose_file)) {
+        qWarning()<< "机械臂姿态文件不存在:" << pattern_folder;
+        return false;
+    }
+    if (!QFile::exists(camera_file)) {
+        qWarning()<< "全局相机参数文件不存在:" << camera_file;
+        return false;
+    }
     MonoCameraMat camera_model(camera_file.toStdString());
 
     std::vector<cv::String> image_files;
@@ -48,11 +114,10 @@ bool handeyecalculate::runCalibration()
     }
 
     std::vector<std::vector<double>> arm_pose = readArmPose(arm_pose_file.toStdString());
-    qDebug()<< "获取机械臂姿态成功 pattern size: " << arm_pose.size();
+    qDebug()<< "获取机械臂姿态数量: "<< arm_pose.size();
     //std::cout << "pattern size: " << arm_pose.size() << std::endl;
     if(arm_pose.size() != image_files.size()){
-        //std::cout << "image size != arm pose size! Hand eye fail!" << std::endl;
-        qDebug() << "image size != arm pose size! Hand eye fail!";
+        qDebug() << "图片数量和机械臂姿态数量不匹配手眼标定失败!";
         return 0;
     }
 
@@ -112,11 +177,8 @@ bool handeyecalculate::runCalibration()
     }
     else{
         qDebug() << "没有足够的有效图片，手眼标定失败";
+        return false;
     }
-    QMetaObject::invokeMethod(this, [this]() {
-            qDebug()<<"手眼标定结束";
-            emit calculateSucess();
-        }, Qt::QueuedConnection);
     return true;
 }
 
@@ -190,3 +252,10 @@ bool handeyecalculate::handEyeCalibration(const std::vector<CaliFrameInfo> &fram
 
     return true;
 }
+
+int handeyecalculate::arm_pose_count() const
+{
+    return arm_pose.size();
+}
+
+

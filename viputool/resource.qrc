@@ -5,5 +5,7 @@
         <file>HandEyeCalibration.qml</file>
         <file>FollowCmaeraCalibration.qml</file>
         <file>BusyLoder.qml</file>
+        <file>Image/Clear.svg</file>
+        <file>FueButton.qml</file>
     </qresource>
 </RCC>

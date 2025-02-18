@@ -25,20 +25,28 @@ struct CaliFrameInfo
 class handeyecalculate:public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int arm_pose_count READ arm_pose_count  NOTIFY arm_pose_countChanged FINAL)
 public:
     handeyecalculate(QObject *parent = nullptr);
     ~handeyecalculate();
 
+    int arm_pose_count() const;
+
 public slots:
-     void startCalibration();
+     bool startCalibration(QString patternfolder,QString armposefile,QString camerafile);
+     bool recordArmPose(QVariantList armpose);
+     QString saveArmPose();
+     bool resetCalibration();
 
 private:
     std::vector<std::vector<double>> readArmPose(const std::string &path);
     bool handEyeCalibration(const std::vector<CaliFrameInfo> &frame_list, std::vector<double> &pose, int min_num);
-    bool runCalibration();
+    bool runCalibration(QString patternfolder,QString armpose_file,QString camerafile);
+    std::vector<std::vector<double> > arm_pose;
+
 signals:
-    void calculateSucess();
     void calculateError(const QString &message);
+    void arm_pose_countChanged();
 };
 
 #endif // HANDEYECALCULATE_H

@@ -1,12 +1,14 @@
 import QtQuick
 import QtQuick.Controls
 import Qt.labs.platform
+import QtQuick.Dialogs
 import VTool 1.0
 Item {
     property bool isCamera: false
     property bool isArmConnect: urtrobot_right.arm_connect
-    property bool isCalibrtion: false
     property string capturePath: ""
+    property string cameraParamePath: ""
+    property string armParamePath: ""
     property double arm1Jpos: 0
     property double arm2Jpos: 0
     property double arm3Jpos: 0
@@ -15,7 +17,7 @@ Item {
     property double arm6Jpos: 0
     property double arm7Jpos: 0
     property int captureCount: 0
-    property int saveArmCount: 0
+    property int lowestCount: 29
     Component.onCompleted: {
         cameraManager.resetCaptureCount()
         capturePath=cameraManager.currentDirectory()
@@ -48,6 +50,7 @@ Item {
                 width: 200
                 height: 40
                 text: "开启相机"
+                enabled: !isCamera
                 onClicked: {
                     isCamera= cameraManager.startCamera(2)
                 }
@@ -85,17 +88,17 @@ Item {
                 width: 200
                 height: 40
                 text: "采集图片"
-                enabled: isCamera
+                enabled: isCamera&&captureCount<=handeyeCulate.arm_pose_count?true:false
                 onClicked: {
                     if(capturePath===""){
+                        console.log("请选择保存路径")
                         nopath.visible=true
                         return
                     }
-                    enabled=false
-                    cameraManager.captureImage(capturePath,1)
+                    mask.open()
+                    cameraManager.start_camera_capture(capturePath,1)
                     captureCount++
-                    enabled=true
-
+                    mask.close()
                 }
             }
             Item {
@@ -106,7 +109,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("采集次数:")
                     font.pixelSize: 12
-                    color: isCamera?"#000":"#c9c9c9"
+                    color: "#000"
                 }
                 Rectangle{
                     anchors.right: parent.right
@@ -120,7 +123,25 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: 20
                         anchors.verticalCenter: parent.verticalCenter
+                        color: isCamera?"#000":"#c9c9c9"
                         text: captureCount
+                    }
+                    FueButton{
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 16
+                        height: 16
+                        enabled: captureCount>0?true:false
+                        Image {
+                            anchors.fill: parent
+                            source: "qrc:/Image/Clear.svg"
+                            opacity: captureCount>0?1.0:0.5
+                        }
+                        onClicked: {
+                           cameraManager.clearCaptureCount(capturePath,1)
+                           captureCount=0
+                        }
                     }
                 }
             }
@@ -197,7 +218,6 @@ Item {
                     loggerModel.clear()
                 }
             }
-
             ListView{
                 id:loglistview
                 anchors.top: parent.top
@@ -217,7 +237,7 @@ Item {
                     font.pixelSize: 12
                     width: 395
                     wrapMode: Text.Wrap
-                    color: "#000000"
+                    color:level===0? "#000000":"red"
                     readOnly: true
                     // 可选：去除光标和边框，使其看起来更像 Text
                     selectByMouse: true
@@ -257,6 +277,7 @@ Item {
                         width: 200
                         height: 40
                         text: "连接机械臂"
+                        enabled: !isArmConnect
                         onClicked: {
                             mask.open()
                             var result= urtrobot_right.robot_connect()
@@ -306,12 +327,19 @@ Item {
                     Button{
                         width: 90
                         height: 40
-                        enabled: isArmConnect
+                        enabled: isArmConnect&&handeyeCulate.arm_pose_count<=captureCount?true:false
                         text: "保持&&记录"
                         onClicked: {
                             mask.open()
                             var result= urtrobot_right.robot_drag_activate(false)
-                            saveArmCount++
+                            var amrposes=[];
+                            amrposes.push(arm1Jpos)
+                            amrposes.push(arm2Jpos)
+                            amrposes.push(arm3Jpos)
+                            amrposes.push(arm4Jpos)
+                            amrposes.push(arm5Jpos)
+                            amrposes.push(arm6Jpos)
+                            var result2= handeyeCulate.recordArmPose(amrposes)
                             mask.close()
                         }
                     }
@@ -322,6 +350,7 @@ Item {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             text: qsTr("保存次数:")
+                            color:"#000"
                             font.pixelSize: 12
                         }
                         Rectangle{
@@ -336,7 +365,24 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: saveArmCount
+                                color: isArmConnect?"#000000":"#c9c9c9"
+                                text: handeyeCulate.arm_pose_count
+                            }
+                            FueButton{
+                                anchors.right: parent.right
+                                anchors.rightMargin: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 16
+                                height: 16
+                                enabled: handeyeCulate.arm_pose_count>0?true:false
+                                Image {
+                                    anchors.fill: parent
+                                    source: "qrc:/Image/Clear.svg"
+                                    opacity: handeyeCulate.arm_pose_count>0?1.0:0.5
+                                }
+                                onClicked: {
+                                    handeyeCulate.resetCalibration()
+                                }
                             }
                         }
                     }
@@ -347,42 +393,42 @@ Item {
                         width: 200
                         height: 40
                         text: "保存数据"
+                        enabled: handeyeCulate.arm_pose_count>0?true:false
                         onClicked: {
-                            //mask.open()
+                            var result= handeyeCulate.saveArmPose()
+                            armParamePath=result
                         }
                     }
                     Button{
                         width: 200
                         height: 40
-                        enabled: isCalibrtion
-                        text: "手眼计算"
+                        text: "加载全局相机参数"
                         onClicked: {
-                            //mask.open()
+                            fileDialog.open()
                         }
                     }
 
                 }
-
             }
             Column{
                 anchors.right: parent.right
                 anchors.rightMargin: 20
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 10
+                spacing: 30
                 Row{
                     spacing: 20
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节1:")
+                            text: qsTr("X:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -397,17 +443,17 @@ Item {
                         }
                     }
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节2:")
+                            text: qsTr("Y:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -425,17 +471,17 @@ Item {
                 Row{
                     spacing: 20
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节3:")
+                            text: qsTr("Z:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -450,17 +496,17 @@ Item {
                         }
                     }
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节4:")
+                            text: qsTr("RX:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -478,17 +524,17 @@ Item {
                 Row{
                     spacing: 20
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节5:")
+                            text: qsTr("RY:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -503,17 +549,17 @@ Item {
                         }
                     }
                     Item {
-                        width: 235
+                        width: 200
                         height: 40
                         Text {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("关节6:")
+                            text: qsTr("RZ:")
                             font.pixelSize: 12
                         }
                         Rectangle{
                             anchors.right: parent.right
-                            width: 175
+                            width: 140
                             height: 40
                             radius: 5
                             color: "#F5F5F5"
@@ -528,65 +574,46 @@ Item {
                         }
                     }
                 }
-                Item {
-                    width: 235
-                    height: 40
-                    Text {
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: qsTr("关节7:")
-                        font.pixelSize: 12
-                    }
-                    Rectangle{
-                        anchors.right: parent.right
-                        width: 175
-                        height: 40
-                        radius: 5
-                        color: "#F5F5F5"
-                        border.width: 1
-                        border.color: "#c9c9c9"
-                        Text {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 20
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: arm7Jpos.toFixed(1)
-                        }
-                    }
-                }
             }
-            Row{
-                visible: false
-                Button{
-                    width: 200
-                    height: 40
-                    text: "开始计算"
-                    onClicked: {
-                        mask.open()
-                        handeyeCulate.startCalibration()
+            Button{
+                width: 200
+                height: 40
+                enabled: true
+                anchors.centerIn: parent
+                text: "开始手眼计算"
+                onClicked: {
+                    if(captureCount<lowestCount||handeyeCulate.arm_pose_count<lowestCount){
+                        console.error("未达到最低采集数据数量")
+                        return
                     }
-                }
-                Button{
-                    width: 200
-                    height: 40
-                    text: "link"
-                    onClicked: {
-                        urtrobot_left.robot_connect()
+                    if(cameraParamePath==""){
+                        console.error("未加载相机参数文件")
+                        return
                     }
+                    if(armParamePath==""){
+                        console.error("未保存机械臂参数")
+                        return
+                    }
+                    if(capturePath==""){
+                        console.error("未选择照片保存路径")
+                        return
+                    }
+                    mask.open()
+                    var result= handeyeCulate.startCalibration()
+                    mask.close()
                 }
             }
         }
     }
     Connections{
         target: urtrobot_right
-        function onUpdate_Robot_Joint_Pos (current_Jpos){
+        function onUpdate_Tcp_Cartesian_Pos (current_Jpos){
             arm1Jpos=current_Jpos[0]
             arm2Jpos=current_Jpos[1]
             arm3Jpos=current_Jpos[2]
             arm4Jpos=current_Jpos[3]
             arm5Jpos=current_Jpos[4]
             arm6Jpos=current_Jpos[5]
-            arm7Jpos=current_Jpos[6]
-
         }
     }
     Connections{
@@ -598,9 +625,7 @@ Item {
     }
     Connections{
         target: handeyeCulate
-        function onCalculateSucess (){
-            mask.close()
-        }
+
     }
     Connections{
         target: image_provider_gl
@@ -630,6 +655,18 @@ Item {
         }
         onRejected: {
             console.log("取消选择")
+        }
+    }
+    FileDialog {
+        id: fileDialog
+        title: "请选择全局相机参数.yaml文件"
+        nameFilters: ["文本文件 (*.yaml)", "所有文件 (*)"]  // 文件类型过滤
+        onAccepted: {
+            console.log("选择的全局相机参数文件路径: " + fileDialog.currentFile.toString().replace("file://", ""))
+            cameraParamePath=fileDialog.currentFile.toString().replace("file://", "")
+        }
+        onRejected: {
+            console.log("全局相机参数文件选择已取消")
         }
     }
     // VFileDialog {
