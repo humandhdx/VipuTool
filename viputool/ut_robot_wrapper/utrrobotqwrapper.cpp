@@ -223,11 +223,24 @@ QVariantList UtraRobot_QWrapper::convert_JPos_To_VariantList(UtRobotConfig::Join
     return list;
 }
 
+QVariantList UtraRobot_QWrapper::convert_CartPos_To_VariantList(UtRobotConfig::CartesianPos &CartPos)
+{
+    QVariantList list;
+    for(auto cartPos: CartPos)
+    {
+        list.append(cartPos);
+    }
+    return list;
+}
+
 void UtraRobot_QWrapper::refresh_Robot_Joint_Pos()
 {
     UtRobotConfig::JointPos current_Jpos;
     this->getJointPos(current_Jpos);
     emit update_Robot_Joint_Pos(convert_JPos_To_VariantList(current_Jpos));
+    UtRobotConfig::CartesianPos current_Tcp_CartesianPos;
+    this->getTcpPos(current_Tcp_CartesianPos);
+    emit update_Tcp_Cartesian_Pos(convert_CartPos_To_VariantList(current_Tcp_CartesianPos));
 }
 
 bool UtraRobot_QWrapper::arm_connect() const

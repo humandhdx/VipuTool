@@ -31,8 +31,10 @@ public:
     void setArm_connect(bool newArm_connect);
 
 signals:
-    //robotIndex:  0->left 1-right
+    //joint1(degree), joint2(degree), joint3(degree), joint4(degree), joint5(degree), joint6(degree), joint7(degree)
     void update_Robot_Joint_Pos(QVariantList jointpos);
+    //x(mm), y(mm), z(mm), Rx(rad), Ry(rad), Rz(rad)
+    void update_Tcp_Cartesian_Pos(QVariantList jointpos);
     void laserCalib_file_loaded(int pos_number);
     void laserCalib_next_pos_updated(int pos_number);
     void Robot_Drag_Activate(bool activate);
@@ -44,6 +46,7 @@ private:
     QMutex mutext;
 
     QVariantList convert_JPos_To_VariantList(UtRobotConfig::JointPos& Jpos);
+    QVariantList convert_CartPos_To_VariantList(UtRobotConfig::CartesianPos& CartPos);
     void refresh_Robot_Joint_Pos();
     QTimer timer_refresh_robot_joint_pos_;
 
