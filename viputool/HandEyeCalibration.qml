@@ -1230,7 +1230,7 @@ Item {
                                 enabled: true
                                 text: "保存手眼计算"
                                 onClicked: {
-                                    var result= handeyeCulate.saveCalibrationToFile(savePath,0)
+                                    var result= handeyeCulate.saveCalibrationToFile(savePath,1)
                                 }
                             }
                         }
@@ -1249,7 +1249,7 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-                                text: "加载全局相机参数"
+                                text: "加载随动相机参数"
                                 onClicked: {
                                     fileDialog.open()
                                 }
