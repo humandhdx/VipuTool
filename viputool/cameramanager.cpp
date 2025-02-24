@@ -507,6 +507,81 @@ void cameraManager::capture_right()
 
 void cameraManager::capture_middle()
 {
+    if (!capture_middle_flag_) return;
+    std::lock_guard<std::mutex> lck{mtx_restart_middle_};
+    if (camera_middle_ == nullptr) {
+        failed_count_middle_++;
+        if (failed_count_middle_ >= 10) {
+            capture_middle_flag_ = false;
+            //RCLCPP_INFO(kLogger, "cvcamera restart left 1");
+        }
+        return;
+    }
+
+    tv_middle_.tv_sec = 1;
+    tv_middle_.tv_usec = 0;
+    if (camera_middle_->isReadable(&tv_middle_)) {
+        memset(buff_middle_, 0, 1920 * 1080);
+        int rsize = camera_middle_->read((char *)buff_middle_, 1920 * 1080 - 1);
+        if (rsize == -1) {
+            ++failed_count_middle_;
+            if (failed_count_middle_ >= 10) {
+                qWarning() << "设备异常";
+                emit signalDeviceErro();
+                capture_middle_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 2");
+            }
+            return;
+        }
+        else if (rsize == 0) {
+            ++failed_count_middle_;
+            if (failed_count_middle_ >= 10) {
+                capture_middle_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 3");
+            }
+            return;
+        }
+        else {
+            failed_count_middle_ = 0;
+            restart_failed_middle_ = 0;
+            suc_capture_middle_flag_ = true;
+            if (camera_middle_->getFormat() == V4L2_PIX_FMT_MJPEG) {
+                std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                vec_buff_middle_->clear();
+                vec_buff_middle_->resize(rsize + 1);
+                vec_buff_middle_->assign(buff_middle_, buff_middle_ + rsize);
+                try {
+                    // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
+                    middle_image_0_ = cv::imdecode(*vec_buff_middle_, cv::IMREAD_COLOR);
+                } catch (const std::exception &e) {
+                    qWarning() << "cv::imdecode 异常:" << e.what();
+                    return;
+                }
+                if(middle_image_0_.empty())return;
+                QImage image(middle_image_0_.data,
+                             middle_image_0_.cols,
+                             middle_image_0_.rows,
+                             static_cast<int>(middle_image_0_.step),
+                             QImage::Format_BGR888);
+                emit signalSendMiddleImage(image);
+            }
+            else {
+                ++failed_count_middle_;
+                if (failed_count_middle_ >= 10) {
+                    capture_middle_flag_ = false;
+                    //RCLCPP_INFO(kLogger, "cvcamera restart left 4");
+                }
+            }
+        }
+    }
+    else {
+        qWarning() << "isReadable erro";
+        ++failed_count_middle_;
+        if (failed_count_middle_ >= 10) {
+            capture_middle_flag_ = false;
+            //RCLCPP_INFO(kLogger, "cvcamera restart left 5");
+        }
+    }
 
 }
 

@@ -91,6 +91,7 @@ private:
     std::unique_ptr<std::thread> thread_monitor_;
 
     timeval tv_left_;
+    timeval tv_middle_;
     timeval tv_right_;
 
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_left_ = nullptr;

@@ -4,10 +4,35 @@ import Qt.labs.platform
 import QtQuick.Dialogs
 import VTool 1.0
 Item {
+
+
+    Column{
+        anchors.centerIn: parent
+        spacing: 20
+        Button{
+            width: 200
+            height: 40
+            text: "全局相机手眼标定"
+            enabled: !isCamera
+            onClicked: {
+                handLoader.sourceComponent=global
+            }
+        }
+        Button{
+            width: 200
+            height: 40
+            text: "随动相机手眼标定"
+            enabled: !isCamera
+            onClicked: {
+                handLoader.sourceComponent=center
+            }
+        }
+    }
+
     Loader{
         id:handLoader
         anchors.fill: parent
-        sourceComponent: global
+        //sourceComponent: global
     }
     Component{
         id:global
@@ -1453,7 +1478,7 @@ Item {
             }
             FolderDialog {
                 id: folderDialog
-                title: qsTr("选择图片保存路径")
+                title: qsTr("选择随动相机图片保存路径")
                 property bool isCamera: false
                 onAccepted: {
                     if(isCamera){
@@ -1466,7 +1491,7 @@ Item {
                     }
                     else{
                         var Folder = folderDialog.folder.toString().replace("file://", "");
-                        console.log("你选择的全局相机手眼参数保存路径为: " + Folder)
+                        console.log("你选择的随动相机手眼参数保存路径为: " + Folder)
                         savePath=Folder
                     }
                 }
@@ -1476,14 +1501,14 @@ Item {
             }
             FileDialog {
                 id: fileDialog
-                title: "请选择全局相机参数.yaml文件保存路径"
+                title: "请选择随动相机参数.yaml文件保存路径"
                 nameFilters: ["文本文件 (*.yaml)", "所有文件 (*)"]  // 文件类型过滤
                 onAccepted: {
-                    console.log("请选择全局相机参数.yaml文件保存路径: " + fileDialog.currentFile.toString().replace("file://", ""))
+                    console.log("请选择随动相机参数.yaml文件保存路径: " + fileDialog.currentFile.toString().replace("file://", ""))
                     cameraParamePath=fileDialog.currentFile.toString().replace("file://", "")
                 }
                 onRejected: {
-                    console.log("全局相机参数文件选择已取消")
+                    console.log("随动相机参数文件选择已取消")
                 }
             }
             Connections{
@@ -1508,7 +1533,7 @@ Item {
                 target: image_provider_gr
                 function onImgChanged (){
                     image.source=""
-                    image.source="image://GrImg/"
+                    image.source="image://MlImg/"
                 }
             }
             Connections{
