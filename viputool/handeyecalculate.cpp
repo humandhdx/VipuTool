@@ -1,8 +1,10 @@
 #include "handeyecalculate.h"
+#include "json.hpp"
 #include <QtConcurrent>
+using json = nlohmann::json;
 handeyecalculate::handeyecalculate(QObject *parent):QObject{parent}
 {
-   arm_pose.clear();
+    arm_pose.clear();
 }
 
 handeyecalculate::~handeyecalculate()
@@ -29,7 +31,7 @@ bool handeyecalculate::recordArmPose(QVariantList armpose)
     std::vector<double> vecArmpose;
     vecArmpose.reserve(armpose.size());
     for(auto a :armpose){
-      vecArmpose.push_back(a.toDouble());
+        vecArmpose.push_back(a.toDouble());
     }
     arm_pose.push_back(vecArmpose);
     qDebug()<<"记录当前机械臂姿态成功："<<arm_pose.size();
@@ -70,21 +72,69 @@ QString handeyecalculate::saveArmPose()
 bool handeyecalculate::resetCalibration()
 {
     arm_pose.clear();
+    currentGlobalPoseMatrix.clear();
     emit arm_pose_countChanged();
     qDebug()<<"重置机械臂姿态数量成功";
     return true;
 }
 
+bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
+{
+    if(type==0&&currentGlobalPoseMatrix.empty()){
+        qDebug()<<"请先进行全局相机手眼标定后再保存";
+        return false;
+    }
+    if(type==1&&currentCenterPoseMatrix.empty()){
+        qDebug()<<"请先进行随动相机手眼标定后再保存";
+        return false;
+    }
+    json jsonTemplate = {
+        {"version", "0.0.0.0"},
+        {"update_date", ""},
+        {"eye_in_hand_cali", {
+                                 {"local_camera_pose_matrix_mm", json::array()},
+                                 {"global_camera_pose_matrix_mm", json::array()},
+                                 {"center_camera_pose_matrix_mm", json::array()},
+                                 {"punch_direction_vector", json::array()},
+                                 {"punch_tip_vector_mm", json::array()}
+                             }}
+    };
+    // 创建一个JSON对象，并使用模板填充数据
+    json data = jsonTemplate;
+
+    // 获取当前时间并填入JSON对象
+    data["update_date"] = getCurrentTimeStr();
+
+    // 填充JSON数据
+    if(type==0){
+       data["eye_in_hand_cali"]["global_camera_pose_matrix_mm"] = currentGlobalPoseMatrix;
+    }
+    else{
+       data["eye_in_hand_cali"]["center_camera_pose_matrix_mm"] = currentCenterPoseMatrix;
+    }
+
+    // 将JSON对象保存到指定位置的文件中
+    std::string filePath = savepath.toStdString()+(type == 0 ? "/global_hand_cali.json" : "/center_hand_cali.json"); // 更改这个路径为你的目标路径
+    std::ofstream file(filePath);
+    if (file.is_open()) {
+        file << std::setw(4) << data << std::endl; // 使用std::setw(4)来设置缩进
+        file.close();
+        qDebug() << "全局相机手眼标定结果保存成功: "<<QString::fromStdString(filePath);
+    } else {
+        qWarning() << "全局相机手眼标定结果保存失败！";
+    }
+    return true;
+}
+
 bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile,QString camerafile)
 {
-    //YAML::Node cfg = YAML::LoadFile(configPath);
-    int min_hand_eye_num = 5;//cfg["min_hand_eye_num"].as<int>();
-    //std::string pattern_folder = cfg["image_folder"].as<std::string>();
-    //std::string camera_file = cfg["camera_model_file"].as<std::string>();
-    //std::string arm_pose_file = cfg["arm_pose_file"].as<std::string>();
-    QString pattern_folder=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
-    QString arm_pose_file=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
-    QString camera_file=armposefile;//"/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
+    int min_hand_eye_num = 5;
+    QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
+    QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
+    QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
+    // QString pattern_folder=armposefile;
+    // QString arm_pose_file=armposefile;
+    // QString camera_file=armposefile;
     if (!QFile::exists(arm_pose_file)) {
         qWarning()<< "图片保存路径不存在:" << pattern_folder;
         return false;
@@ -167,19 +217,36 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
         T.rotate(q);
         T.pretranslate(Eigen::Vector3d(pose[0], pose[1], pose[2]));
-        //std::cout << std::setprecision(10);
-        //std::cout << "hand eye result is: " << std::endl;
-        //std::cout << T.matrix() << std::endl;
+        currentGlobalPoseMatrix.clear();
+        currentGlobalPoseMatrix={
+            T(0,0),T(0,1),T(0,2),T(0,3),
+            T(1,0),T(1,1),T(1,2),T(1,3),
+            T(2,0),T(2,1),T(2,2),T(2,3),
+            0.0,0.0,0.0,1.0
+        };
         std::ostringstream oss;
         oss << T.matrix().format(Eigen::IOFormat(10));
         qDebug() << "手眼标定结果: ";
         qDebug().noquote() << QString::fromStdString(oss.str());
+        qDebug().noquote()<< "translation error: " << pose[7] ;
     }
     else{
         qDebug() << "没有足够的有效图片，手眼标定失败";
         return false;
     }
     return true;
+}
+
+std::string handeyecalculate::getCurrentTimeStr()
+{
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    auto tt = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm = *std::localtime(&tt);
+
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%Y-%m-%d-%H-%M-%S") << '.' << std::setfill('0') << std::setw(3) << ms.count();
+    return oss.str();
 }
 
 std::vector<std::vector<double> > handeyecalculate::readArmPose(const std::string &path)

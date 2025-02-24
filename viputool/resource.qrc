@@ -1,11 +1,15 @@
 <RCC>
     <qresource prefix="/">
         <file>Main.qml</file>
-        <file>GlobalCameraCalibration.qml</file>
+        <file>CameraCalibration.qml</file>
         <file>HandEyeCalibration.qml</file>
         <file>FollowCmaeraCalibration.qml</file>
         <file>BusyLoder.qml</file>
         <file>Image/Clear.svg</file>
         <file>FueButton.qml</file>
+        <file>GlobalCameraCalibration.qml</file>
+        <file>LocalCameraCalibration.qml</file>
+        <file>Image/delete.svg</file>
+        <file>Image/filechoice.svg</file>
     </qresource>
 </RCC>

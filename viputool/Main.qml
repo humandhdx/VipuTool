@@ -35,10 +35,6 @@ Window {
             height:900
             model: ListModel{
                 ListElement{
-                    type:"手眼标定"
-                    pageurl:"qrc:/HandEyeCalibration.qml"
-                }
-                ListElement{
                     type:"全局相机标定"
                     pageurl:"qrc:/GlobalCameraCalibration.qml"
                 }
@@ -46,6 +42,15 @@ Window {
                     type:"随动相机标定"
                     pageurl:"qrc:/FollowCmaeraCalibration.qml"
                 }
+                ListElement{
+                    type:"局部相机标定"
+                    pageurl:"qrc:/LocalCameraCalibration.qml"
+                }
+                ListElement{
+                    type:"手眼标定"
+                    pageurl:"qrc:/HandEyeCalibration.qml"
+                }
+
             }
             delegate: Item {
                 width: parent.width
@@ -78,7 +83,7 @@ Window {
         width: parent.width- parent.width/8
         height: parent.height
         anchors.right: parent.right
-        source: "qrc:/HandEyeCalibration.qml"
+        source: "qrc:/GlobalCameraCalibration.qml"
     }
     Popup{
         id:mask

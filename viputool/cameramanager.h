@@ -20,6 +20,7 @@
 #include <string>
 #include <chrono>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
 #include "v4l2/struct.h"
 #include <thread>
 
@@ -29,7 +30,8 @@ class cameraManager: public QObject
 public:
     enum  CalibritionType{
         Null,
-        HandEyeCalibrition,
+        GlobalHandEyeCalibrition,
+        CenterHandEyeCalibrition,
         GlobalCalibrition,
         MiddleCalibrition,
     };
@@ -38,11 +40,11 @@ public:
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
-    bool start_camera_capture(QString path,CalibritionType type);
-    void resetCaptureCount();
-    void clearCaptureCount(QString path,CalibritionType type);
+    bool start_camera_capture(const QString &path, CalibritionType type, int count);
+    bool deleteFisterCaptureImage(QString path);
+    bool clearCaptureCount(QString path);
     QString currentDirectory() const {
-        return QDir::currentPath()+"/HandEyeImages";
+        return QDir::currentPath();
     }
 private:
     void init_cam();
@@ -58,9 +60,9 @@ private:
     void shutdown_leftcapture();
     void shutdown_rightcapture();
     void shutdown_middlecapture();
-    QImage cvMatToQImage(cv::Mat &mat);
-
-    bool captureImage(QString path,CalibritionType type);
+    double EOG(const cv::Mat &mat);
+    bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
+    bool captureImage(const std::string &path, CalibritionType type, int count);
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;
@@ -123,15 +125,12 @@ private:
     int restart_failed_left_ = 0;
     int restart_failed_right_ = 0;
     int restart_failed_middle_ = 0;
-    // 用于记录当前保存的图片编号
-    int handeye_image_count_;
-    int middle_image_count_;
-    int global_cali_count_;
 
 signals:
     void signalSendLeftImage(QImage image);
     void signalSendRightImage(QImage image);
     void signalSendMiddleImage(QImage image);
+    void signalDeviceErro();
 };
 
 #endif // CAMERAMANAGER_H

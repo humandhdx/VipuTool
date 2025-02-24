@@ -9,3 +9,7 @@ CMakeLists.txt.*
 # *.so
 # *.so.*
 *.log
+
+viputool/repomix-output.txt
+
+viputool/.repomix/bundles.json

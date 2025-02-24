@@ -2,7 +2,6 @@
 #include <QThread>
 #include <QEventLoop>
 
-
 cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(CalibritionType::Null),
     left_id_(-1),
     right_id_(-1),
@@ -12,10 +11,7 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     capture_right_flag_(false),
     failed_count_left_(0),
     failed_count_middle_(0),
-    failed_count_right_(0),
-    handeye_image_count_(0),
-    global_cali_count_(0),
-    middle_image_count_(0)
+    failed_count_right_(0)
 {
     buff_left_ = new uchar[4000 * 3000];
     buff_middle_=new uchar[1920 * 1080];
@@ -72,12 +68,13 @@ void cameraManager::stopCamera()
     shutdown_middlecapture();
 }
 
-bool cameraManager::start_camera_capture(QString path, CalibritionType type)
+bool cameraManager::start_camera_capture(const QString &path, CalibritionType type, int count)
 {
     QEventLoop spinner;
     bool executionResult=false;
-    std::future<bool> fut=std::async(std::launch::async ,[&spinner,&executionResult,&path,&type,this](){
-        executionResult=this->captureImage(path,type);
+    std::string pathStr =path.toStdString();
+    std::future<bool> fut=std::async(std::launch::async ,[&spinner,&executionResult,&pathStr,&type,&count,this](){
+        executionResult=this->captureImage(pathStr,type,count);
         spinner.exit();
         return executionResult;
     });
@@ -85,124 +82,103 @@ bool cameraManager::start_camera_capture(QString path, CalibritionType type)
     return executionResult;
 }
 
-bool cameraManager::captureImage(QString path, CalibritionType type)
-{
-    bool result=false;
-    std::string save_path="";
-    std::ostringstream oss;
-    switch (type) {
-    case CalibritionType::HandEyeCalibrition:
-        if(right_image_0_.empty()){
-            return false;
-        }
-        handeye_image_count_++; // 编号自增
-        oss << path.toStdString() << "/HandEye_Image"
-            << std::setw(3) << std::setfill('0') << handeye_image_count_
-            << ".jpg";
-        save_path = oss.str();
-        result = cv::imwrite(save_path, right_image_0_);
-        if (result) {
-            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
-        } else {
-            qDebug()<< "保存图像失败" ;
-        }
-        break;
-    case CalibritionType::GlobalCalibrition:
-        if(right_image_0_.empty()||left_image_0_.empty()){
-            return false;
-        }
-        global_cali_count_++;
-        oss << path.toStdString() << "/Global_Left_Image"
-            << std::setw(3) << std::setfill('0') << global_cali_count_
-            << ".jpg";
-        save_path = oss.str();
-        result = cv::imwrite(save_path, left_image_0_);
-        if (result) {
-            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
-        } else {
-            qDebug()<< "保存图像失败" ;
-        }
-        oss << path.toStdString() << "/Global_Right_Image"
-            << std::setw(3) << std::setfill('0') << global_cali_count_
-            << ".jpg";
-        save_path = oss.str();
-        result = cv::imwrite(save_path, right_image_0_);
-        if (result) {
-            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
-        } else {
-            qDebug()<< "保存图像失败" ;
-        }
-        break;
-    case CalibritionType::MiddleCalibrition:
-        if(middle_image_0_.empty()){
-            return false;
-        }
-        middle_image_count_++; // 编号自增
-        oss << path.toStdString() << "/Middle_Image"
-            << std::setw(3) << std::setfill('0') << middle_image_count_
-            << ".jpg";
-        save_path = oss.str();
-        result = cv::imwrite(save_path, middle_image_0_);
-        if (result) {
-            qDebug()<<"图像已成功保存到: "<<QString::fromStdString(save_path);
-        } else {
-            qDebug()<< "保存图像失败" ;
-        }
-        break;
-        break;
-    default:
-        break;
-    }
-    return result;
-}
-
-void cameraManager::resetCaptureCount()
-{
-    handeye_image_count_=0;
-    global_cali_count_=0;
-
-}
-
-void cameraManager::clearCaptureCount(QString path,CalibritionType type)
+bool cameraManager::deleteFisterCaptureImage(QString path)
 {
     QDir dir(path);
     QStringList filters;
     QFileInfoList fileList;
-    switch (type) {
-    case CalibritionType::HandEyeCalibrition:
-        handeye_image_count_=0;
-        // 确保目录存在
-        if (!dir.exists()) {
-            qWarning() << "清空目录不存在：" << path;
-            return;
-        }
-        // 设置文件筛选器，删除所有 ".jpg" 文件
-         filters;
-        filters << "*.jpg" << "*.jpeg"; // 支持 jpg 和 jpeg
-        dir.setNameFilters(filters);
-        // 获取所有匹配的文件
-         fileList = dir.entryInfoList(QDir::Files);
-
-        // 删除文件
-        for (const QFileInfo &fileInfo : fileList) {
-            QString filePath = fileInfo.absoluteFilePath();
-            if (QFile::remove(filePath)) {
-                qDebug() << "已删除：" << filePath;
-            } else {
-                qWarning() << "删除失败：" << filePath;
-            }
-        }
-        qDebug() << "删除完成，共删除" << fileList.size() << "个文件。";
-        break;
-    case CalibritionType::GlobalCalibrition:
-        global_cali_count_=0;
-        break;
-    case CalibritionType::MiddleCalibrition:
-        middle_image_count_=0;
-        break;
-    default:
-        break;
+    // 确保目录存在
+    if (!dir.exists()) {
+        qWarning() << "全局相机图片目录不存在：" << path;
+        return false;
     }
+    // 设置文件筛选器，删除 ".jpg" 文件
+    filters << "*.jpg" << "*.jpeg"; // 支持 jpg 和 jpeg
+    dir.setNameFilters(filters);
+    // 获取所有匹配的文件并按照修改时间排序
+    fileList = dir.entryInfoList(QDir::Files, QDir::Time | QDir::Reversed);
+    if (!fileList.isEmpty()) {
+        // 删除最新的文件（按修改日期排序的第一个文件）
+        QFileInfo latestFile = fileList.first();
+        QString latestFilePath = latestFile.absoluteFilePath();
+
+        if (QFile::remove(latestFilePath)) {
+            qDebug() << "已删除最新拍照的图片：" << latestFilePath;
+        } else {
+            qWarning() << "删除失败：" << latestFilePath;
+            return false;
+        }
+    }
+    else {
+        qDebug() << "当前目录下没有符合条件的图片文件：" << path;
+        return false;
+    }
+    return true;
+    qDebug() << "删除最后一次采集图片成功";
+}
+
+bool cameraManager::captureImage(const std::string &path, CalibritionType type, int count)
+{
+    bool left_saved=false;
+    bool right_saved=false;
+    switch (type) {
+    case CalibritionType::GlobalHandEyeCalibrition:
+        if (right_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, right_image_0_, "HandEye_Image", count);
+
+    case CalibritionType::GlobalCalibrition:
+        if (left_image_0_.empty() || right_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        left_saved = saveImage(path, left_image_0_, "Global_Left_Image", count);
+        right_saved = saveImage(path, right_image_0_, "Global_Right_Image", count);
+        return left_saved && right_saved;
+
+    case CalibritionType::CenterHandEyeCalibrition:
+        if (middle_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, middle_image_0_, "Middle_Image", count);
+
+    default:
+        qDebug() << "未知的校准类型";
+        return false;
+    }
+}
+
+
+bool cameraManager::clearCaptureCount(QString path)
+{
+    QDir dir(path);
+    QStringList filters;
+    QFileInfoList fileList;
+    // 确保目录存在
+    if (!dir.exists()) {
+        qWarning() << "清空目录不存在：" << path;
+        return false;
+    }
+    // 设置文件筛选器，删除所有 ".jpg" 文件
+    filters << "*.jpg" << "*.jpeg"; // 支持 jpg 和 jpeg
+    dir.setNameFilters(filters);
+    // 获取所有匹配的文件
+    fileList = dir.entryInfoList(QDir::Files);
+
+    // 删除文件
+    for (const QFileInfo &fileInfo : fileList) {
+        QString filePath = fileInfo.absoluteFilePath();
+        if (QFile::remove(filePath)) {
+            //qDebug() << "已删除：" << filePath;
+        } else {
+            //qWarning() << "删除失败：" << filePath;
+        }
+    }
+    qDebug() << "重置采集图片数量成功";
+    return true;
 }
 
 void cameraManager::init_cam()
@@ -262,13 +238,13 @@ void cameraManager::init_cam()
             }
         }
 
-        if (cali_type_ == CalibritionType::HandEyeCalibrition) {  //for global
-            qDebug()<<(const char *)cap.card;
+        if (cali_type_ == CalibritionType::GlobalHandEyeCalibrition) {  //for global
+            //qDebug()<<(const char *)cap.card;
             if (strncmp((const char *)cap.card, "FueCamRight", 11) == 0) {
                 right_id_ = dev_num_cur;
             }
         }
-        if (cali_type_ == CalibritionType::HandEyeCalibrition){
+        if (cali_type_ == CalibritionType::CenterHandEyeCalibrition){
             if (strncmp((const char *)cap.card, "SPCA2100", 8) == 0) {
                 middle_id_=dev_num_cur;
             }
@@ -284,6 +260,7 @@ bool cameraManager::start_left_capture()
         shutdown_leftcapture();
         init_cam();
         if(left_id_==-1){
+            qWarning()<<"不存在相机设备请检查相机设备";
             return false;
         }
         restart_left_cam();
@@ -311,6 +288,7 @@ bool cameraManager::start_right_capture()
         shutdown_rightcapture();
         init_cam();
         if(right_id_==-1){
+            qWarning()<<"不存在相机设备请检查相机设备";
             return false;
         }
         restart_right_cam();
@@ -338,6 +316,7 @@ bool cameraManager::start_middle_capture()
         shutdown_middlecapture();
         init_cam();
         if(middle_id_==-1){
+            qWarning()<<"不存在相机设备请检查相机设备";
             return false;
         }
         restart_middle_cam();
@@ -380,6 +359,8 @@ void cameraManager::capture_left()
         if (rsize == -1) {
             ++failed_count_left_;
             if (failed_count_left_ >= 10) {
+                qWarning() << "设备异常";
+                emit signalDeviceErro();
                 capture_left_flag_ = false;
                 //RCLCPP_INFO(kLogger, "cvcamera restart left 2");
             }
@@ -461,6 +442,8 @@ void cameraManager::capture_right()
         if (rsize == -1) {
             ++failed_count_right_;
             if (failed_count_right_ >= 10) {
+                qWarning() << "设备异常";
+                emit signalDeviceErro();
                 capture_right_flag_ = false;
                 //RCLCPP_INFO(kLogger, "cvcamera restart left 2");
             }
@@ -513,6 +496,7 @@ void cameraManager::capture_right()
         }
     }
     else {
+        qWarning() << "isReadable erro";
         ++failed_count_right_;
         if (failed_count_right_ >= 10) {
             capture_right_flag_ = false;
@@ -634,9 +618,36 @@ void cameraManager::shutdown_middlecapture()
     }
 }
 
-QImage cameraManager::cvMatToQImage(cv::Mat &mat)
+double cameraManager::EOG(const cv::Mat &mat)
 {
+    cv::Mat gray;
+    cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat kernely = (cv::Mat_<char>(2, 1) << -1, 1);
+    cv::Mat kernelx = (cv::Mat_<char>(1, 2) << -1, 1);
 
+    cv::Mat engx, engy;
+    (gray, engx, CV_32F, kernelx);
+    filter2D(gray, engy, CV_32F, kernely);
+
+    cv::Mat result = engx.mul(engx) + engy.mul(engy);
+    double outvalue = cv::mean(result)[0];
+    return outvalue;
+}
+
+bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)
+{
+    std::ostringstream oss;
+    oss << path << "/" << prefix << "_"
+        << std::setw(3) << std::setfill('0') << count
+        << ".jpg";
+    std::string save_path = oss.str();
+    bool result = cv::imwrite(save_path, image);
+    if (result) {
+        qDebug() << "图像已成功保存到: " << QString::fromStdString(save_path);
+    } else {
+        qDebug() << "保存图像失败";
+    }
+    return result;
 }
 
 
@@ -647,16 +658,16 @@ bool cameraManager::startCamera(const int l_r)
     }
     switch (l_r) {
     case 1:
-        cali_type_=CalibritionType::HandEyeCalibrition;
-        return start_left_capture();
+        cali_type_=CalibritionType::GlobalHandEyeCalibrition;
+        return start_right_capture();//start_left_capture();
         break;
     case 2:
         cali_type_=CalibritionType::GlobalCalibrition;
         //start_left_capture()&&
-        return  start_right_capture();
+        return  start_left_capture()&&start_right_capture();
         break;
     case 3:
-        cali_type_=CalibritionType::MiddleCalibrition;
+        cali_type_=CalibritionType::CenterHandEyeCalibrition;
         return start_middle_capture();
         break;
     default:

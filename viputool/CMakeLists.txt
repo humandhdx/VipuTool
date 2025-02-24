@@ -46,6 +46,7 @@ qt_add_executable(${PROJECT_NAME}
     ${src_robot_wrapper}
     logger.h logger.cpp
     filedialogwrap.h filedialogwrap.cpp
+    json.hpp
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")
@@ -78,7 +79,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 include(GNUInstallDirs)
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/HandEyeImages)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/GlobalHandEyeImages)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/CenterHandEyeImages)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/GlobalImages)
 install(TARGETS ${PROJECT_NAME}
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

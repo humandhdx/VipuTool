@@ -3,7 +3,7 @@ import QtQuick
 Item {
     property bool isCamera: false
     Component.onCompleted: {
-        cameraManager.resetCaptureCount()
+
     }
     Component.onDestruction: {
         cameraManager.stopCamera()

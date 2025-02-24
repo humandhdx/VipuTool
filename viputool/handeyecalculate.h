@@ -37,12 +37,16 @@ public slots:
      bool recordArmPose(QVariantList armpose);
      QString saveArmPose();
      bool resetCalibration();
+     bool saveCalibrationToFile(QString savepath,int type);
 
 private:
     std::vector<std::vector<double>> readArmPose(const std::string &path);
     bool handEyeCalibration(const std::vector<CaliFrameInfo> &frame_list, std::vector<double> &pose, int min_num);
     bool runCalibration(QString patternfolder,QString armpose_file,QString camerafile);
+    std::string getCurrentTimeStr();
     std::vector<std::vector<double> > arm_pose;
+    std::vector<double> currentGlobalPoseMatrix;
+    std::vector<double> currentCenterPoseMatrix;
 
 signals:
     void calculateError(const QString &message);
