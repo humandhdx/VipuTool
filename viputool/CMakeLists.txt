@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.2 REQUIRED COMPONENTS Concurrent Quick Multimedia Widgets)
 find_package(OpenCV REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
 endif()
@@ -17,12 +18,26 @@ add_subdirectory(3rdparty/cbdetect)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utapi)
 
 set(src_robot_wrapper
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/ReadAndWriteFile.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/ReadAndWriteFile.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/qfilesystemmonitor.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils/qfilesystemmonitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/robot_config.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/robot_config.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobotqwrapper.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobotqwrapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobot.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrrobot.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrarobotqwrapper.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrarobotqwrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrarobot.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/utrarobot.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/posefileparser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/posefileparser.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalibrator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalibrator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/RobotToolBox.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/RobotToolBox.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalib_config.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ut_robot_wrapper/kinematic_calibration/kinematiccalib_config.cpp
 )
 
 qt_add_executable(${PROJECT_NAME}
@@ -62,7 +77,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nlohmann
     $<TARGET_PROPERTY:utapi,INTERFACE_INCLUDE_DIRECTORIES>
+    ${EIGEN3_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC libssh.so)
@@ -77,6 +95,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     cbdetect
     utapi
 )
+
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/kinematic_calibration_data
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/kinematic_calibration_data)
 
 include(GNUInstallDirs)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/GlobalHandEyeImages)

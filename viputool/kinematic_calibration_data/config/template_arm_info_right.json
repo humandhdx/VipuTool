@@ -1,0 +1,142 @@
+{
+	"arm_type": "right_arm",
+	"uuid": "04:2b:58:09:42:28",
+	"software_version": "8f2bcf25be2024-08-06",
+	"hardware_version": "0001607003  x86J1900",
+	"base_in_world": {
+		"rotation_rad": [
+			0,
+			0,
+			0
+		],
+		"translation_m": [
+			0,
+			0,
+			0
+		]
+	},
+	"ftsensor_in_flange": {
+		"rotation_rad": [
+			0,
+			0,
+			0
+		],
+		"translation_m": [
+			0,
+			0,
+			0.025
+		]
+	},
+	"joints": [
+		{
+			"a_m": 0.001918645639262245,
+			"alpha_rad": -0.0003230026176382017,
+			"d_m": 0.28892684338424873,
+			"index": 1,
+			"joint_limits_rad": {
+				"min": -4.53785605518526,
+				"max": 1.39626340159546
+			},
+			"joint_type": "revolute",
+			"name": "right_joint1",
+			"theta_rad": 0.02215399287958836,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": -0.0014001064904211665,
+			"alpha_rad": 1.5749766701380576,
+			"d_m": 0.00013489062912973873,
+			"index": 2,
+			"joint_limits_rad": {
+				"min": -2.23402144255274,
+				"max": 2.23402144255274
+			},
+			"joint_type": "revolute",
+			"name": "right_joint2",
+			"theta_rad": -0.005326332733165723,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": 0.000871734579276215,
+			"alpha_rad": -1.5713366331739533,
+			"d_m": 0.3005258402983788,
+			"index": 3,
+			"joint_limits_rad": {
+				"min": -1.39626340159546,
+				"max": 4.53785605518526
+			},
+			"joint_type": "revolute",
+			"name": "right_joint3",
+			"theta_rad": -0.02135005995859267,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": 0.05391049907510426,
+			"alpha_rad": -1.567998269401101,
+			"d_m": 4.514685871687248e-05,
+			"index": 4,
+			"joint_limits_rad": {
+				"min": -1.06465084371654,
+				"max": 3.22885911618951
+			},
+			"joint_type": "revolute",
+			"name": "right_joint4",
+			"theta_rad": 0.0012092486532673903,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": -0.05575033345048323,
+			"alpha_rad": 1.5760741908760967,
+			"d_m": 0.27277366881013043,
+			"index": 5,
+			"joint_limits_rad": {
+				"min": -2.96705972839036,
+				"max": 2.96705972839036
+			},
+			"joint_type": "revolute",
+			"name": "right_joint5",
+			"theta_rad": 0.0008983452792483224,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": -0.00015612634342909482,
+			"alpha_rad": 1.5857024584736485,
+			"d_m": 0.0012159711284452327,
+			"index": 6,
+			"joint_limits_rad": {
+				"min": -2.37364778271229,
+				"max": 2.37364778271229
+			},
+			"joint_type": "revolute",
+			"name": "right_joint6",
+			"theta_rad": -0.0016220714830111102,
+			"max_joint_deviation_rad": 0.08726
+		},
+		{
+			"a_m": -0.00016363272748489915,
+			"alpha_rad": -1.5711594020666988,
+			"d_m": 0.14247647896478352,
+			"index": 7,
+			"joint_limits_rad": {
+				"min": -4.53785605518526,
+				"max": 1.39626340159546
+			},
+			"joint_type": "revolute",
+			"name": "right_joint7",
+			"theta_rad": 0.019086374791386612,
+			"max_joint_deviation_rad": 0.08726
+		}
+	],
+	"tcp_in_flange": {
+		"translation_m": [
+			0.211,
+			-0.115,
+			0.188
+		],
+		"rotation_rad": [
+			-0.2682932019,
+			-1.5662906170,
+			2.9050157070
+		]
+	}
+}

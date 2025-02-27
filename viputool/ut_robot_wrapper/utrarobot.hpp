@@ -1,5 +1,5 @@
-#ifndef UTRROBOT_HPP
-#define UTRROBOT_HPP
+#ifndef UTRAROBOT_H
+#define UTRAROBOT_H
 
 #include "ut_robot_wrapper/robot_config.hpp"
 #include "utra/utra_api_tcp.h"
@@ -9,12 +9,12 @@
 #include <mutex>
 #include <condition_variable>
 
-class UtrRobot
+class UtraRobot
 {
 public:
-    UtrRobot(UtRobotConfig::TestConfig config);
+    UtraRobot(UtRobotConfig::TestConfig& config);
 
-    ~UtrRobot();
+    ~UtraRobot();
     struct JointPos{
         double data[7];
     };
@@ -67,11 +67,26 @@ public:
 
     bool Robot_Set_ToolCenterlPoint();
 
+    bool Robot_Set_Mdh_Offset();
+
+    bool Robot_Check_Mdh_Offset_Are_All_Zero();
+
+    bool Robot_ZeroOut_Mdh_offset();
+
+    bool Robot_Get_Param_Gravity_Direct(float gravity_direction[3]);
+
+    bool Robot_Get_Param_Tcp_Offset(float tcp_over_flange[6]);
+
+    bool Robot_Set_Param_Tcp_Offset(float tcp_over_flange[6]);
+
+    // [mass{kg}, center_x[mm], center_y[mm], center_z[mm]]
+    bool Robot_Get_Param_Tcp_Load(float tcp_load[4]);
+
 protected:
     bool is_robot_connected{false};
 
-private:
-    UtRobotConfig::TestConfig config_;
+protected:
+    UtRobotConfig::TestConfig& config_;
 
 private:
     UtraApiTcp* ubot_;
@@ -115,4 +130,4 @@ private:
 
 };
 
-#endif // UTRROBOT_HPP
+#endif // UTRAROBOT_H

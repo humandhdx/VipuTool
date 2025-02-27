@@ -1,4 +1,4 @@
-#include "utrrobotqwrapper.hpp"
+#include "utrarobotqwrapper.hpp"
 #include <QFile>
 #include <QDebug>
 #include <QEventLoop>
@@ -6,11 +6,23 @@
 
 #define RAD_TO_DEGREE (180.0/3.14)
 
-UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject *parent):QObject(parent), UtrRobot(config)
+UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject *parent):QObject(parent), UtraRobot(config)
 {
     connect(&timer_refresh_robot_joint_pos_, &QTimer::timeout, this, &UtraRobot_QWrapper::refresh_Robot_Joint_Pos);
 
     timer_refresh_robot_joint_pos_.start(500);
+
+    connect(this, &UtraRobot_QWrapper::Robot_Connection_State_Updated, this, [this](bool connect){
+        if(connect)
+        {
+            if(!Robot_Check_Mdh_Offset_Are_All_Zero())
+            {
+                emit robot_Warning_MDH_OFFSET_NOT_ZERO();
+            }
+        }
+    });
+
+    connect(this, &UtraRobot_QWrapper::robot_Warning_MDH_OFFSET_NOT_ZERO, this, &UtraRobot_QWrapper::ZeroOut_MDH_offset);
 }
 
 bool UtraRobot_QWrapper::robot_connect()
@@ -25,12 +37,16 @@ bool UtraRobot_QWrapper::robot_connect()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->InitRobot();
+        qDebug() << "Robot UUID:" << QString::fromStdString(this->config_.identity_Info.UUID);
+        qDebug() << "Robot SW version:" << QString::fromStdString(this->config_.identity_Info.VERSION_SW);
+        qDebug() << "Robot HW version:" << QString::fromStdString(this->config_.identity_Info.VERSION_HW);
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
     setArm_connect(executionResult);
     emit Robot_Connection_State_Updated(this->is_robot_connected);
+
     return executionResult;
 }
 
@@ -210,6 +226,66 @@ bool UtraRobot_QWrapper::laserCalib_Robot_MoveTo_NextPos_and_spin()
         emit laserCalib_next_pos_updated(context_laser_calib_.current_index_preteached_Jpose
                                          % context_laser_calib_.total_num_preteached_Jpose);
     }
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::PostLaserCalib_Write_MDH_offset()
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
+        executionResult = this->Robot_ZeroOut_Mdh_offset();
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::Check_MDH_Offset_Parm_All_Zero()
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
+        executionResult = this->Robot_Check_Mdh_Offset_Are_All_Zero();
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
+        executionResult = this->Robot_ZeroOut_Mdh_offset();
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    qWarning() << "Mdh参数已经清零,机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
     return executionResult;
 }
 

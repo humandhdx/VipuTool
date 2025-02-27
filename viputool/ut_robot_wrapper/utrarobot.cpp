@@ -1,17 +1,20 @@
-#include "utrrobot.hpp"
+#include "utrarobot.hpp"
 #include "iostream"
-// UtrRobot::UtrRobot() {}
+#include "string"
+// UtraRobot::UtraRobot() {}
 
 #define ROBOT_NO_ERROR 0
 #define TIMEOUT_MS_ROBOT_START_MOV 1000
 #define CYCLE_MS_ROTOT_STATUS_REPORT 10
 #define DALAY_MS_TEACH_TO_POSITION_MODE 1050
 
-UtrRobot::UtrRobot(UtRobotConfig::TestConfig config):config_{config} {
+
+
+UtraRobot::UtraRobot(UtRobotConfig::TestConfig& config):config_{config} {
     memset(&this->rx_data_, 0x00, sizeof(this->rx_data_));
 }
 
-UtrRobot::~UtrRobot()
+UtraRobot::~UtraRobot()
 {
     this->thread_flag = false;
     this->thd_refresh_robot_status_.join();
@@ -26,7 +29,7 @@ UtrRobot::~UtrRobot()
     }
 }
 
-bool UtrRobot::InitRobot()
+bool UtraRobot::InitRobot()
 {
     if(is_robot_connected)
     {
@@ -50,16 +53,39 @@ bool UtrRobot::InitRobot()
         std::cout << __FUNCTION__ << " UtraReportStatus100Hz connection failed" << std::endl;;
         return false;
     }
-    thd_refresh_robot_status_ = std::thread(&UtrRobot::ThreadFunction_UpdateRobotStatus, this);
+    thd_refresh_robot_status_ = std::thread(&UtraRobot::ThreadFunction_UpdateRobotStatus, this);
 
     this->RobotCommand_ResetError();
     sleep(1);
+    uint8_t uuid[18] = {0};
+    uint8_t version_sw[21] = {0};
+    uint8_t version_hw[21] = {0};
+
+    int ret{-1};
+    ret = ubot_->get_uuid(uuid);
+    if (!ret) return false;
+    std::string str_uuid{uuid, uuid + (sizeof uuid)/(sizeof uuid[0])};
+
+    ret = ubot_->get_sw_version(version_sw);
+    if (!ret) return false;
+    std::string str_version_sw{version_sw, version_sw + (sizeof version_sw)/(sizeof version_sw[0])};
+    str_version_sw = str_version_sw.substr(0,10);//prune the last 10 character which contains the time stamp
+
+    ret = ubot_->get_hw_version(version_hw);
+    if (!ret) return false;
+    std::string str_version_hw{version_hw, version_hw + (sizeof version_hw)/(sizeof version_hw[0])};
+
     bool hold_result = this->RobotCommand_Hold();
     std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    config_.identity_Info.UUID          = str_uuid;
+    config_.identity_Info.VERSION_SW    = str_version_sw;
+    config_.identity_Info.VERSION_HW    = str_version_hw;
+
     return hold_result;
 }
 
-bool UtrRobot::getJointPos(UtRobotConfig::JointPos &jPos)
+bool UtraRobot::getJointPos(UtRobotConfig::JointPos &jPos)
 {
     jPos[0] = this->rx_data_.joint[0];
     jPos[1] = this->rx_data_.joint[1];
@@ -71,7 +97,7 @@ bool UtrRobot::getJointPos(UtRobotConfig::JointPos &jPos)
     return true;
 }
 
-bool UtrRobot::getTcpPos(UtRobotConfig::CartesianPos &pose)
+bool UtraRobot::getTcpPos(UtRobotConfig::CartesianPos &pose)
 {
     pose[0] = this->rx_data_.pose[0];
     pose[1] = this->rx_data_.pose[1];
@@ -82,7 +108,7 @@ bool UtrRobot::getTcpPos(UtRobotConfig::CartesianPos &pose)
     return true;
 }
 
-bool UtrRobot::RobotTest_Gravity()
+bool UtraRobot::RobotTest_Gravity()
 {
     if(!this->is_robot_connected)
     {
@@ -92,11 +118,17 @@ bool UtrRobot::RobotTest_Gravity()
     return RobotCommand_JointPtp(config_.gravityTest.target_JointPos);
 }
 
-bool UtrRobot::RobotTest_Accuracy()
+bool UtraRobot::RobotTest_Accuracy()
 {
     if(!this->is_robot_connected)
     {
         std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    float zero_tcp_offset[6]{0};
+    if(!Robot_Set_Param_Tcp_Offset(zero_tcp_offset))
+    {
+        std::cout << __FUNCTION__ << " - failed to zero out tcp offset!";
         return false;
     }
     if(!RobotCommand_JointPtp(config_.accuracyTest.initial_JointPose))
@@ -125,11 +157,17 @@ bool UtrRobot::RobotTest_Accuracy()
     return true;
 }
 
-bool UtrRobot::RobotTest_Workspace()
+bool UtraRobot::RobotTest_Workspace()
 {
     if(!this->is_robot_connected)
     {
         std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    float zero_tcp_offset[6]{0};
+    if(!Robot_Set_Param_Tcp_Offset(zero_tcp_offset))
+    {
+        std::cout << __FUNCTION__ << " - failed to zero out tcp offset!";
         return false;
     }
     if(!RobotCommand_JointPtp(config_.workspaceTest.initial_JointPose))
@@ -158,11 +196,17 @@ bool UtrRobot::RobotTest_Workspace()
     return true;
 }
 
-bool UtrRobot::RobotTest_Repeat()
+bool UtraRobot::RobotTest_Repeat()
 {
     if(!this->is_robot_connected)
     {
         std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    float zero_tcp_offset[6]{0};
+    if(!Robot_Set_Param_Tcp_Offset(zero_tcp_offset))
+    {
+        std::cout << __FUNCTION__ << " - failed to zero out tcp offset!";
         return false;
     }
     if(!RobotCommand_JointPtp(config_.repeatTest.initial_JointPose))
@@ -191,7 +235,7 @@ bool UtrRobot::RobotTest_Repeat()
     return true;
 }
 
-bool UtrRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_ms)
+bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_ms)
 {
     if(!this->is_robot_connected)
     {
@@ -255,7 +299,7 @@ bool UtrRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_m
     return true;
 }
 
-bool UtrRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int timeout_ms)
+bool UtraRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int timeout_ms)
 {
     if(!this->is_robot_connected)
     {
@@ -318,7 +362,7 @@ bool UtrRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int t
     return true;
 }
 
-bool UtrRobot::RobotCommand_EnterTeachMode()
+bool UtraRobot::RobotCommand_EnterTeachMode()
 {
     if(!this->is_robot_connected)
     {
@@ -392,7 +436,7 @@ bool UtrRobot::RobotCommand_EnterTeachMode()
     return true;
 }
 
-bool UtrRobot::RobotCommand_Hold()
+bool UtraRobot::RobotCommand_Hold()
 {
     if(!this->is_robot_connected)
     {
@@ -514,7 +558,7 @@ bool UtrRobot::RobotCommand_Hold()
     return true;
 }
 
-bool UtrRobot::RobotCommand_ResetError()
+bool UtraRobot::RobotCommand_ResetError()
 {
     if(!this->is_robot_connected)
     {
@@ -535,7 +579,169 @@ bool UtrRobot::RobotCommand_ResetError()
     return true;
 }
 
-void UtrRobot::ThreadFunction_UpdateRobotStatus()
+bool UtraRobot::Robot_Set_Mdh_Offset()
+{
+    UtRobotConfig::RobotDhModel_UtraRobot mdh_offset_struct;
+
+    for(int i=0; i<7; i++)
+    {
+        mdh_offset_struct[i].a_Trans    = this->config_.mdh_model_calib[i].a_Trans   - this->config_.mdh_model_origin[i].a_Trans;
+        mdh_offset_struct[i].d_Trans    = this->config_.mdh_model_calib[i].d_Trans   - this->config_.mdh_model_origin[i].d_Trans;
+        mdh_offset_struct[i].alpha_Rot  = this->config_.mdh_model_calib[i].alpha_Rot - this->config_.mdh_model_origin[i].alpha_Rot;
+        mdh_offset_struct[i].theta_Rot  = this->config_.mdh_model_calib[i].theta_Rot - this->config_.mdh_model_origin[i].theta_Rot;
+    }
+    std::array<std::array<float,4>,7> mdh_offset_array;
+    UtRobotConfig::Convertion_RobotDhModel_Struct_To_Array(mdh_offset_struct, mdh_offset_array);
+    int ret = 0;
+    bool all_joint_updated = true;
+    for(int i=0; i<7; i++)
+    {
+        ret = ubot_->set_dh_offset(i + 1, mdh_offset_array[i].data());
+        if (0 == ret)
+        {
+            std::cout << __FUNCTION__ << " - succeed mdh offset update for joint " << (i+1) << std::endl;
+        }
+        else
+        {
+            std::cout << __FUNCTION__ << " - failed to update mdh offset for joint " << (i+1) << std::endl;
+            all_joint_updated = false;
+        }
+    }
+    sleep(2);
+    ret = ubot_->saved_parm();
+    if(0 != ret)
+    {
+        std::cout << " - Robot Failed to save param after update mdh offset!" << std::endl;
+    }
+    sleep(2);
+    ret = ubot_->reboot_system();
+    if(0 != ret)
+    {
+        std::cout << " - Robot Failed to reboot system after save parameters of mdh offset!" << std::endl;
+    }
+
+    return all_joint_updated;
+}
+
+bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
+{
+    std::array<std::array<float,4>,7> mdh_offset_array;
+    int ret = 0;
+    bool all_joint_mdh_zero = true;
+    float Template_Zero_Arr[4] = {0};
+    for(int i=0; i<7; i++)
+    {
+        ret = ubot_->get_dh_offset(i + 1, &mdh_offset_array[i][0]);
+        if (0 == ret)
+        {
+            // std::cout << __FUNCTION__ << " - succeed mdh offset update for joint " << (i+1) << std::endl;
+            if(memcmp(&mdh_offset_array[i][0], Template_Zero_Arr, sizeof((Template_Zero_Arr))))
+            {
+                std::cout << __FUNCTION__ << " - mdh offset update for joint " << (i+1) << " is not zero" << std::endl;
+                all_joint_mdh_zero = false;
+            }
+            else
+            {
+                std::cout << __FUNCTION__ << " - mdh offset update for joint " << (i+1) << " is zeror" << std::endl;
+            }
+        }
+        else
+        {
+            std::cout << __FUNCTION__ << " - failed to update mdh offset for joint " << (i+1) << std::endl;
+            all_joint_mdh_zero = false;
+        }
+    }
+
+    return all_joint_mdh_zero;
+}
+
+bool UtraRobot::Robot_ZeroOut_Mdh_offset()
+{
+    std::array<std::array<float,4>,7> mdh_offset_array={{{0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}}};
+    int ret = 0;
+    bool all_joint_updated = true;
+    for(int i=0; i<7; i++)
+    {
+        ret = ubot_->set_dh_offset(i + 1, mdh_offset_array[i].data());
+        if (0 == ret)
+        {
+            std::cout << __FUNCTION__ << " - succeed mdh offset update for joint " << (i+1) << std::endl;
+        }
+        else
+        {
+            std::cout << __FUNCTION__ << " - failed to update mdh offset for joint " << (i+1) << std::endl;
+            all_joint_updated = false;
+        }
+    }
+    sleep(2);
+    ret = ubot_->saved_parm();
+    if(0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to save param after update mdh offset!" << std::endl;
+    }
+    sleep(2);
+    ret = ubot_->reboot_system();
+    if(0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to reboot system after save parameters of mdh offset!" << std::endl;
+    }
+
+    return all_joint_updated;
+}
+
+bool UtraRobot::Robot_Get_Param_Gravity_Direct(float gravity_direction[3])
+{
+    int ret = ubot_->get_gravity_dir(gravity_direction);
+    if (0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to Get Parameter Gravity Direction!" << std::endl;
+        return false;
+    }
+    printf("%s - Robot Gravity Direction {%0.4f}, {%0.4f}, {%0.4f}\r\n"
+           , __FUNCTION__, gravity_direction[0], gravity_direction[1], gravity_direction[2]);
+    return true;
+}
+
+bool UtraRobot::Robot_Get_Param_Tcp_Offset(float tcp_over_flange[6])
+{
+    int ret = ubot_->get_tcp_offset(tcp_over_flange);
+    if (0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to Get Parameter Gravity Direction!" << std::endl;
+        return false;
+    }
+    printf("%s - Robot tcp offset {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}\r\n"
+           , __FUNCTION__, tcp_over_flange[0], tcp_over_flange[1], tcp_over_flange[2]
+           , tcp_over_flange[3], tcp_over_flange[4], tcp_over_flange[5]);
+    return true;
+}
+
+bool UtraRobot::Robot_Set_Param_Tcp_Offset(float tcp_over_flange[6])
+{
+    int ret = ubot_->get_tcp_offset(tcp_over_flange);
+    if (0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to Get Parameter Gravity Direction!" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool UtraRobot::Robot_Get_Param_Tcp_Load(float tcp_load[4])
+{
+    int ret = ubot_->get_tcp_load(tcp_load);
+    if (0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to Get Tcp Load!" << std::endl;
+        return false;
+    }
+    printf("%s - Robot tcp load {%0.3f}kg, {%0.4f}mm, {%0.4f}mm, {%0.4f}mm\r\n"
+           , __FUNCTION__, tcp_load[0], tcp_load[1], tcp_load[2], tcp_load[3]);
+
+    return true;
+}
+
+void UtraRobot::ThreadFunction_UpdateRobotStatus()
 {
     while(this->thread_flag)
     {
@@ -588,19 +794,19 @@ void UtrRobot::ThreadFunction_UpdateRobotStatus()
 }
 
 
-bool UtrRobot::Predicate_Robot_Standby_Or_Error()
+bool UtraRobot::Predicate_Robot_Standby_Or_Error()
 {
     return ((uint8_t)(UtrRobotStatus::Standby) == this->robotState_.motion_status)
            || (ROBOT_NO_ERROR != this->robotState_.err_code);
 }
 
-bool UtrRobot::Predicate_Robot_Moving_Without_Error()
+bool UtraRobot::Predicate_Robot_Moving_Without_Error()
 {
     return ((uint8_t)(UtrRobotStatus::Moving) == this->robotState_.motion_status)
            && (ROBOT_NO_ERROR == this->robotState_.err_code);
 }
 
-void UtrRobot::Print_Error_Info()
+void UtraRobot::Print_Error_Info()
 {
     uint8_t err_code[2];
     int result =  ubot_->get_error_code(err_code);

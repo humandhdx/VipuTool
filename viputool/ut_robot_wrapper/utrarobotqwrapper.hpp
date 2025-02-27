@@ -2,13 +2,14 @@
 #define UTRROBOT_QWRAPPER_H
 
 #include <QObject>
-#include "utrrobot.hpp"
+#include "utrarobot.hpp"
 #include <QVariantList>
 #include <QTimer>
 #include <QList>
 #include <QMutex>
+#include <QVector2D>
 
-class UtraRobot_QWrapper : public QObject, UtrRobot
+class UtraRobot_QWrapper : public QObject, UtraRobot
 {
     Q_OBJECT
 public:
@@ -25,6 +26,12 @@ public:
 
     Q_INVOKABLE bool laserCalib_load_file(QString filePath);
     Q_INVOKABLE bool laserCalib_Robot_MoveTo_NextPos_and_spin();
+
+    Q_INVOKABLE bool PostLaserCalib_Write_MDH_offset();
+
+    Q_INVOKABLE bool Check_MDH_Offset_Parm_All_Zero();
+    Q_INVOKABLE bool ZeroOut_MDH_offset();
+
     Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
 
     bool arm_connect() const;
@@ -41,6 +48,7 @@ signals:
     void Robot_Connection_State_Updated(bool connect);
 
     void arm_connectChanged();
+    void robot_Warning_MDH_OFFSET_NOT_ZERO();
 
 private:
     QMutex mutext;
