@@ -32,6 +32,8 @@ public:
     Q_INVOKABLE bool Check_MDH_Offset_Parm_All_Zero();
     Q_INVOKABLE bool ZeroOut_MDH_offset();
 
+    Q_INVOKABLE bool Move_To_Joint_Position(QVariantList jointpos);
+
     Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
 
     bool arm_connect() const;
@@ -76,6 +78,7 @@ private:
         bool isLocked() const { return locked_; }
     };
     bool m_arm_connect=false;
+
 };
 
 #endif // UTRROBOT_QWRAPPER_H

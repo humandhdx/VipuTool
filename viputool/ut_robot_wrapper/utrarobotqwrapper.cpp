@@ -12,17 +12,17 @@ UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject
 
     timer_refresh_robot_joint_pos_.start(500);
 
-    connect(this, &UtraRobot_QWrapper::Robot_Connection_State_Updated, this, [this](bool connect){
-        if(connect)
-        {
-            if(!Robot_Check_Mdh_Offset_Are_All_Zero())
-            {
-                emit robot_Warning_MDH_OFFSET_NOT_ZERO();
-            }
-        }
-    });
+    // connect(this, &UtraRobot_QWrapper::Robot_Connection_State_Updated, this, [this](bool connect){
+    //     if(connect)
+    //     {
+    //         if(!Robot_Check_Mdh_Offset_Are_All_Zero())
+    //         {
+    //             emit robot_Warning_MDH_OFFSET_NOT_ZERO();
+    //         }
+    //     }
+    // });
 
-    connect(this, &UtraRobot_QWrapper::robot_Warning_MDH_OFFSET_NOT_ZERO, this, &UtraRobot_QWrapper::ZeroOut_MDH_offset);
+    // connect(this, &UtraRobot_QWrapper::robot_Warning_MDH_OFFSET_NOT_ZERO, this, &UtraRobot_QWrapper::ZeroOut_MDH_offset);
 }
 
 bool UtraRobot_QWrapper::robot_connect()
@@ -286,6 +286,51 @@ bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
     });
     spinner.exec();
     qWarning() << "Mdh参数已经清零,机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    UtRobotConfig::JointPos target_jpos;
+    int jp_index=0;
+    QString joint_pos_str = "{";
+    for(auto single_joint : jointpos)
+    {
+        target_jpos[jp_index] = single_joint.toFloat();
+        joint_pos_str += QString::number(single_joint.toFloat()) + ",";
+        jp_index++;
+    }
+    joint_pos_str += "}";
+    if(7 != jp_index)
+    {
+        qWarning() << "机械臂肘关节运动，给予的肘关节数量不正确[7]";
+        return false;
+    }
+
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, &target_jpos, this](){
+        executionResult = this->RobotCommand_JointPtp(target_jpos);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
+    if(executionResult)
+    {
+        qDebug() << "Robot Arm move to given joint position" << joint_pos_str;
+    }
+    else
+    {
+        qWarning() << "Robot Arm failed to move to given joint position" << joint_pos_str;
+    }
+
     return executionResult;
 }
 

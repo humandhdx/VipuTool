@@ -39,10 +39,10 @@ KinematicCalib_QWrapper::KinematicCalib_QWrapper(QObject *parent)
                                                                        std::bind(&KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file, this, std::placeholders::_1, std::ref(vector2d_laser_angle_calibrate_)));
 
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
+                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, true ,std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
 
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
+                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
 }
 
 void KinematicCalib_QWrapper::reset_kinematic_calib()
@@ -58,169 +58,173 @@ void KinematicCalib_QWrapper::add_mask_index_for_position_recorder(uint32_t inde
     emit lst_masked_robot_pose_index_changed();
 }
 
-void KinematicCalib_QWrapper::log_calib_data_ready_info_left()
+void KinematicCalib_QWrapper::log_calib_data_ready_info(bool isLeftArm)
 {
-    if(CheckDataReady_LeftArm())
+    if(isLeftArm)
     {
-        qDebug() << "Kinematic Calibration Data is ready for left arm!";
-        return;
-    }
+        if(CheckDataReady_LeftArm())
+        {
+            qDebug() << "Kinematic Calibration Data is ready for left arm!";
+            return;
+        }
 
-    if(1 !=vector2d_frame_tool_in_flange_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_tool_frame;
-    }
-    if(1 !=vector2d_frame_prev_left_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_left_base_in_laser;
-    }
-    if(1 !=vector2d_frame_prev_right_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_right_base_in_laser;
-    }
-    if(1 !=vector2d_frame_current_right_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_right_base_in_laser;
-    }
-    if(3 !=vector2d_laser_angle_calibrate_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_laser_offset;
-    }
-    if(6 >= vector2d_frame_list_left_tcp_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_left_tcp_frames;
-        qWarning() << "which need to extract at least 7 laser records";
-    }
-    if(6 >= vector2d_jpos_list_left_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_ROBOT_DATA_left_arm_joint_pose;
-        qWarning() << "which need to extract at least 7 laser records";
-    }
-    if((6 < vector2d_frame_list_left_tcp_in_laser_.size())
-        && (6 < vector2d_jpos_list_left_.size())
-        && (vector2d_frame_list_left_tcp_in_laser_.size() != vector2d_jpos_list_left_.size()))
-    {
-        qWarning() << "records number not match for the following two files:";
-        qWarning() << INPUT_LASER_DATA_left_tcp_frames;
-        qWarning() << CONFIG_ROBOT_DATA_left_arm_joint_pose;
-    }
-}
-
-void KinematicCalib_QWrapper::log_calib_data_ready_info_right()
-{
-    if(CheckDataReady_RightArm())
-    {
-        qDebug() << "Kinematic Calibration Data is ready for right arm!";
-        return;
-    }
-
-    if(1 !=vector2d_frame_tool_in_flange_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_tool_frame;
-    }
-    if(1 !=vector2d_frame_prev_left_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_left_base_in_laser;
-    }
-    if(1 !=vector2d_frame_prev_right_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_right_base_in_laser;
-    }
-    if(1 !=vector2d_frame_current_left_base_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_left_base_in_laser;
-    }
-    if(3 !=vector2d_laser_angle_calibrate_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_laser_offset;
-    }
-    if(6 >= vector2d_frame_list_right_tcp_in_laser_.size())
-    {
-        qWarning() << "Please check file ready:" << INPUT_LASER_DATA_right_tcp_frames;
-        qWarning() << "which need to extract at least 7 laser records";
-    }
-    if(6 >= vector2d_jpos_list_right_.size())
-    {
-        qWarning() << "Please check file ready:" << CONFIG_ROBOT_DATA_right_arm_joint_pose;
-        qWarning() << "which need to extract at least 7 laser records";
-    }
-    if((6 < vector2d_frame_list_right_tcp_in_laser_.size())
-        && (6 < vector2d_jpos_list_right_.size())
-        && (vector2d_frame_list_right_tcp_in_laser_.size() != vector2d_jpos_list_right_.size()))
-    {
-        qWarning() << "records number not match for the following two files:";
-        qWarning() << INPUT_LASER_DATA_right_tcp_frames;
-        qWarning() << CONFIG_ROBOT_DATA_right_arm_joint_pose;
-    }
-}
-
-bool KinematicCalib_QWrapper::KinematicCalib_Start_left()
-{
-    if(!CheckDataReady_LeftArm())
-    {
-        qWarning() << "Kinematic Calibration Data is not ready for left arm!";
-        return false;
-    }
-    if(0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.UUID.size()
-        || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_HW.size()
-        || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_SW.size())
-    {
-        qWarning() << "left arm identity infomation empty UUID/Version_sw/Version_hw!";
-        return false;
-    }
-    this->disable_data_set_.clear();
-    for(auto masked_pose_index: m_lst_masked_robot_pose_index)
-    {
-        this->disable_data_set_.insert(masked_pose_index);
-    }
-
-    std::string log_info;
-    bool result = this->calibration_and_output(true, log_info);
-    if(result)
-    {
-        qDebug() << "Kinematic Calbiration for left arm finished!";
+        if(1 !=vector2d_frame_tool_in_flange_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_tool_frame;
+        }
+        if(1 !=vector2d_frame_prev_left_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_left_base_in_laser;
+        }
+        if(1 !=vector2d_frame_prev_right_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_right_base_in_laser;
+        }
+        if(1 !=vector2d_frame_current_right_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_right_base_in_laser;
+        }
+        if(3 !=vector2d_laser_angle_calibrate_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_laser_offset;
+        }
+        if(6 >= vector2d_frame_list_left_tcp_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_left_tcp_frames;
+            qWarning() << "which need to extract at least 7 laser records";
+        }
+        if(6 >= vector2d_jpos_list_left_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_ROBOT_DATA_left_arm_joint_pose;
+            qWarning() << "which need to extract at least 7 laser records";
+        }
+        if((6 < vector2d_frame_list_left_tcp_in_laser_.size())
+            && (6 < vector2d_jpos_list_left_.size())
+            && (vector2d_frame_list_left_tcp_in_laser_.size() != vector2d_jpos_list_left_.size()))
+        {
+            qWarning() << "records number not match for the following two files:";
+            qWarning() << INPUT_LASER_DATA_left_tcp_frames;
+            qWarning() << CONFIG_ROBOT_DATA_left_arm_joint_pose;
+        }
     }
     else
     {
-        qWarning() << QString::fromStdString(log_info);
-        qWarning() << "Kinematic Calbiration for left arm failed!";
+        if(CheckDataReady_RightArm())
+        {
+            qDebug() << "Kinematic Calibration Data is ready for right arm!";
+            return;
+        }
+
+        if(1 !=vector2d_frame_tool_in_flange_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_tool_frame;
+        }
+        if(1 !=vector2d_frame_prev_left_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_left_base_in_laser;
+        }
+        if(1 !=vector2d_frame_prev_right_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_PREV_LASER_DATA_right_base_in_laser;
+        }
+        if(1 !=vector2d_frame_current_left_base_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_left_base_in_laser;
+        }
+        if(3 !=vector2d_laser_angle_calibrate_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_laser_offset;
+        }
+        if(6 >= vector2d_frame_list_right_tcp_in_laser_.size())
+        {
+            qWarning() << "Please check file ready:" << INPUT_LASER_DATA_right_tcp_frames;
+            qWarning() << "which need to extract at least 7 laser records";
+        }
+        if(6 >= vector2d_jpos_list_right_.size())
+        {
+            qWarning() << "Please check file ready:" << CONFIG_ROBOT_DATA_right_arm_joint_pose;
+            qWarning() << "which need to extract at least 7 laser records";
+        }
+        if((6 < vector2d_frame_list_right_tcp_in_laser_.size())
+            && (6 < vector2d_jpos_list_right_.size())
+            && (vector2d_frame_list_right_tcp_in_laser_.size() != vector2d_jpos_list_right_.size()))
+        {
+            qWarning() << "records number not match for the following two files:";
+            qWarning() << INPUT_LASER_DATA_right_tcp_frames;
+            qWarning() << CONFIG_ROBOT_DATA_right_arm_joint_pose;
+        }
     }
-    return result;
 }
 
-bool KinematicCalib_QWrapper::KinematicCalib_Start_right()
+bool KinematicCalib_QWrapper::KinematicCalib_Start(bool isLeftArm)
 {
-    if(!CheckDataReady_RightArm())
+    if(isLeftArm)
     {
-        qWarning() << "Kinematic Calibration Data is not ready for right arm!";
-        return false;
-    }
-    if(0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.UUID.size()
-        || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_HW.size()
-        || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_SW.size())
-    {
-        qWarning() << "right arm identity infomation empty UUID/Version_sw/Version_hw!";
-        return false;
-    }
+        if(!CheckDataReady_LeftArm())
+        {
+            qWarning() << "Kinematic Calibration Data is not ready for left arm!";
+            return false;
+        }
+        if(0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.UUID.size()
+            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_HW.size()
+            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_SW.size())
+        {
+            qWarning() << "left arm identity infomation empty UUID/Version_sw/Version_hw!";
+            return false;
+        }
+        this->disable_data_set_.clear();
+        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
+        {
+            this->disable_data_set_.insert(masked_pose_index);
+        }
 
-    this->disable_data_set_.clear();
-    for(auto masked_pose_index: m_lst_masked_robot_pose_index)
-    {
-        this->disable_data_set_.insert(masked_pose_index);
-    }
-
-    std::string log_info;
-    bool result = this->calibration_and_output(false, log_info);
-    if(result)
-    {
-        qDebug() << "Kinematic Calbiration for right arm finished!";
+        std::string log_info;
+        bool result = this->calibration_and_output(true, log_info);
+        if(result)
+        {
+            qDebug() << "Kinematic Calbiration for left arm finished!";
+        }
+        else
+        {
+            qWarning() << QString::fromStdString(log_info);
+            qWarning() << "Kinematic Calbiration for left arm failed!";
+        }
+        return result;
     }
     else
     {
-        qWarning() << QString::fromStdString(log_info);
-        qWarning() << "Kinematic Calbiration for right arm failed!";
+        if(!CheckDataReady_RightArm())
+        {
+            qWarning() << "Kinematic Calibration Data is not ready for right arm!";
+            return false;
+        }
+        if(0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.UUID.size()
+            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_HW.size()
+            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_SW.size())
+        {
+            qWarning() << "right arm identity infomation empty UUID/Version_sw/Version_hw!";
+            return false;
+        }
+
+        this->disable_data_set_.clear();
+        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
+        {
+            this->disable_data_set_.insert(masked_pose_index);
+        }
+
+        std::string log_info;
+        bool result = this->calibration_and_output(false, log_info);
+        if(result)
+        {
+            qDebug() << "Kinematic Calbiration for right arm finished!";
+        }
+        else
+        {
+            qWarning() << QString::fromStdString(log_info);
+            qWarning() << "Kinematic Calbiration for right arm failed!";
+        }
+        return result;
     }
-    return result;
 }
 
 bool KinematicCalib_QWrapper::Merge_Left_And_Right_Calib_Result()
@@ -228,15 +232,11 @@ bool KinematicCalib_QWrapper::Merge_Left_And_Right_Calib_Result()
 
 }
 
-bool KinematicCalib_QWrapper::Updata_Planned_Robot_Pose_left(QString source_file_path)
+bool KinematicCalib_QWrapper::Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path)
 {
-    QString target_filepath = QStr_ABS_PATH(CONFIG_ROBOT_DATA_left_arm_joint_pose);
-    return copy_replace_file(source_file_path, target_filepath);
-}
-
-bool KinematicCalib_QWrapper::Updata_Planned_Robot_Pose_right(QString source_file_path)
-{
-    QString target_filepath = QStr_ABS_PATH(CONFIG_ROBOT_DATA_right_arm_joint_pose);
+    QString target_filepath = isLeftArm?
+        QStr_ABS_PATH(CONFIG_ROBOT_DATA_left_arm_joint_pose)
+        :QStr_ABS_PATH(CONFIG_ROBOT_DATA_right_arm_joint_pose);;
     return copy_replace_file(source_file_path, target_filepath);
 }
 
@@ -294,7 +294,10 @@ void KinematicCalib_QWrapper::read_frames_from_file(const std::string &file_path
     {
         parser_.set_double_number_per_line(6).set_File_Encoder_Type(PoseFileParser::EncoderType::UTF_8);
         parser_.parse_double_vector(file_path, vector2d);
-        qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        if(vector2d.size())
+            qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        else
+            qWarning() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "failed to parse";
     }
     else
     {
@@ -312,7 +315,10 @@ void KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file(const std::st
     {
         parser_.set_double_number_per_line(2).set_File_Encoder_Type(PoseFileParser::EncoderType::UTF_8);
         parser_.parse_double_vector(file_path, vector2d);
-        qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        if(vector2d.size())
+            qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        else
+            qWarning() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "failed to parse";
     }
     else
     {
@@ -322,7 +328,7 @@ void KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file(const std::st
     set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
 }
 
-void KinematicCalib_QWrapper::read_jpos_from_file(const std::string &file_path, std::vector<std::vector<double> > &vector2d)
+void KinematicCalib_QWrapper::read_jpos_from_file(bool isLeftArm, const std::string &file_path, std::vector<std::vector<double> > &vector2d)
 {
     QFileInfo fileInfo{QString::fromStdString(file_path)};
     vector2d.clear();
@@ -330,14 +336,27 @@ void KinematicCalib_QWrapper::read_jpos_from_file(const std::string &file_path, 
     {
         parser_.set_double_number_per_line(7).set_File_Encoder_Type(PoseFileParser::EncoderType::UTF_8);
         parser_.parse_double_vector(file_path, vector2d);
-        qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        if(vector2d.size())
+            qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
+        else
+            qWarning() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "failed to parse";
     }
     else
     {
         qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nfile deleted!";
     }
-    set_kinematic_calib_data_ready_left(CheckDataReady_LeftArm());
-    set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
+    if(isLeftArm)
+    {
+        set_kinematic_calib_data_ready_left(CheckDataReady_LeftArm());
+        this->set_joint_pos_index(0);
+        this->set_joint_pos_total_num_left(vector2d.size());
+    }
+    else
+    {
+        set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
+        this->set_joint_pos_index(0);
+        this->set_joint_pos_total_num_right(vector2d.size());
+    }
 }
 
 bool KinematicCalib_QWrapper::combine_json_file_kinematics_paramters()
@@ -458,4 +477,87 @@ void KinematicCalib_QWrapper::set_lst_masked_robot_pose_index(const QList<int> &
         return;
     m_lst_masked_robot_pose_index = newLst_masked_robot_pose_index;
     emit lst_masked_robot_pose_index_changed();
+}
+
+int KinematicCalib_QWrapper::joint_pos_index() const
+{
+    return m_joint_pos_index;
+}
+
+void KinematicCalib_QWrapper::set_joint_pos_index(int newJoint_pos_index)
+{
+    if (m_joint_pos_index == newJoint_pos_index)
+        return;
+    m_joint_pos_index = newJoint_pos_index;
+    if(m_joint_pos_index < vector2d_jpos_list_left_.size())
+    {
+        QVariantList list_left;
+        for(auto singleJointPos: vector2d_jpos_list_left_[m_joint_pos_index])
+        {
+            list_left.append(singleJointPos);
+        }
+        set_calib_target_joint_pose_left(list_left);
+    }
+    if(m_joint_pos_index < vector2d_jpos_list_right_.size())
+    {
+        QVariantList list_right;
+        for(auto singleJointPos: vector2d_jpos_list_left_[m_joint_pos_index])
+        {
+            list_right.append(singleJointPos);
+        }
+        set_calib_target_joint_pose_right(list_right);
+    }
+    emit joint_pos_indexChanged();
+}
+
+int KinematicCalib_QWrapper::joint_pos_total_num_left() const
+{
+    return m_joint_pos_total_num_left;
+}
+
+void KinematicCalib_QWrapper::set_joint_pos_total_num_left(int newJoint_pos_total_num_left)
+{
+    if (m_joint_pos_total_num_left == newJoint_pos_total_num_left)
+        return;
+    m_joint_pos_total_num_left = newJoint_pos_total_num_left;
+    emit joint_pos_index_leftChanged();
+}
+
+int KinematicCalib_QWrapper::joint_pos_total_num_right() const
+{
+    return m_joint_pos_total_num_right;
+}
+
+void KinematicCalib_QWrapper::set_joint_pos_total_num_right(int newJoint_pos_total_num_right)
+{
+    if (m_joint_pos_total_num_right == newJoint_pos_total_num_right)
+        return;
+    m_joint_pos_total_num_right = newJoint_pos_total_num_right;
+    emit joint_pos_index_rightChanged();
+}
+
+QVariantList KinematicCalib_QWrapper::get_calib_target_joint_pose_left() const
+{
+    return m_calib_target_joint_pose_left;
+}
+
+void KinematicCalib_QWrapper::set_calib_target_joint_pose_left(const QVariantList &newCalib_target_joint_pose_left)
+{
+    if (m_calib_target_joint_pose_left == newCalib_target_joint_pose_left)
+        return;
+    m_calib_target_joint_pose_left = newCalib_target_joint_pose_left;
+    emit calib_target_joint_pose_left_changed();
+}
+
+QVariantList KinematicCalib_QWrapper::get_calib_target_joint_pose_right() const
+{
+    return m_calib_target_joint_pose_right;
+}
+
+void KinematicCalib_QWrapper::set_calib_target_joint_pose_right(const QVariantList &newCalib_target_joint_pose_right)
+{
+    if (m_calib_target_joint_pose_right == newCalib_target_joint_pose_right)
+        return;
+    m_calib_target_joint_pose_right = newCalib_target_joint_pose_right;
+    emit calib_target_joint_pose_right_changed();
 }
