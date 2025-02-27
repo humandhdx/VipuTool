@@ -1,15 +1,11 @@
 import QtQuick
 import QtQuick.Controls
-import Qt.labs.platform
-import QtQuick.Dialogs
 Item {
-    anchors.fill: parent //1260
+    anchors.fill: parent
     property string capturePath: ""
     property bool isCamera: false
     property int captureCount: 0
     Component.onCompleted: {
-        capturePath=cameraManager.currentDirectory()+"/GlobalImages"
-        cameraManager.clearCaptureCount(capturePath)
     }
     Component.onDestruction: {
         cameraManager.stopCamera()
@@ -349,34 +345,6 @@ Item {
             }
         }
     }
-    FolderDialog {
-        id: folderDialog
-        title: qsTr("选择图片保存路径")
-        folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-        onAccepted: {
-            var localFolder = folderDialog.folder.toString().replace("file://", "");
-            console.log("你选择的文件夹为: " + localFolder)
-            capturePath=localFolder
-            cameraManager.clearCaptureCount(capturePath)
-            captureCount=0
-            nopath.visible=false
-        }
-        onRejected: {
-            console.log("取消选择")
-        }
-    }
-    FileDialog {
-        id: fileDialog
-        title: "请选择全局相机参数.yaml文件"
-        nameFilters: ["文本文件 (*.yaml)", "所有文件 (*)"]  // 文件类型过滤
-        onAccepted: {
-            console.log("选择的全局相机参数文件路径: " + fileDialog.currentFile.toString().replace("file://", ""))
-            cameraParamePath=fileDialog.currentFile.toString().replace("file://", "")
-        }
-        onRejected: {
-            console.log("全局相机参数文件选择已取消")
-        }
-    }
     Connections{
         target: image_provider_gl
         function onImgChanged (){
@@ -409,3 +377,4 @@ Item {
         }
     }
 }
+

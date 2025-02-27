@@ -35,20 +35,16 @@ Window {
             height:900
             model: ListModel{
                 ListElement{
-                    type:"全局相机标定"
-                    pageurl:"qrc:/GlobalCameraCalibration.qml"
-                }
-                ListElement{
-                    type:"随动相机标定"
-                    pageurl:"qrc:/FollowCmaeraCalibration.qml"
-                }
-                ListElement{
-                    type:"局部相机标定"
-                    pageurl:"qrc:/LocalCameraCalibration.qml"
+                    type:"相机标定"
+                    pageurl:"qrc:/CameraCalibration.qml"
                 }
                 ListElement{
                     type:"手眼标定"
                     pageurl:"qrc:/HandEyeCalibration.qml"
+                }
+                ListElement{
+                    type:"焦距校准"
+                    pageurl:"qrc:/CameraFocus.qml"
                 }
 
             }
@@ -83,7 +79,7 @@ Window {
         width: parent.width- parent.width/8
         height: parent.height
         anchors.right: parent.right
-        source: "qrc:/GlobalCameraCalibration.qml"
+        source: "qrc:/CameraCalibration.qml"
     }
     Popup{
         id:mask

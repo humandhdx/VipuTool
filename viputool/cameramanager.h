@@ -23,6 +23,7 @@
 #include <opencv2/imgproc.hpp>
 #include "v4l2/struct.h"
 #include <thread>
+#include <QProcess>
 
 class cameraManager: public QObject
 {
@@ -43,6 +44,7 @@ public slots:
     bool start_camera_capture(const QString &path, CalibritionType type, int count);
     bool deleteFisterCaptureImage(QString path);
     bool clearCaptureCount(QString path);
+    void openMalLab();
     QString currentDirectory() const {
         return QDir::currentPath();
     }
@@ -126,6 +128,7 @@ private:
     int restart_failed_left_ = 0;
     int restart_failed_right_ = 0;
     int restart_failed_middle_ = 0;
+    QProcess *matlab_process;
 
 signals:
     void signalSendLeftImage(QImage image);

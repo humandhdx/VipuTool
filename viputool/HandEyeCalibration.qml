@@ -4,33 +4,30 @@ import Qt.labs.platform
 import QtQuick.Dialogs
 import VTool 1.0
 Item {
-
-
     Column{
+        visible: pageLoader.sourceComponent?false:true
         anchors.centerIn: parent
         spacing: 20
         Button{
             width: 200
             height: 40
             text: "全局相机手眼标定"
-            enabled: !isCamera
             onClicked: {
-                handLoader.sourceComponent=global
+                pageLoader.sourceComponent=global
             }
         }
         Button{
             width: 200
             height: 40
             text: "随动相机手眼标定"
-            enabled: !isCamera
             onClicked: {
-                handLoader.sourceComponent=center
+                pageLoader.sourceComponent=center
             }
         }
     }
 
     Loader{
-        id:handLoader
+        id:pageLoader
         anchors.fill: parent
         //sourceComponent: global
     }

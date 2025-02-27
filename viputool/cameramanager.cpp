@@ -2,6 +2,7 @@
 #include <QThread>
 #include <QEventLoop>
 
+
 cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(CalibritionType::Null),
     left_id_(-1),
     right_id_(-1),
@@ -25,6 +26,7 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     vec_buff_left_->reserve(4000 * 3000);
     vec_buff_middle_->reserve(1920*1080);
     vec_buff_right_->reserve(4000 * 3000);
+    matlab_process=new QProcess();
 }
 
 cameraManager::~cameraManager()
@@ -58,6 +60,13 @@ cameraManager::~cameraManager()
         vec_buff_right_->clear();
         delete vec_buff_right_;
         vec_buff_right_ = nullptr;
+    }
+    if(matlab_process){
+        if (matlab_process->state() != QProcess::NotRunning) {
+            matlab_process->kill();  // 强制终止进程
+        }
+        delete matlab_process;
+        matlab_process=nullptr;
     }
 }
 
@@ -179,6 +188,15 @@ bool cameraManager::clearCaptureCount(QString path)
     }
     qDebug() << "重置采集图片数量成功";
     return true;
+}
+
+void cameraManager::openMalLab()
+{
+    // 设置 MATLAB 的路径
+    QString matlabPath = "/home/vipu/testmatlab/bin/matlab";  // 替换为你的 MATLAB 路径
+
+    // 启动 MATLAB
+    matlab_process->start(matlabPath);
 }
 
 void cameraManager::init_cam()
