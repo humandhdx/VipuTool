@@ -1,6 +1,7 @@
 #include "ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.hpp"
 #include <QDebug>
 #include <QFileInfo>
+#include <QDir>
 #include "utils/qfilesystemmonitor.hpp"
 #include "ut_robot_wrapper/kinematic_calibration/kinematiccalib_config.hpp"
 #include <fstream>
@@ -225,6 +226,89 @@ bool KinematicCalib_QWrapper::KinematicCalib_Start(bool isLeftArm)
         }
         return result;
     }
+}
+
+bool KinematicCalib_QWrapper::Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
+{
+    QDir export_dir{export_dir_path};
+    if(!export_dir.exists())
+    {
+        qWarning()<<"the given export directory"<< export_dir_path <<"not exist!";
+        return false;
+    }
+    if(17 != robot_serial_number.size())
+    {
+        qWarning()<<"the given robot serial number:"<< robot_serial_number <<"not match length 17!";
+        return false;
+    }
+    if(isLeftArm && !(robot_serial_number.startsWith("CL")))
+    {
+        qWarning()<<"the given left robot serial number:"<< robot_serial_number <<"should start with 'CL'!";
+        return false;
+    }
+    if(!isLeftArm && !(robot_serial_number.startsWith("CR")))
+    {
+        qWarning()<<"the given right robot serial number:"<< robot_serial_number <<"should start with 'CR'!";
+        return false;
+    }
+
+
+    QDir export_sn_dir{export_dir_path+'/'+robot_serial_number};
+    if(QDir().mkdir(export_dir_path+'/'+robot_serial_number))
+    {
+        qWarning()<<"fail to create dir "<< (export_dir_path+'/'+robot_serial_number) <<"!";
+        return false;
+    }
+
+
+    QStringList output_files_path;
+
+    // = isLeftArm?({""}):({""});
+    if(isLeftArm)
+    {
+        output_files_path = {
+            QStr_ABS_PATH(OUTPUT_JSON_left_arm_info),
+            QStr_ABS_PATH(OUTPUT_XML_left_arm_urdf),
+            QStr_ABS_PATH(OUTPUT_left_arm_residual)
+        };
+    }
+    else
+    {
+        output_files_path = {
+            QStr_ABS_PATH(OUTPUT_JSON_right_arm_info),
+            QStr_ABS_PATH(OUTPUT_XML_right_arm_urdf),
+            QStr_ABS_PATH(OUTPUT_right_arm_residual)
+        };
+    }
+
+    for(auto output_file_path : output_files_path)
+    {
+        if(!QFile::exists(output_file_path))
+        {
+            qWarning()<<"the calibration output file:"<< robot_serial_number <<"exist!";
+            return false;
+        }
+    }
+
+    for(auto output_file_path : output_files_path)
+    {
+        if(!QFile::exists(output_file_path))
+        {
+            qWarning()<<"the calibration output file:"<< robot_serial_number <<"exist!";
+            return false;
+        }
+    }
+    QString target_dir_path = export_dir_path+'/'+robot_serial_number+'/';
+    for(auto output_file_path : output_files_path)
+    {
+        QString output_file_name = output_file_path.mid(output_file_path.lastIndexOf("/"));
+        QString target_file_path = target_dir_path + output_file_name;
+        if(!copy_replace_file(output_file_path, target_file_path))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool KinematicCalib_QWrapper::Merge_Left_And_Right_Calib_Result()

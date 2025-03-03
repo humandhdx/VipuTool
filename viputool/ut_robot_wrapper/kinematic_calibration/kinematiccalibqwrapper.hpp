@@ -21,6 +21,8 @@ public:
 
     Q_INVOKABLE bool KinematicCalib_Start(bool isLeftArm);
 
+    Q_INVOKABLE bool Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number);
+
     Q_INVOKABLE bool Merge_Left_And_Right_Calib_Result();
 
     Q_INVOKABLE bool Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path);
