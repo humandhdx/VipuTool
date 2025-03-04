@@ -3,7 +3,7 @@
 #include <QEventLoop>
 
 
-cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(CalibritionType::Null),
+cameraManager::cameraManager(QObject *parent): QObject{parent},
     left_id_(-1),
     right_id_(-1),
     middle_id_(-1),
@@ -26,7 +26,7 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},cali_type_(Calibr
     vec_buff_left_->reserve(4000 * 3000);
     vec_buff_middle_->reserve(1920*1080);
     vec_buff_right_->reserve(4000 * 3000);
-    matlab_process=new QProcess();
+    matlab_process=new QProcess(this);
 }
 
 cameraManager::~cameraManager()
@@ -77,7 +77,7 @@ void cameraManager::stopCamera()
     shutdown_middlecapture();
 }
 
-bool cameraManager::start_camera_capture(const QString &path, CalibritionType type, int count)
+bool cameraManager::start_camera_capture(const QString &path, int type, int count)
 {
     QEventLoop spinner;
     bool executionResult=false;
@@ -126,19 +126,24 @@ bool cameraManager::deleteFisterCaptureImage(QString path)
     qDebug() << "删除最后一次采集图片成功";
 }
 
-bool cameraManager::captureImage(const std::string &path, CalibritionType type, int count)
+bool cameraManager::captureImage(const std::string &path, int type, int count)
 {
     bool left_saved=false;
     bool right_saved=false;
     switch (type) {
-    case CalibritionType::GlobalHandEyeCalibrition:
+    case 0:
+        if (left_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, left_image_0_, "", count);
+    case 1:
         if (right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
         return saveImage(path, right_image_0_, "HandEye_Image", count);
-
-    case CalibritionType::GlobalCalibrition:
+    case 2:
         if (left_image_0_.empty() || right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
@@ -147,7 +152,7 @@ bool cameraManager::captureImage(const std::string &path, CalibritionType type, 
         right_saved = saveImage(path, right_image_0_, "Global_Right_Image", count);
         return left_saved && right_saved;
 
-    case CalibritionType::CenterHandEyeCalibrition:
+    case 3:
         if (middle_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
@@ -192,11 +197,14 @@ bool cameraManager::clearCaptureCount(QString path)
 
 void cameraManager::openMalLab()
 {
-    // 设置 MATLAB 的路径
-    QString matlabPath = "/home/vipu/testmatlab/bin/matlab";  // 替换为你的 MATLAB 路径
-
-    // 启动 MATLAB
-    matlab_process->start(matlabPath);
+    if (matlab_process->state() == QProcess::Running) {
+        qWarning()<<"matlab 运行中，请勿重复启动";
+        return;
+    }
+    QString matlabPath = "/home/vipu/testmatlab/bin/matlab";  // 如果 PATH 中有 matlab，否则用完整路径
+    QStringList arguments;
+    arguments << "-desktop";
+    matlab_process->start(matlabPath, arguments);
 }
 
 void cameraManager::init_cam()
@@ -244,29 +252,18 @@ void cameraManager::init_cam()
             continue;
         }
 
-        int dev_num_cur =
-            atoi(name.substr(10).c_str());  //10 = len for "/dev/video", to get the num behind
+        int dev_num_cur =atoi(name.substr(10).c_str());  //10 = len for "/dev/video", to get the num behind
 
-        if (cali_type_ == CalibritionType::GlobalCalibrition) {  //for global
-            if (strncmp((const char *)cap.card, "FueCamLeft", 10) == 0) {
-                left_id_ = dev_num_cur;
-            }
-            else if (strncmp((const char *)cap.card, "FueCamRight", 11) == 0) {
-                right_id_ = dev_num_cur;
-            }
+        if (strncmp((const char *)cap.card, "FueCamLeft", 10) == 0) {
+            left_id_ = dev_num_cur;
+        }
+        else if (strncmp((const char *)cap.card, "FueCamRight", 11) == 0) {
+            right_id_ = dev_num_cur;
+        }
+        else if (strncmp((const char *)cap.card, "SPCA2100", 8) == 0) {
+            middle_id_=dev_num_cur;
         }
 
-        if (cali_type_ == CalibritionType::GlobalHandEyeCalibrition) {  //for global
-            //qDebug()<<(const char *)cap.card;
-            if (strncmp((const char *)cap.card, "FueCamRight", 11) == 0) {
-                right_id_ = dev_num_cur;
-            }
-        }
-        if (cali_type_ == CalibritionType::CenterHandEyeCalibrition){
-            if (strncmp((const char *)cap.card, "SPCA2100", 8) == 0) {
-                middle_id_=dev_num_cur;
-            }
-        }
         close(vfd);
     }
 
@@ -746,25 +743,19 @@ bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, con
 
 bool cameraManager::startCamera(const int l_r)
 {
-    if(l_r>3||l_r<1){
+    if(l_r>3||l_r<0){
         return false;
     }
     switch (l_r) {
+    case 0:
+        return start_left_capture();
     case 1:
-        cali_type_=CalibritionType::GlobalHandEyeCalibrition;
-        return start_right_capture();//start_left_capture();
-        break;
+        return start_right_capture();
     case 2:
-        cali_type_=CalibritionType::GlobalCalibrition;
-        //start_left_capture()&&
         return  start_left_capture()&&start_right_capture();
-        break;
     case 3:
-        cali_type_=CalibritionType::CenterHandEyeCalibrition;
         return start_middle_capture();
-        break;
     default:
-        cali_type_=CalibritionType::Null;
         return false;
         break;
     }

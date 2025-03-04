@@ -114,7 +114,8 @@ void sshManager::sshConnectImpl(const QString &host,const QString &user,const QS
             my_ssh_channel = channel;
             qDebug()<<"SSH Connect Sucess";
             emit sshConnected();
-            sshSudoCommandExecut("pwd");
+            sshCommandExecut(QString("ros2 run demo_nodes_cpp talker"));
+            //sshSudoCommandExecut("pwd");
         }, Qt::QueuedConnection);
 }
 
@@ -145,7 +146,10 @@ void sshManager::sshCommandExecut(const QString &command)
     }
 
     // 执行命令
-    int rc = ssh_channel_request_exec(my_ssh_channel, cmdData.constData());
+
+    //int rc = ssh_channel_request_exec(my_ssh_channel, cmdData.constData());
+    QString cmd = "bash -c \"source /opt/ros/humble/setup.sh && ros2 run demo_nodes_cpp talker\"";
+    int rc = ssh_channel_request_exec(my_ssh_channel, cmd.toUtf8().constData());
     if (rc != SSH_OK) {
         QString errorDetail = QString("[Channel] %1\n[Session] %2")
                                   .arg(ssh_get_error(my_ssh_channel))
@@ -162,7 +166,7 @@ void sshManager::sshCommandExecut(const QString &command)
     const int maxOutputSize = 1024 * 1024; // 限制最大输出1MB
 
     while ((bytesRead = ssh_channel_read_timeout(
-                my_ssh_channel, buffer, sizeof(buffer), 0, 100)) > 0)
+                my_ssh_channel, buffer, sizeof(buffer), 0, 500)) > 0)
     {
         output.append(QByteArray(buffer, bytesRead));
         totalBytes += bytesRead;

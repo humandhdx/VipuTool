@@ -63,12 +63,13 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
     //创建ssh通道
-    // sshManager *my_ssh_manager=new sshManager();
-    // QString host="192.168.1.82";
-    // QString user="john";
-    // QString password="foxpg1348";
-    // int port=22;
-    // my_ssh_manager->sshConnect(host,user,password,port);
+    sshManager *my_ssh_manager=new sshManager();
+    QString host="192.168.1.82";
+    QString user="john";
+    QString password="foxpg1348";
+    int port=22;
+    my_ssh_manager->sshConnect(host,user,password,port);
+    //my_ssh_manager->sshCommandExecut(QString("ros2 run demo_nodes_cpp talker"));
     //m_heculate->runCalibration();
     return app.exec();
 }

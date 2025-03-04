@@ -29,19 +29,12 @@ class cameraManager: public QObject
 {
     Q_OBJECT
 public:
-    enum  CalibritionType{
-        Null,
-        GlobalHandEyeCalibrition,
-        CenterHandEyeCalibrition,
-        GlobalCalibrition,
-        MiddleCalibrition,
-    };
     cameraManager(QObject *parent = nullptr);
     ~cameraManager();
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
-    bool start_camera_capture(const QString &path, CalibritionType type, int count);
+    bool start_camera_capture(const QString &path, int type, int count);
     bool deleteFisterCaptureImage(QString path);
     bool clearCaptureCount(QString path);
     void openMalLab();
@@ -64,7 +57,7 @@ private:
     void shutdown_middlecapture();
     double EOG(const cv::Mat &mat);
     bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
-    bool captureImage(const std::string &path, CalibritionType type, int count);
+    bool captureImage(const std::string &path, int type, int count);
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;
@@ -100,7 +93,6 @@ private:
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_right_ = nullptr;
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_middle_ = nullptr;
     int left_id_, right_id_,middle_id_;
-    CalibritionType cali_type_;
     //控制相关
     std::mutex mtx_restart_left_;
     std::mutex mtx_restart_middle_;

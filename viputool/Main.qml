@@ -18,18 +18,40 @@ Window {
         width: parent.width/8
         height: parent.height
         color: "#D9D9D9"
-        Text {
+        Column{
             anchors.top: parent.top
-            anchors.topMargin: 10
+            anchors.topMargin: 20
             anchors.horizontalCenter: parent.horizontalCenter
-            text: qsTr("Apollo Tool")
-            color: "#000000"
-            font.pixelSize: 24
+            spacing: 10
+            width: parent.width
+            Item {
+                width: parent.width
+                height: 20
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: qsTr("Apollo Tool")
+                    color: "#000000"
+                    font.pixelSize: 24
+                }
+            }
+            Item {
+                width: parent.width
+                height: 20
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: qsTr("V1.0")
+                    color: "#000000"
+                    font.pixelSize: 24
+                }
+            }
+
         }
+
+
         ListView{
             id:typelist
             anchors.top: parent.top
-            anchors.topMargin: 50
+            anchors.topMargin: 100
             anchors.horizontalCenter: parent.horizontalCenter
             width:parent.width-20
             height:900
@@ -45,6 +67,10 @@ Window {
                 ListElement{
                     type:"焦距校准"
                     pageurl:"qrc:/CameraFocus.qml"
+                }
+                ListElement{
+                    type:"机械臂标定"
+                    pageurl:"qrc:/Kinematiccalibrtion.qml"
                 }
 
             }
