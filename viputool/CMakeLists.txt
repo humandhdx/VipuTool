@@ -65,8 +65,7 @@ qt_add_executable(${PROJECT_NAME}
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")
-link_directories("/usr/lib/x86_64-linux-gnu/libssh.so")
-link_directories("/usr/lib/x86_64-linux-gnu/libv4l2.so")
+#link_directories("/usr/lib/x86_64-linux-gnu/libv4l2.so")
 set_target_properties(${PROJECT_NAME} PROPERTIES
 #    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appVipuTool
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}

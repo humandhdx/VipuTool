@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     //QGuiApplication  app(argc, argv);
     QApplication app(argc, argv);
     logger* logInstance = logger::instance();
-    //qInstallMessageHandler(logger::myMessageHandler);
+    qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
     ImageProvider *image_provider_gl = new ImageProvider();
     ImageProvider *image_provider_gr = new ImageProvider();
     ImageProvider *image_provider_ml = new ImageProvider();
+    sshManager *my_ssh_manager=new sshManager();
     QObject::connect(
         m_cameraManager, &cameraManager::signalSendLeftImage, image_provider_gl, &ImageProvider::recvEmitImg);
     QObject::connect(
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("image_provider_gr", image_provider_gr);
     engine.rootContext()->setContextProperty("image_provider_ml", image_provider_ml);
     engine.rootContext()->setContextProperty("handeyeCulate", m_heculate);
+    engine.rootContext()->setContextProperty("sshManager", my_ssh_manager);
     engine.rootContext()->setContextProperty("logger", logInstance);
     engine.addImageProvider(QLatin1String("GlImg"), image_provider_gl);
     engine.addImageProvider(QLatin1String("GrImg"), image_provider_gr);
@@ -63,12 +65,11 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
     //创建ssh通道
-    sshManager *my_ssh_manager=new sshManager();
-    QString host="192.168.1.82";
-    QString user="john";
-    QString password="foxpg1348";
-    int port=22;
-    my_ssh_manager->sshConnect(host,user,password,port);
+    // QString host="192.168.1.82";
+    // QString user="john";
+    // QString password="foxpg1348";
+    //int port=22;
+    //my_ssh_manager->sshConnect(host,user,password,port);
     //my_ssh_manager->sshCommandExecut(QString("ros2 run demo_nodes_cpp talker"));
     //m_heculate->runCalibration();
     return app.exec();

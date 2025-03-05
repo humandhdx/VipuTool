@@ -72,6 +72,10 @@ Window {
                     type:"机械臂标定"
                     pageurl:"qrc:/Kinematiccalibrtion.qml"
                 }
+                ListElement{
+                    type:"SSH连接"
+                    pageurl:"qrc:/SSHLink.qml"
+                }
 
             }
             delegate: Item {

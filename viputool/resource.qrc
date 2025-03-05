@@ -10,5 +10,6 @@
         <file>Image/filechoice.svg</file>
         <file>CameraFocus.qml</file>
         <file>Kinematiccalibrtion.qml</file>
+        <file>SSHLink.qml</file>
     </qresource>
 </RCC>

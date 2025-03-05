@@ -15,13 +15,15 @@ class sshManager : public QObject
 public:
     explicit sshManager(QObject *parent = nullptr);
     ~sshManager();
+
+public slots:
     void sshConnect(const QString &host,const QString &user,const QString &password ,const int port);
     void sshDisConnect();
     void sshCommandExecut(const QString &command);
     void sshSudoCommandExecut(const QString &command);
+
 private:
     ssh_session my_ssh_session;
-    ssh_channel my_ssh_channel;
     int verify_knownhost(ssh_session session);
     void sshConnectImpl(const QString &host,const QString &user,const QString &password ,const int port);
     void cleanup();

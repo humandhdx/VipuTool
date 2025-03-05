@@ -1,7 +1,7 @@
 #include "sshmanager.h"
 #include <QtConcurrent>
 sshManager::sshManager(QObject *parent)
-    : QObject{parent},my_ssh_session(nullptr), my_ssh_channel(nullptr)
+    : QObject{parent},my_ssh_session(nullptr)
 {
 
 }
@@ -84,37 +84,13 @@ void sshManager::sshConnectImpl(const QString &host,const QString &user,const QS
         return;
     }
 
-    // 创建 SSH 通道
-    ssh_channel channel = ssh_channel_new(session);
-    if (channel == nullptr) {
-        QMetaObject::invokeMethod(this, [this, session]() {
-                emit sshError(tr("创建通道失败: %1").arg(ssh_get_error(session)));
-            }, Qt::QueuedConnection);
-        ssh_disconnect(session);
-        ssh_free(session);
-        return;
-    }
-
-    // 打开 SSH 通道
-    rc = ssh_channel_open_session(channel);
-    if (rc != SSH_OK) {
-        QMetaObject::invokeMethod(this, [this, session, channel]() {
-                emit sshError(tr("打开通道失败: %1").arg(ssh_get_error(session)));
-            }, Qt::QueuedConnection);
-        ssh_channel_free(channel);
-        ssh_disconnect(session);
-        ssh_free(session);
-        return;
-    }
-
-    // 连接成功，将 session 与 channel 保存到对象成员中，并发出连接成功信号，
+    // 连接成功，将 session  保存到对象成员中，并发出连接成功信号，
     // 回到主线程中更新状态，保证后续命令发送在主线程执行时能使用正确的连接。
-    QMetaObject::invokeMethod(this, [this, session, channel]() {
+    QMetaObject::invokeMethod(this, [this, session]() {
             my_ssh_session = session;
-            my_ssh_channel = channel;
             qDebug()<<"SSH Connect Sucess";
             emit sshConnected();
-            sshCommandExecut(QString("ros2 run demo_nodes_cpp talker"));
+            //sshCommandExecut(QString("ros2 run demo_nodes_cpp talker"));
             //sshSudoCommandExecut("pwd");
         }, Qt::QueuedConnection);
 }
@@ -132,9 +108,26 @@ void sshManager::sshCommandExecut(const QString &command)
         emit sshError(tr("SSH session is not connected"));
         return;
     }
+    // 创建 SSH 通道
+    ssh_channel channel = ssh_channel_new(my_ssh_session);
+    if (channel == nullptr) {
+        QMetaObject::invokeMethod(this, [this]() {
+                emit sshError(tr("创建通道失败: %1").arg(ssh_get_error(my_ssh_session)));
+            }, Qt::QueuedConnection);
+        ssh_disconnect(my_ssh_session);
+        ssh_free(my_ssh_session);
+        return;
+    }
 
-    if (!my_ssh_channel || ssh_channel_is_closed(my_ssh_channel)) {
-        emit sshError(tr("SSH channel is not available"));
+    // 打开 SSH 通道
+    int rc = ssh_channel_open_session(channel);
+    if (rc != SSH_OK) {
+        QMetaObject::invokeMethod(this, [this, channel]() {
+                emit sshError(tr("打开通道失败: %1").arg(ssh_get_error(my_ssh_session)));
+            }, Qt::QueuedConnection);
+        ssh_channel_free(channel);
+        ssh_disconnect(my_ssh_session);
+        ssh_free(my_ssh_session);
         return;
     }
 
@@ -148,11 +141,12 @@ void sshManager::sshCommandExecut(const QString &command)
     // 执行命令
 
     //int rc = ssh_channel_request_exec(my_ssh_channel, cmdData.constData());
-    QString cmd = "bash -c \"source /opt/ros/humble/setup.sh && ros2 run demo_nodes_cpp talker\"";
-    int rc = ssh_channel_request_exec(my_ssh_channel, cmd.toUtf8().constData());
+    //QString cmd = "bash -c \"source /opt/ros/humble/setup.sh && ros2 run demo_nodes_cpp talker\"";
+    //int rc = ssh_channel_request_exec(my_ssh_channel, cmd.toUtf8().constData());
+    rc = ssh_channel_request_exec(channel, cmdData.constData());
     if (rc != SSH_OK) {
         QString errorDetail = QString("[Channel] %1\n[Session] %2")
-                                  .arg(ssh_get_error(my_ssh_channel))
+                                  .arg(ssh_get_error(channel))
                                   .arg(ssh_get_error(my_ssh_session));
         emit sshError(tr("Command execution failed: %1").arg(errorDetail));
         return;
@@ -166,7 +160,7 @@ void sshManager::sshCommandExecut(const QString &command)
     const int maxOutputSize = 1024 * 1024; // 限制最大输出1MB
 
     while ((bytesRead = ssh_channel_read_timeout(
-                my_ssh_channel, buffer, sizeof(buffer), 0, 500)) > 0)
+                channel, buffer, sizeof(buffer), 0, 500)) > 0)
     {
         output.append(QByteArray(buffer, bytesRead));
         totalBytes += bytesRead;
@@ -183,13 +177,7 @@ void sshManager::sshCommandExecut(const QString &command)
         qDebug()<<"output:"<<output;
         emit commandExecuted(output);
     }
-
-    // 关闭通道（根据需求决定）
-    // if (ssh_channel_is_closed(my_ssh_channel)) {
-    //     ssh_channel_free(my_ssh_channel);
-    //     my_ssh_channel = nullptr;
-    // }
-
+    ssh_channel_free(channel);
     emit sshCommandSuccess();
 }
 
@@ -200,11 +188,28 @@ void sshManager::sshSudoCommandExecut(const QString &command)
         emit sshError(tr("SSH session is not connected"));
         return;
     }
-
-    if (!my_ssh_channel || ssh_channel_is_closed(my_ssh_channel)) {
-        emit sshError(tr("SSH channel is not available"));
+    ssh_channel channel = ssh_channel_new(my_ssh_session);
+    if (channel == nullptr) {
+        QMetaObject::invokeMethod(this, [this]() {
+                emit sshError(tr("创建通道失败: %1").arg(ssh_get_error(my_ssh_session)));
+            }, Qt::QueuedConnection);
+        ssh_disconnect(my_ssh_session);
+        ssh_free(my_ssh_session);
         return;
     }
+
+    // 打开 SSH 通道
+    int rc = ssh_channel_open_session(channel);
+    if (rc != SSH_OK) {
+        QMetaObject::invokeMethod(this, [this, channel]() {
+                emit sshError(tr("打开通道失败: %1").arg(ssh_get_error(my_ssh_session)));
+            }, Qt::QueuedConnection);
+        ssh_channel_free(channel);
+        ssh_disconnect(my_ssh_session);
+        ssh_free(my_ssh_session);
+        return;
+    }
+
     // 准备命令
     QByteArray cmdData = command.toUtf8();
     if (cmdData.isEmpty()) {
@@ -215,21 +220,21 @@ void sshManager::sshSudoCommandExecut(const QString &command)
     //QString sudoCmd = "sudo -S ls /root";
     QString sudoCmd = "sudo -S "+command;
     // 执行命令
-    int rc = ssh_channel_request_pty(my_ssh_channel);
+    rc = ssh_channel_request_pty(channel);
     if (rc!= SSH_OK) {
         emit sshError(tr("SSH channel Failed to request pty"));
     }
-    rc = ssh_channel_request_exec(my_ssh_channel, sudoCmd.toUtf8().constData());
+    rc = ssh_channel_request_exec(channel, sudoCmd.toUtf8().constData());
     if (rc != SSH_OK) {
         QString errorDetail = QString("[Channel] %1\n[Session] %2")
-                                  .arg(ssh_get_error(my_ssh_channel))
+                                  .arg(ssh_get_error(channel))
                                   .arg(ssh_get_error(my_ssh_session));
         emit sshError(tr("Command execution failed: %1").arg(errorDetail));
         return;
     }
     // 如果 sudo 要求密码，则写入密码到 channel
     QString sudoPassword = "foxpg1348\n";  // 注意包含换行符
-    ssh_channel_write(my_ssh_channel, sudoPassword.toUtf8().constData(), sudoPassword.toUtf8().size());
+    ssh_channel_write(channel, sudoPassword.toUtf8().constData(), sudoPassword.toUtf8().size());
     // 读取输出
     QString output;
     char buffer[1024];
@@ -238,7 +243,7 @@ void sshManager::sshSudoCommandExecut(const QString &command)
     const int maxOutputSize = 1024 * 1024; // 限制最大输出1MB
 
     while ((bytesRead = ssh_channel_read_timeout(
-                my_ssh_channel, buffer, sizeof(buffer), 0, 100)) > 0)
+                channel, buffer, sizeof(buffer), 0, 100)) > 0)
     {
         output.append(QByteArray(buffer, bytesRead));
         totalBytes += bytesRead;
@@ -256,15 +261,11 @@ void sshManager::sshSudoCommandExecut(const QString &command)
         qDebug()<<"output:"<<output;
         emit commandExecuted(output);
     }
+    ssh_channel_free(channel);
 }
 
 void sshManager::cleanup()
 {
-    if (my_ssh_channel) {
-        ssh_channel_close(my_ssh_channel);
-        ssh_channel_free(my_ssh_channel);
-        my_ssh_channel = nullptr;
-    }
     if (my_ssh_session) {
         ssh_disconnect(my_ssh_session);
         ssh_free(my_ssh_session);
