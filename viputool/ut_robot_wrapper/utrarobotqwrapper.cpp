@@ -362,6 +362,46 @@ void UtraRobot_QWrapper::refresh_Robot_Joint_Pos()
     UtRobotConfig::CartesianPos current_Tcp_CartesianPos;
     this->getTcpPos(current_Tcp_CartesianPos);
     emit update_Tcp_Cartesian_Pos(convert_CartPos_To_VariantList(current_Tcp_CartesianPos));
+
+    uint32_t enable_state = this->get_enables_status();
+    auto prev_enable_status = this->axis_total_status;
+    memcpy(&this->axis_total_status, &enable_state, 4);
+
+    if(prev_enable_status.enable_1 ^ this->axis_total_status.enable_1)
+    {
+        m_axis_enable_1 = this->axis_total_status.enable_1;
+        emit axis_enable_1_Changed();
+    }
+    if(prev_enable_status.enable_2 ^ this->axis_total_status.enable_2)
+    {
+        m_axis_enable_2 = this->axis_total_status.enable_2;
+        emit axis_enable_2_Changed();
+    }
+    if(prev_enable_status.enable_3 ^ this->axis_total_status.enable_3)
+    {
+        m_axis_enable_3 = this->axis_total_status.enable_3;
+        emit axis_enable_3_Changed();
+    }
+    if(prev_enable_status.enable_4 ^ this->axis_total_status.enable_4)
+    {
+        m_axis_enable_4 = this->axis_total_status.enable_4;
+        emit axis_enable_4_Changed();
+    }
+    if(prev_enable_status.enable_5 ^ this->axis_total_status.enable_5)
+    {
+        m_axis_enable_5 = this->axis_total_status.enable_5;
+        emit axis_enable_5_Changed();
+    }
+    if(prev_enable_status.enable_6 ^ this->axis_total_status.enable_6)
+    {
+        m_axis_enable_6 = this->axis_total_status.enable_6;
+        emit axis_enable_6_Changed();
+    }
+    if(prev_enable_status.enable_7 ^ this->axis_total_status.enable_7)
+    {
+        m_axis_enable_7 = this->axis_total_status.enable_7;
+        emit axis_enable_7_Changed();
+    }
 }
 
 bool UtraRobot_QWrapper::arm_connect() const
@@ -375,4 +415,172 @@ void UtraRobot_QWrapper::setArm_connect(bool newArm_connect)
         return;
     m_arm_connect = newArm_connect;
     emit arm_connectChanged();
+}
+
+bool UtraRobot_QWrapper::axis_enabled_1() const
+{
+    return m_axis_enable_1;
+}
+
+bool UtraRobot_QWrapper::enable_axis_1(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(1, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_2() const
+{
+    return m_axis_enable_2;
+}
+
+bool UtraRobot_QWrapper::enable_axis_2(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(2, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_3() const
+{
+    return m_axis_enable_3;
+}
+
+bool UtraRobot_QWrapper::enable_axis_3(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(3, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_4() const
+{
+    return m_axis_enable_4;
+}
+
+bool UtraRobot_QWrapper::enable_axis_4(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(4, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_5() const
+{
+    return m_axis_enable_5;
+}
+
+bool UtraRobot_QWrapper::enable_axis_5(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(5, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_6() const
+{
+    return m_axis_enable_6;
+}
+
+bool UtraRobot_QWrapper::enable_axis_6(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(6, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
+}
+
+bool UtraRobot_QWrapper::axis_enabled_7() const
+{
+    return m_axis_enable_7;
+}
+
+bool UtraRobot_QWrapper::enable_axis_7(bool enable)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
+        executionResult = this->Robot_Enable_Single_Axis(7, enable);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    return executionResult;
 }

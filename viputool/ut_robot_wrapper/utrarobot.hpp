@@ -82,6 +82,12 @@ public:
     // [mass{kg}, center_x[mm], center_y[mm], center_z[mm]]
     bool Robot_Get_Param_Tcp_Load(float tcp_load[4]);
 
+    //axis_idex start from 1
+    bool Robot_Enable_Single_Axis(int axis_idex, bool enalbe);
+
+    uint32_t get_enables_status();
+    uint32_t get_brake_status();
+
 protected:
     bool is_robot_connected{false};
 
@@ -102,6 +108,8 @@ private:
         uint8_t     motion_mode{0};
         uint8_t     err_code{0};
         uint8_t     war_code{0};
+        uint32_t    mt_brake;
+        uint32_t    mt_able;
     };
 
     float speed=5.0/57.54;  // rad/s

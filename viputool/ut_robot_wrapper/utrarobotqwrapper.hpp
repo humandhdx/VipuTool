@@ -36,8 +36,43 @@ public:
 
     Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
 
+    Q_PROPERTY( bool axis_enable_1 READ axis_enabled_1 NOTIFY axis_enable_1_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_2 READ axis_enabled_2 NOTIFY axis_enable_2_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_3 READ axis_enabled_3 NOTIFY axis_enable_3_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_4 READ axis_enabled_4 NOTIFY axis_enable_4_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_5 READ axis_enabled_5 NOTIFY axis_enable_5_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_6 READ axis_enabled_6 NOTIFY axis_enable_6_Changed FINAL)
+
+    Q_PROPERTY( bool axis_enable_7 READ axis_enabled_7 NOTIFY axis_enable_7_Changed FINAL)
+
     bool arm_connect() const;
     void setArm_connect(bool newArm_connect);
+
+    bool axis_enabled_1() const;
+    Q_INVOKABLE bool enable_axis_1(bool enable);
+
+    bool axis_enabled_2() const;
+    Q_INVOKABLE bool enable_axis_2(bool enable);
+
+    bool axis_enabled_3() const;
+    Q_INVOKABLE bool enable_axis_3(bool enable);
+
+    bool axis_enabled_4() const;
+    Q_INVOKABLE bool enable_axis_4(bool enable);
+
+    bool axis_enabled_5() const;
+    Q_INVOKABLE bool enable_axis_5(bool enable);
+
+    bool axis_enabled_6() const;
+    Q_INVOKABLE bool enable_axis_6(bool enable);
+
+    bool axis_enabled_7() const;
+    Q_INVOKABLE bool enable_axis_7(bool enable);
 
 signals:
     //joint1(degree), joint2(degree), joint3(degree), joint4(degree), joint5(degree), joint6(degree), joint7(degree)
@@ -51,6 +86,20 @@ signals:
 
     void arm_connectChanged();
     void robot_Warning_MDH_OFFSET_NOT_ZERO();
+
+    void axis_enable_1_Changed();
+
+    void axis_enable_2_Changed();
+
+    void axis_enable_3_Changed();
+
+    void axis_enable_4_Changed();
+
+    void axis_enable_5_Changed();
+
+    void axis_enable_6_Changed();
+
+    void axis_enable_7_Changed();
 
 private:
     QMutex mutext;
@@ -79,6 +128,26 @@ private:
     };
     bool m_arm_connect=false;
 
+    // 4 == sizeof(AxisGroup_EnableStatus)
+    struct AxisGroup_EnableStatus{
+        bool        enable_1    : 1;
+        bool        enable_2    : 1;
+        bool        enable_3    : 1;
+        bool        enable_4    : 1;
+        bool        enable_5    : 1;
+        bool        enable_6    : 1;
+        bool        enable_7    : 1;
+        uint32_t    placeholder : 25;
+    };
+    AxisGroup_EnableStatus axis_total_status;
+
+    bool m_axis_enable_1;
+    bool m_axis_enable_2;
+    bool m_axis_enable_3;
+    bool m_axis_enable_4;
+    bool m_axis_enable_5;
+    bool m_axis_enable_6;
+    bool m_axis_enable_7;
 };
 
 #endif // UTRROBOT_QWRAPPER_H

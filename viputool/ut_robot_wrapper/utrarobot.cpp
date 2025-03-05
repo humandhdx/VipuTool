@@ -741,6 +741,47 @@ bool UtraRobot::Robot_Get_Param_Tcp_Load(float tcp_load[4])
     return true;
 }
 
+bool UtraRobot::Robot_Enable_Single_Axis(int axis_idex, bool enalbe)
+{
+    if(axis_idex > 7 || axis_idex < 1)
+    {
+        std::cout << __FUNCTION__ << " - given axis_index not within range [1,7]: " << axis_idex << std::endl;
+        return false;
+    }
+
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
+
+    if(ROBOT_NO_ERROR != ubot_->set_motion_enable(8, 1))
+    {
+        std::cout << __FUNCTION__ << " utr robot start enable failed!"<<std::endl;
+        return false;
+    }
+    std::unique_lock lck{this->mtx_robotState_};
+    bool waitAxisEnable_Success = this->cv_robotState_.wait_for(lck, std::chrono::seconds(1), [this, axis_idex](){
+        return (this->rx_data_.mt_able & (0b1 << (axis_idex -1)));
+    });
+    if(!waitAxisEnable_Success)
+    {
+        std::cout << __FUNCTION__ << " utr robot wait error clear out timeout," << (uint16_t)this->robotState_.err_code <<std::endl;
+        return false;
+    }
+}
+
+uint32_t UtraRobot::get_enables_status()
+{
+    return this->robotState_.mt_brake;
+}
+
+uint32_t UtraRobot::get_brake_status()
+{
+    return this->robotState_.mt_able;
+}
+
 void UtraRobot::ThreadFunction_UpdateRobotStatus()
 {
     while(this->thread_flag)
@@ -753,11 +794,16 @@ void UtraRobot::ThreadFunction_UpdateRobotStatus()
             this->robotState_.motion_mode   = rx_data_.motion_mode;
             this->robotState_.err_code      = rx_data_.err_code;
             this->robotState_.war_code      = rx_data_.war_code;
+            this->robotState_.mt_brake      = rx_data_.mt_brake;
+            this->robotState_.mt_able       = rx_data_.mt_able;
 
             if ((this->robotState_.motion_status ^ prev_state.motion_status) ||
                 (this->robotState_.motion_mode   ^ prev_state.motion_mode) ||
                 (this->robotState_.err_code      ^ prev_state.err_code) ||
-                (this->robotState_.war_code      ^ prev_state.war_code)) {
+                (this->robotState_.war_code      ^ prev_state.war_code) ||
+                (this->robotState_.mt_brake      ^ prev_state.mt_brake) ||
+                (this->robotState_.mt_able      ^ prev_state.mt_able)
+                ) {
                 
                 if(this->robotState_.motion_status ^ prev_state.motion_status)
                 {
@@ -772,6 +818,16 @@ void UtraRobot::ThreadFunction_UpdateRobotStatus()
                 if(this->robotState_.err_code ^ prev_state.err_code)
                 {
                     printf("motion error code changed from {%d}->{%d}\r\n",  prev_state.err_code, this->robotState_.err_code);
+                }
+
+                if(this->robotState_.mt_brake ^ prev_state.mt_brake)
+                {
+                    printf("brak status changed from {%04X}->{%04X}\r\n",  prev_state.mt_brake, this->robotState_.mt_brake);
+                }
+
+                if(this->robotState_.mt_able ^ prev_state.mt_able)
+                {
+                    printf("enable status code changed from {%04X}->{%04X}\r\n",  prev_state.mt_able, this->robotState_.mt_able);
                 }
 
                 std::lock_guard lck{this->mtx_robotState_};
