@@ -6,7 +6,9 @@ Item {
     Component.onCompleted: {
     }
     Component.onDestruction: {
-        urtrobot_right.robot_drag_activate(false)
+        if(urtrobot_right.arm_connect){
+            urtrobot_right.robot_drag_activate(false)
+        }
     }
     Column{
         visible: pageLoader.sourceComponent?false:true

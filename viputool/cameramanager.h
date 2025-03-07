@@ -21,6 +21,8 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
 #include "v4l2/struct.h"
 #include <thread>
 #include <QProcess>
@@ -38,6 +40,7 @@ public slots:
     bool deleteFisterCaptureImage(QString path);
     bool clearCaptureCount(QString path);
     void openMalLab();
+    void startFouc(int l_r);
     QString currentDirectory() const {
         return QDir::currentPath();
     }
@@ -55,9 +58,11 @@ private:
     void shutdown_leftcapture();
     void shutdown_rightcapture();
     void shutdown_middlecapture();
-    double EOG(const cv::Mat &mat);
+    void EOG(const cv::Mat &mat);
     bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
     bool captureImage(const std::string &path, int type, int count);
+    std::atomic_bool is_left_fouc=false;
+    std::atomic_bool is_right_fouc=false;
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;

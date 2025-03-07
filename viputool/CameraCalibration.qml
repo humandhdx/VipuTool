@@ -51,7 +51,9 @@ Item {
             }
             Component.onDestruction: {
                 cameraManager.stopCamera()
-                urtrobot_right.robot_drag_activate(false)
+                if(urtrobot_right.arm_connect){
+                    urtrobot_right.robot_drag_activate(false)
+                }
             }
             Row{
                 anchors.horizontalCenter: parent.horizontalCenter

@@ -72,6 +72,8 @@ cameraManager::~cameraManager()
 
 void cameraManager::stopCamera()
 {
+    is_left_fouc=false;
+    is_right_fouc=false;
     shutdown_leftcapture();
     shutdown_rightcapture();
     shutdown_middlecapture();
@@ -205,6 +207,16 @@ void cameraManager::openMalLab()
     QStringList arguments;
     arguments << "-desktop";
     matlab_process->start(matlabPath, arguments);
+}
+
+void cameraManager::startFouc(int l_r)
+{
+    if(l_r==0){
+        is_left_fouc=true;
+    }
+    else{
+        is_right_fouc=true;
+    }
 }
 
 void cameraManager::init_cam()
@@ -411,6 +423,7 @@ void cameraManager::capture_left()
                 // left_image_available_0_.time = left_imgae_available_time_;
                 // UpdateLeftImage();
                 if(left_image_0_.empty())return;
+                if(is_left_fouc)EOG(left_image_0_);
                 QImage image(left_image_0_.data,
                              left_image_0_.cols,
                              left_image_0_.rows,
@@ -494,6 +507,7 @@ void cameraManager::capture_right()
                 // left_image_available_0_.time = left_imgae_available_time_;
                 // UpdateLeftImage();
                 if(right_image_0_.empty())return;
+                if(is_right_fouc)EOG(right_image_0_);
                 QImage image(right_image_0_.data,
                              right_image_0_.cols,
                              right_image_0_.rows,
@@ -708,20 +722,19 @@ void cameraManager::shutdown_middlecapture()
     }
 }
 
-double cameraManager::EOG(const cv::Mat &mat)
+void cameraManager::EOG(const cv::Mat &mat)
 {
     cv::Mat gray;
     cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
     cv::Mat kernely = (cv::Mat_<char>(2, 1) << -1, 1);
     cv::Mat kernelx = (cv::Mat_<char>(1, 2) << -1, 1);
-
     cv::Mat engx, engy;
-    (gray, engx, CV_32F, kernelx);
+    filter2D(gray, engx, CV_32F, kernelx);
     filter2D(gray, engy, CV_32F, kernely);
 
     cv::Mat result = engx.mul(engx) + engy.mul(engy);
     double outvalue = cv::mean(result)[0];
-    return outvalue;
+    qDebug()<<"当前图像清晰度为 :"<<outvalue;
 }
 
 bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)
