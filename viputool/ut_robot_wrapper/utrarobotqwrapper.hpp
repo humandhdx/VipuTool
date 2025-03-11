@@ -9,7 +9,7 @@
 #include <QMutex>
 #include <QVector2D>
 
-class UtraRobot_QWrapper : public QObject, UtraRobot
+class UtraRobot_QWrapper : public QObject, public UtraRobot
 {
     Q_OBJECT
 public:

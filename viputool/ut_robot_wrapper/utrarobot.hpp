@@ -3,11 +3,14 @@
 
 #include "ut_robot_wrapper/robot_config.hpp"
 #include "utra/utra_api_tcp.h"
-#include "utra/utra_report_config.h"
 #include "utra/utra_report_status.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+
+#define UTR_ROBOT_REBOOT_DISCONNECT_TIMEOUT_SEC  12
+#define UTR_ROBOT_REBOOT_RECONNECT_TIMEOUT_SEC  20
+
 
 class UtraRobot
 {
@@ -82,15 +85,24 @@ public:
     // [mass{kg}, center_x[mm], center_y[mm], center_z[mm]]
     bool Robot_Get_Param_Tcp_Load(float tcp_load[4]);
 
+    bool Robot_Reboot();
+
+    bool Robot_Wait_Until_Disconnected(int timeout_sec = UTR_ROBOT_REBOOT_DISCONNECT_TIMEOUT_SEC);
+
+    bool Robot_Wait_Until_Connected(int timeout_sec = UTR_ROBOT_REBOOT_RECONNECT_TIMEOUT_SEC);
+
 protected:
     bool is_robot_connected{false};
 
-protected:
+public:
     UtRobotConfig::TestConfig& config_;
 
 private:
-    UtraApiTcp* ubot_;
-    UtraReportStatus100Hz* utra_report_;
+    UtraApiTcp* ubot_{nullptr};
+    UtraReportStatus100Hz* utra_report_{nullptr};
+    std::mutex mtx_connect_;
+    std::condition_variable cv_connect_;
+
     int utra_report_data_missing_counter_;
     arm_report_status_t rx_data_;
     std::thread thd_refresh_robot_status_;

@@ -62,6 +62,9 @@ qt_add_executable(${PROJECT_NAME}
     logger.h logger.cpp
     filedialogwrap.h filedialogwrap.cpp
     json.hpp
+    ut_robot_wrapper/camera_calibration/cameracalib_config.h ut_robot_wrapper/camera_calibration/cameracalib_config.cpp
+    ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h ut_robot_wrapper/camera_calibration/cameracalibqwrapper.cpp
+
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")
@@ -100,6 +103,12 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/kinematic_calibration_data
             $<TARGET_FILE_DIR:${PROJECT_NAME}>/kinematic_calibration_data)
+
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/camera_calibration_data
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/camera_calibration_data)
 
 include(GNUInstallDirs)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/GlobalHandEyeImages)

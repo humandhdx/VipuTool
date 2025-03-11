@@ -110,6 +110,7 @@ public:
     void set_calib_target_joint_pose_left(const QVariantList &newCalib_target_joint_pose_left);
     QVariantList get_calib_target_joint_pose_right() const;
     void set_calib_target_joint_pose_right(const QVariantList &newCalib_target_joint_pose_right);
+
 };
 
 #endif // KINEMATICCALIBQWRAPPER_H

@@ -1,6 +1,12 @@
 #include "utrarobot.hpp"
 #include "iostream"
 #include "string"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 // UtraRobot::UtraRobot() {}
 
 #define ROBOT_NO_ERROR 0
@@ -8,10 +14,12 @@
 #define CYCLE_MS_ROTOT_STATUS_REPORT 10
 #define DALAY_MS_TEACH_TO_POSITION_MODE 1050
 
+#define UTR_ROBOT_SERVER_PORT 502
 
 
 UtraRobot::UtraRobot(UtRobotConfig::TestConfig& config):config_{config} {
     memset(&this->rx_data_, 0x00, sizeof(this->rx_data_));
+    thd_refresh_robot_status_ = std::thread(&UtraRobot::ThreadFunction_UpdateRobotStatus, this);
 }
 
 UtraRobot::~UtraRobot()
@@ -35,54 +43,85 @@ bool UtraRobot::InitRobot()
     {
         return true;
     }
-
-    ubot_ = new UtraApiTcp(config_.ip.data());
-
-    is_robot_connected = !ubot_->is_error();
-
-    if(!is_robot_connected)
     {
-        std::cout << __FUNCTION__ << " UtraApiTcp connection failed" << std::endl;
+        std::unique_lock lck{mtx_connect_};
+        if(nullptr != ubot_)
+        {
+            delete ubot_;
+        }
+        ubot_ = new UtraApiTcp(config_.ip.data());
+        is_robot_connected = !ubot_->is_error();
+
+        if(!is_robot_connected)
+        {
+            std::cout << __FUNCTION__ << " UtraApiTcp connection failed" << std::endl;
+            return false;
+        }
+
+        if(nullptr != utra_report_)
+        {
+            delete utra_report_;
+        }
+        utra_report_ = new UtraReportStatus100Hz(config_.ip.data(), 7);
+        if(utra_report_->is_error())
+        {
+            std::cout << __FUNCTION__ << " UtraReportStatus100Hz connection failed" << std::endl;;
+            return false;
+        }
+        cv_connect_.notify_all();
+    }
+    std::cout << __FUNCTION__ << " UtApi Initialized!!!" << std::endl;;
+    fflush(nullptr);
+    if(!this->RobotCommand_ResetError())
+    {
+        std::cout << __FUNCTION__ << " RobotCommand_ResetError failed" << std::endl;
         return false;
     }
-
-    utra_report_ = new UtraReportStatus100Hz(config_.ip.data(), 7);
-
-    if(utra_report_->is_error())
-    {
-        std::cout << __FUNCTION__ << " UtraReportStatus100Hz connection failed" << std::endl;;
-        return false;
-    }
-    thd_refresh_robot_status_ = std::thread(&UtraRobot::ThreadFunction_UpdateRobotStatus, this);
-
-    this->RobotCommand_ResetError();
-    sleep(1);
     uint8_t uuid[18] = {0};
     uint8_t version_sw[21] = {0};
     uint8_t version_hw[21] = {0};
 
     int ret{-1};
     ret = ubot_->get_uuid(uuid);
-    if (!ret) return false;
-    std::string str_uuid{uuid, uuid + (sizeof uuid)/(sizeof uuid[0])};
+    if (ret)
+    {
+        uint8_t code;
+        int ret_err = ubot_->get_error_code(&code);
+        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        return false;
+    }
+    std::string str_uuid{uuid, uuid + (sizeof uuid)/(sizeof uuid[0]) - 1};
 
     ret = ubot_->get_sw_version(version_sw);
-    if (!ret) return false;
-    std::string str_version_sw{version_sw, version_sw + (sizeof version_sw)/(sizeof version_sw[0])};
+    if (ret)
+    {
+        uint8_t code;
+        int ret_err = ubot_->get_error_code(&code);
+        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        return false;
+    }
+    std::string str_version_sw{version_sw, version_sw + (sizeof version_sw)/(sizeof version_sw[0]) - 1};
     str_version_sw = str_version_sw.substr(0,10);//prune the last 10 character which contains the time stamp
 
     ret = ubot_->get_hw_version(version_hw);
-    if (!ret) return false;
-    std::string str_version_hw{version_hw, version_hw + (sizeof version_hw)/(sizeof version_hw[0])};
+    if (ret)
+    {
+        uint8_t code;
+        int ret_err = ubot_->get_error_code(&code);
+        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        return false;
+    }
+    std::string str_version_hw{version_hw, version_hw + (sizeof version_hw)/(sizeof version_hw[0]) -1};
 
-    bool hold_result = this->RobotCommand_Hold();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    // bool hold_result = this->RobotCommand_Hold();
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
 
     config_.identity_Info.UUID          = str_uuid;
     config_.identity_Info.VERSION_SW    = str_version_sw;
     config_.identity_Info.VERSION_HW    = str_version_hw;
-
-    return hold_result;
+    printf("Config ip {%s}\r\n", config_.ip.c_str());
+    fflush(nullptr);
+    return true;
 }
 
 bool UtraRobot::getJointPos(UtRobotConfig::JointPos &jPos)
@@ -565,8 +604,16 @@ bool UtraRobot::RobotCommand_ResetError()
         std::cout << __FUNCTION__ << " - connect robot before call this function!";
         return false;
     }
-    ubot_->reset_err();
+    int ret{-1};
+    ret = ubot_->reset_err();
     std::cout << __FUNCTION__ << " finish reset error, current error code: " << (uint16_t)this->robotState_.err_code <<std::endl;
+    printf("%s - reset_err   : %d\n", __FUNCTION__, ret);
+    ret = ubot_->set_motion_mode(0);
+    printf("%s - set_motion_mode   : %d\n", __FUNCTION__, ret);
+    ret = ubot_->set_motion_enable(8, 1);
+    printf("%s - set_motion_enable : %d\n", __FUNCTION__, ret);
+    ret = ubot_->set_motion_status(0);
+    printf("%s - set_motion_status : %d\n", __FUNCTION__, ret);
     std::unique_lock lck{this->mtx_robotState_};
     bool waitNoError_Success = this->cv_robotState_.wait_for(lck, std::chrono::seconds(1), [this](){
         return (ROBOT_NO_ERROR == this->robotState_.err_code);
@@ -607,24 +654,30 @@ bool UtraRobot::Robot_Set_Mdh_Offset()
             all_joint_updated = false;
         }
     }
+    if(!all_joint_updated)
+    {
+        std::cout << __FUNCTION__ << " - failed to update mdh param of some joint " << std::endl;
+        return false;
+    }
     sleep(2);
     ret = ubot_->saved_parm();
     if(0 != ret)
     {
-        std::cout << " - Robot Failed to save param after update mdh offset!" << std::endl;
+        std::cout << __FUNCTION__ << " - Robot Failed to save param after update mdh offset!" << std::endl;
+        uint8_t code;
+        int ret_err = ubot_->get_error_code(&code);
+        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        return false;
     }
-    sleep(2);
-    ret = ubot_->reboot_system();
-    if(0 != ret)
-    {
-        std::cout << " - Robot Failed to reboot system after save parameters of mdh offset!" << std::endl;
-    }
-
-    return all_joint_updated;
+    return Robot_Reboot();
 }
 
 bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
 {
+    if(!RobotCommand_Hold())
+    {
+        std::cout << __FUNCTION__ << " - failed to hold robot " << std::endl;
+    }
     std::array<std::array<float,4>,7> mdh_offset_array;
     int ret = 0;
     bool all_joint_mdh_zero = true;
@@ -657,7 +710,7 @@ bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
 
 bool UtraRobot::Robot_ZeroOut_Mdh_offset()
 {
-    std::array<std::array<float,4>,7> mdh_offset_array={{{0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}}};
+    std::array<std::array<float,4>,7> mdh_offset_array={{{0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.01,0.01,0.01,0.01}}};
     int ret = 0;
     bool all_joint_updated = true;
     for(int i=0; i<7; i++)
@@ -671,22 +724,27 @@ bool UtraRobot::Robot_ZeroOut_Mdh_offset()
         {
             std::cout << __FUNCTION__ << " - failed to update mdh offset for joint " << (i+1) << std::endl;
             all_joint_updated = false;
+            uint8_t code;
+            int ret_err = ubot_->get_error_code(&code);
+            printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
         }
+    }
+    if(!all_joint_updated)
+    {
+        std::cout << __FUNCTION__ << " - failed to update mdh param of some joint " << std::endl;
+        return false;
     }
     sleep(2);
     ret = ubot_->saved_parm();
     if(0 != ret)
     {
         std::cout << __FUNCTION__ << " - Robot Failed to save param after update mdh offset!" << std::endl;
+        uint8_t code;
+        int ret_err = ubot_->get_error_code(&code);
+        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        return false;
     }
-    sleep(2);
-    ret = ubot_->reboot_system();
-    if(0 != ret)
-    {
-        std::cout << __FUNCTION__ << " - Robot Failed to reboot system after save parameters of mdh offset!" << std::endl;
-    }
-
-    return all_joint_updated;
+    return Robot_Reboot();
 }
 
 bool UtraRobot::Robot_Get_Param_Gravity_Direct(float gravity_direction[3])
@@ -729,6 +787,8 @@ bool UtraRobot::Robot_Set_Param_Tcp_Offset(float tcp_over_flange[6])
 
 bool UtraRobot::Robot_Get_Param_Tcp_Load(float tcp_load[4])
 {
+    printf("Config ip {%s}\r\n", config_.ip.c_str());
+    fflush(nullptr);
     int ret = ubot_->get_tcp_load(tcp_load);
     if (0 != ret)
     {
@@ -737,14 +797,119 @@ bool UtraRobot::Robot_Get_Param_Tcp_Load(float tcp_load[4])
     }
     printf("%s - Robot tcp load {%0.3f}kg, {%0.4f}mm, {%0.4f}mm, {%0.4f}mm\r\n"
            , __FUNCTION__, tcp_load[0], tcp_load[1], tcp_load[2], tcp_load[3]);
-
+    fflush(nullptr);
     return true;
+}
+
+bool UtraRobot::Robot_Reboot()
+{
+    printf("Config ip {%s}\r\n", config_.ip.c_str());
+    fflush(nullptr);
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    if(!RobotCommand_Hold())
+    {
+        std::cout << __FUNCTION__ << " - Robot Failed to Hold!" << std::endl;
+    }
+    int ret = ubot_->reboot_system();
+    if(0 != ret)
+    {
+        std::cout << __FUNCTION__ << " - failed to call api 'reboot_system'!" << std::endl;
+        return false;
+    }
+    {
+        std::unique_lock lck{mtx_connect_};
+        if(nullptr != ubot_)
+        {
+            delete ubot_;
+            ubot_ = nullptr;
+        }
+        if(nullptr != utra_report_)
+        {
+            delete utra_report_;
+            utra_report_ = nullptr;
+        }
+
+        is_robot_connected = false;
+        cv_connect_.notify_all();
+    }
+    return true;
+}
+
+bool UtraRobot::Robot_Wait_Until_Disconnected(int timeout_sec)
+{
+    int sockfd;
+    struct sockaddr_in server_addr;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        printf("%s - Socket creation failed\r\n", __FUNCTION__);
+        return false;
+    }
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(UTR_ROBOT_SERVER_PORT);
+    server_addr.sin_addr.s_addr = inet_addr(config_.ip.c_str());
+
+    int cnt = timeout_sec;
+    while (cnt) {
+        printf("Attempting [%d] wait disconnect of %s:%d\n", --cnt, config_.ip.c_str(), UTR_ROBOT_SERVER_PORT);
+        fflush(nullptr);
+        if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == 0) {
+            // printf("Connected successfully!\n");
+            close(sockfd);
+            sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        } else {
+            printf("%s - wait disconnection success\r\n", __FUNCTION__);
+            fflush(nullptr);
+            break;
+        }
+        sleep(1); // 等待1秒后重试
+    }
+    close(sockfd);
+    return false;
+}
+
+bool UtraRobot::Robot_Wait_Until_Connected(int timeout_sec)
+{
+
+    int sockfd;
+    struct sockaddr_in server_addr;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        printf("%s - Socket creation failed\r\n", __FUNCTION__);
+        return false;
+    }
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(UTR_ROBOT_SERVER_PORT);
+    server_addr.sin_addr.s_addr = inet_addr(config_.ip.c_str());
+    int cnt = timeout_sec;
+    while (cnt) {
+        printf("Attempting [%d] wait reconnect of %s:%d\n", --cnt, config_.ip.c_str(), UTR_ROBOT_SERVER_PORT);
+        fflush(nullptr);
+        if (connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == 0)
+        {
+            printf("%s - wait Connected successfully!\n", __FUNCTION__);
+            fflush(nullptr);
+            close(sockfd);
+            return true;
+        }
+        sleep(1); // 等待1秒后重试
+    }
+    close(sockfd);
+    return false;
 }
 
 void UtraRobot::ThreadFunction_UpdateRobotStatus()
 {
     while(this->thread_flag)
     {
+        {
+            std::unique_lock lck{mtx_connect_};
+            cv_connect_.wait(lck,[this](){return (nullptr != this->ubot_) && (nullptr != this->utra_report_);});
+        }
+
         RobotStatus_SnapShot prev_state = this->robotState_;
         if (utra_report_->is_update()) {
             utra_report_data_missing_counter_ = 0;

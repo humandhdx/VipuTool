@@ -13,6 +13,20 @@
 #include "ut_robot_wrapper/utrarobotqwrapper.hpp"
 #include <QtMessageHandler>
 #include "filedialogwrap.h"
+
+// #define TEST_MAIN
+
+#ifdef TEST_MAIN
+#include <QCoreApplication>
+#include <ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h>
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+    CameraCalibQWrapper CameraCalibWrapper;
+    return app.exec();
+}
+#else
+
 int main(int argc, char *argv[])
 {
     //QQuickWindow::setSceneGraphBackend("opengl");
@@ -74,3 +88,5 @@ int main(int argc, char *argv[])
     //m_heculate->runCalibration();
     return app.exec();
 }
+
+#endif
