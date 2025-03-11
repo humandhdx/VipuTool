@@ -39,6 +39,7 @@ public slots:
     bool start_camera_capture(const QString &path, int type, int count);
     bool deleteFisterCaptureImage(QString path);
     bool clearCaptureCount(QString path);
+    void open_path(QString path);
     void openMalLab();
     void startFouc(int l_r);
     QString currentDirectory() const {

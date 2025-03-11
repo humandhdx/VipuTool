@@ -43,11 +43,20 @@ Item {
         Item {
             anchors.fill: parent //1260
             property string capturePath: ""
+            property string left_capturePath: ""
+            property string right_capturePath: ""
             property bool isCamera: false
             property int captureCount: 0
+            property int left_captureCount: 0
+            property int right_captureCount: 0
             Component.onCompleted: {
-                capturePath=cameraManager.currentDirectory()+"/GlobalImages"
+                capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Binocular"
+                left_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Left"
+                right_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Right"
                 cameraManager.clearCaptureCount(capturePath)
+                cameraManager.clearCaptureCount(left_capturePath)
+                cameraManager.clearCaptureCount(right_capturePath)
+
             }
             Component.onDestruction: {
                 cameraManager.stopCamera()
@@ -135,14 +144,75 @@ Item {
                                     }
                                 }
                             }
+                            Button{
+                                width: 150
+                                height: 40
+                                text: "采集左目图片"
+                                enabled: isCamera
+                                onClicked: {
+                                    if(left_capturePath===""){
+                                        console.log("请选择保存路径")
+                                        nopath.visible=true
+                                        return
+                                    }
+                                    mask.open()
+                                    left_captureCount++
+                                    cameraManager.start_camera_capture(left_capturePath,0,left_captureCount)
+                                    mask.close()
+                                }
+                            }
+                            Item {
+                                width: 180
+                                height: 40
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: qsTr("采集次数:")
+                                    font.pixelSize: 12
+                                    color: "#000"
+                                }
+                                Rectangle{
+                                    anchors.right: parent.right
+                                    width: 120
+                                    height: 40
+                                    radius: 5
+                                    color: "#F5F5F5"
+                                    border.width: 1
+                                    border.color: "#c9c9c9"
+                                    Text {
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: 20
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        color: isCamera?"#000":"#c9c9c9"
+                                        text: left_captureCount
+                                    }
+                                    FueButton{
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: 10
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 16
+                                        height: 16
+                                        enabled: left_captureCount>0?true:false
+                                        Image {
+                                            anchors.fill: parent
+                                            source: "qrc:/Image/Clear.svg"
+                                            opacity: left_captureCount>0?1.0:0.5
+                                        }
+                                        onClicked: {
+                                           cameraManager.clearCaptureCount(left_capturePath)
+                                           left_captureCount=0
+                                        }
+                                    }
+                                }
+                            }
                         }
                         Row{
                             spacing: 20
                             Button{
                                 width: 200
                                 height: 40
-                                text: "采集图片"
-                                enabled: isCamera&&captureCount<=handeyeCulate.arm_pose_count?true:false
+                                text: "采集双目图片"
+                                enabled: isCamera
                                 onClicked: {
                                     if(capturePath===""){
                                         console.log("请选择保存路径")
@@ -199,11 +269,67 @@ Item {
                                     }
                                 }
                             }
+                            Rectangle{
+                                width: 250
+                                height: 40
+                                color: "#00000000"
+                                radius: 5
+                                border.width: 1
+                                border.color: "#000000"
+                                property int dynamicFontSize: {
+                                     // 假设初始字号为 10
+                                     var availableWidth = width - 10; // 考虑左右边距
+                                     var scale = availableWidth / left_textMetrics.width;
+                                     // 限制字号范围，防止缩放过小或过大
+                                     return Math.max(8, Math.min(10, Math.floor(10 * scale)));
+                                }
+                                TextMetrics {
+                                     id: left_textMetrics
+                                     text: qsTr("保存路径：" + left_capturePath)
+                                     font.pixelSize: 10 // 初始字体大小，计算时会使用这个值
+                                }
+                                Text {
+                                    width: parent.width-15
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 10
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    font.pixelSize:parent.dynamicFontSize
+                                    text: qsTr("保存路径："+left_capturePath)
+                                    elide: Text.ElideRight
+                                }
+                                Rectangle{
+                                    id:nopath
+                                    visible: false
+                                    width: 20
+                                    height: 20
+                                    radius: width/2
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 5
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    color: "red"
+                                    Text {
+                                        anchors.centerIn: parent
+                                        font.pixelSize: 16
+                                        color: "#ffffff"
+                                        text: qsTr("!")
+                                    }
+
+                                }
+                            }
+                            Button{
+                                width: 80
+                                height: 40
+                                text: "查看保存地址"
+                                onClicked: {
+                                    cameraManager.open_path(left_capturePath)
+                                }
+                            }
+
                         }
                         Row{
-                            spacing: 10
+                            spacing: 20
                             Rectangle{
-                                width: 300
+                                width: 290
                                 height: 40
                                 color: "#00000000"
                                 radius: 5
@@ -230,34 +356,76 @@ Item {
                                     text: qsTr("保存路径："+capturePath)
                                     elide: Text.ElideRight
                                 }
-                                Rectangle{
-                                    id:nopath
-                                    visible: false
-                                    width: 20
-                                    height: 20
-                                    radius: width/2
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: 5
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    color: "red"
-                                    Text {
-                                        anchors.centerIn: parent
-                                        font.pixelSize: 16
-                                        color: "#ffffff"
-                                        text: qsTr("!")
-                                    }
-
-                                }
                             }
                             Button{
                                 width: 110
                                 height: 40
-                                text: "修改地址"
+                                text: "查看保存地址"
                                 onClicked: {
-                                    folderDialog.currentFolder =capturePath
-                                    folderDialog.open()
+                                    cameraManager.open_path(capturePath)
                                 }
                             }
+                            Button{
+                                width: 150
+                                height: 40
+                                text: "采集右目图片"
+                                enabled: isCamera
+                                onClicked: {
+                                    if(right_capturePath===""){
+                                        console.log("请选择保存路径")
+                                        return
+                                    }
+                                    mask.open()
+                                    right_captureCount++
+                                    cameraManager.start_camera_capture(right_capturePath,0,right_captureCount)
+                                    mask.close()
+                                }
+                            }
+                            Item {
+                                width: 180
+                                height: 40
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: qsTr("采集次数:")
+                                    font.pixelSize: 12
+                                    color: "#000"
+                                }
+                                Rectangle{
+                                    anchors.right: parent.right
+                                    width: 120
+                                    height: 40
+                                    radius: 5
+                                    color: "#F5F5F5"
+                                    border.width: 1
+                                    border.color: "#c9c9c9"
+                                    Text {
+                                        anchors.left: parent.left
+                                        anchors.leftMargin: 20
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        color: isCamera?"#000":"#c9c9c9"
+                                        text: right_captureCount
+                                    }
+                                    FueButton{
+                                        anchors.right: parent.right
+                                        anchors.rightMargin: 10
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 16
+                                        height: 16
+                                        enabled: right_captureCount>0?true:false
+                                        Image {
+                                            anchors.fill: parent
+                                            source: "qrc:/Image/Clear.svg"
+                                            opacity: right_captureCount>0?1.0:0.5
+                                        }
+                                        onClicked: {
+                                           cameraManager.clearCaptureCount(right_capturePath)
+                                           right_captureCount=0
+                                        }
+                                    }
+                                }
+                            }
+
                         }
                         Row{
                             spacing: 20
@@ -300,6 +468,44 @@ Item {
                                     }
                                 }
                             }
+                            Rectangle{
+                                width: 250
+                                height: 40
+                                color: "#00000000"
+                                radius: 5
+                                border.width: 1
+                                border.color: "#000000"
+                                property int dynamicFontSize: {
+                                     // 假设初始字号为 10
+                                     var availableWidth = width - 10; // 考虑左右边距
+                                     var scale = availableWidth / right_textMetrics.width;
+                                     // 限制字号范围，防止缩放过小或过大
+                                     return Math.max(8, Math.min(10, Math.floor(10 * scale)));
+                                }
+                                TextMetrics {
+                                     id: right_textMetrics
+                                     text: qsTr("保存路径：" + left_capturePath)
+                                     font.pixelSize: 10 // 初始字体大小，计算时会使用这个值
+                                }
+                                Text {
+                                    width: parent.width-15
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 10
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    font.pixelSize:parent.dynamicFontSize
+                                    text: qsTr("保存路径："+right_capturePath)
+                                    elide: Text.ElideRight
+                                }
+                            }
+                            Button{
+                                width: 80
+                                height: 40
+                                text: "查看保存地址"
+                                onClicked: {
+                                    cameraManager.open_path(right_capturePath)
+                                }
+                            }
+
                         }
                         Row{
                             spacing: 20
@@ -398,34 +604,6 @@ Item {
                             spacing: 2
                         }
                     }
-                }
-            }
-            FolderDialog {
-                id: folderDialog
-                title: qsTr("选择图片保存路径")
-                folder: StandardPaths.writableLocation(StandardPaths.PicturesLocation)
-                onAccepted: {
-                    var localFolder = folderDialog.folder.toString().replace("file://", "");
-                    console.log("你选择的文件夹为: " + localFolder)
-                    capturePath=localFolder
-                    cameraManager.clearCaptureCount(capturePath)
-                    captureCount=0
-                    nopath.visible=false
-                }
-                onRejected: {
-                    console.log("取消选择")
-                }
-            }
-            FileDialog {
-                id: fileDialog
-                title: "请选择全局相机参数.yaml文件"
-                nameFilters: ["文本文件 (*.yaml)", "所有文件 (*)"]  // 文件类型过滤
-                onAccepted: {
-                    console.log("选择的全局相机参数文件路径: " + fileDialog.currentFile.toString().replace("file://", ""))
-                    cameraParamePath=fileDialog.currentFile.toString().replace("file://", "")
-                }
-                onRejected: {
-                    console.log("全局相机参数文件选择已取消")
                 }
             }
             Connections{

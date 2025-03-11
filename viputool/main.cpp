@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     //QGuiApplication  app(argc, argv);
     QApplication app(argc, argv);
     logger* logInstance = logger::instance();
-    qInstallMessageHandler(logger::myMessageHandler);
+    //qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));

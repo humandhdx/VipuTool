@@ -1,6 +1,7 @@
 #include "cameramanager.h"
 #include <QThread>
 #include <QEventLoop>
+#include <QDesktopServices>
 
 
 cameraManager::cameraManager(QObject *parent): QObject{parent},
@@ -138,13 +139,13 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, left_image_0_, "", count);
+        return saveImage(path, left_image_0_, "Global_Left_Image", count);
     case 1:
         if (right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, right_image_0_, "HandEye_Image", count);
+        return saveImage(path, right_image_0_, "Global_Right_Image", count);
     case 2:
         if (left_image_0_.empty() || right_image_0_.empty()) {
             qDebug() << "保存图像失败";
@@ -155,6 +156,18 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
         return left_saved && right_saved;
 
     case 3:
+        if (middle_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, middle_image_0_, "Middle_Image", count);
+    case 4:
+        if (middle_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, middle_image_0_, "Middle_Image", count);
+    case 5:
         if (middle_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
@@ -175,7 +188,11 @@ bool cameraManager::clearCaptureCount(QString path)
     QFileInfoList fileList;
     // 确保目录存在
     if (!dir.exists()) {
-        qWarning() << "清空目录不存在：" << path;
+        //qWarning() << "清空目录不存在：" << path;
+        if (!dir.mkpath(".")) {
+            qWarning() << "无法创建目录：" << path;
+            return false;
+        }
         return false;
     }
     // 设置文件筛选器，删除所有 ".jpg" 文件
@@ -195,6 +212,24 @@ bool cameraManager::clearCaptureCount(QString path)
     }
     qDebug() << "重置采集图片数量成功";
     return true;
+}
+
+void cameraManager::open_path(QString path)
+{
+    if (path.isEmpty()) {
+        qWarning() << "传入的路径为空";
+        return;
+    }
+
+    // 将路径转换为 QUrl
+    QUrl url = QUrl::fromLocalFile(path);
+
+    // 使用桌面服务打开路径
+    if (QDesktopServices::openUrl(url)) {
+        qDebug() << "已打开路径：" << path;
+    } else {
+        qWarning() << "打开路径失败：" << path;
+    }
 }
 
 void cameraManager::openMalLab()
