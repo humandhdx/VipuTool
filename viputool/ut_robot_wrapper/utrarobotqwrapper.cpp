@@ -6,7 +6,7 @@
 
 #define RAD_TO_DEGREE (180.0/3.14)
 
-UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig config, QObject *parent):QObject(parent), UtraRobot(config)
+UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig& config, QObject *parent):QObject(parent), UtraRobot(config)
 {
     connect(&timer_refresh_robot_joint_pos_, &QTimer::timeout, this, &UtraRobot_QWrapper::refresh_Robot_Joint_Pos);
 
