@@ -91,6 +91,12 @@ public:
 
     bool Robot_Wait_Until_Connected(int timeout_sec = UTR_ROBOT_REBOOT_RECONNECT_TIMEOUT_SEC);
 
+    //axis_idex start from 1
+    bool Robot_Enable_Single_Axis(int axis_idex, bool enalbe);
+
+    uint32_t get_enables_status();
+    uint32_t get_brake_status();
+
 protected:
     bool is_robot_connected{false};
 

@@ -901,6 +901,48 @@ bool UtraRobot::Robot_Wait_Until_Connected(int timeout_sec)
     return false;
 }
 
+bool UtraRobot::Robot_Enable_Single_Axis(int axis_idex, bool enalbe)
+{
+    if(axis_idex > 7 || axis_idex < 1)
+    {
+        std::cout << __FUNCTION__ << " - given axis_index not within range [1,7]: " << axis_idex << std::endl;
+        return false;
+    }
+
+    if(!this->is_robot_connected)
+    {
+        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        return false;
+    }
+    std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
+
+    if(ROBOT_NO_ERROR != ubot_->set_motion_enable(8, 1))
+    {
+        std::cout << __FUNCTION__ << " utr robot start enable failed!"<<std::endl;
+        return false;
+    }
+    std::unique_lock lck{this->mtx_robotState_};
+    bool waitAxisEnable_Success = this->cv_robotState_.wait_for(lck, std::chrono::seconds(1), [this, axis_idex](){
+        return (this->rx_data_.mt_able & (0b1 << (axis_idex -1)));
+    });
+    if(!waitAxisEnable_Success)
+    {
+        std::cout << __FUNCTION__ << " utr robot wait error clear out timeout," << (uint16_t)this->robotState_.err_code <<std::endl;
+        return false;
+    }
+    return true;
+}
+
+uint32_t UtraRobot::get_enables_status()
+{
+    return this->robotState_.mt_brake;
+}
+
+uint32_t UtraRobot::get_brake_status()
+{
+    return this->robotState_.mt_able;
+}
+
 void UtraRobot::ThreadFunction_UpdateRobotStatus()
 {
     while(this->thread_flag)
