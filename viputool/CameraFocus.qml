@@ -261,6 +261,22 @@ Item {
                     }
                 }
             }
+            Row{
+                anchors.right: parent.right
+                anchors.rightMargin: 180
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 120
+                spacing: 40
+                Text {
+                    text: qsTr("最大清晰度："+cameraManager.max_foc.toFixed(2))
+                }
+                Text {
+                    text: qsTr("当前清晰度："+cameraManager.cur_foc.toFixed(2))
+                }
+                Text {
+                    text: qsTr("最小清晰度："+cameraManager.min_foc.toFixed(2))
+                }
+            }
             Connections{
                 target: image_provider_gl
                 function onImgChanged (){
@@ -507,6 +523,22 @@ Item {
                             }
                         }
                     }
+                }
+            }
+            Row{
+                anchors.right: parent.right
+                anchors.rightMargin: 180
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 120
+                spacing: 40
+                Text {
+                    text: qsTr("最大清晰度："+cameraManager.max_foc.toFixed(2))
+                }
+                Text {
+                    text: qsTr("当前清晰度："+cameraManager.cur_foc.toFixed(2))
+                }
+                Text {
+                    text: qsTr("最小清晰度："+cameraManager.min_foc.toFixed(2))
                 }
             }
             Connections{

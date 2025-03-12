@@ -75,6 +75,9 @@ void cameraManager::stopCamera()
 {
     is_left_fouc=false;
     is_right_fouc=false;
+    setCur_foc(0);
+    setMax_foc(0);
+    setMin_foc(0);
     shutdown_leftcapture();
     shutdown_rightcapture();
     shutdown_middlecapture();
@@ -768,8 +771,29 @@ void cameraManager::EOG(const cv::Mat &mat)
     filter2D(gray, engy, CV_32F, kernely);
 
     cv::Mat result = engx.mul(engx) + engy.mul(engy);
-    double outvalue = cv::mean(result)[0];
-    qDebug()<<"当前图像清晰度为 :"<<outvalue;
+    double focus_metric = cv::mean(result)[0];
+    // 初始化 min_foc 和 max_foc（如果是第一次调用）
+    if (min_foc() == 0 && max_foc() == 0) {
+        setMin_foc(focus_metric);
+        setMax_foc(focus_metric);
+        qDebug() << "First run: Initialized min_foc and max_foc to: " << focus_metric;
+        return;
+    }
+
+    // 更新最小和最大清晰度值
+    if (focus_metric < min_foc()) {
+        setMin_foc(focus_metric);
+    }
+
+    if (focus_metric > max_foc()) {
+        setMax_foc(focus_metric);
+    }
+    setCur_foc(focus_metric);
+
+    // 输出当前的清晰度信息
+    // qDebug() << "当前图像清晰度为:" << focus_metric;
+    // qDebug() << "最小清晰度为:" << min_foc;
+    // qDebug() << "最大清晰度为:" << max_foc;
 }
 
 bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)
@@ -808,4 +832,43 @@ bool cameraManager::startCamera(const int l_r)
         break;
     }
     return false;
+}
+
+double cameraManager::max_foc() const
+{
+    return m_max_foc;
+}
+
+void cameraManager::setMax_foc(double newMax_foc)
+{
+    if (qFuzzyCompare(m_max_foc, newMax_foc))
+        return;
+    m_max_foc = newMax_foc;
+    emit max_focChanged();
+}
+
+double cameraManager::min_foc() const
+{
+    return m_min_foc;
+}
+
+void cameraManager::setMin_foc(double newMin_foc)
+{
+    if (qFuzzyCompare(m_min_foc, newMin_foc))
+        return;
+    m_min_foc = newMin_foc;
+    emit min_focChanged();
+}
+
+double cameraManager::cur_foc() const
+{
+    return m_cur_foc;
+}
+
+void cameraManager::setCur_foc(double newCur_foc)
+{
+    if (qFuzzyCompare(m_cur_foc, newCur_foc))
+        return;
+    m_cur_foc = newCur_foc;
+    emit cur_focChanged();
 }
