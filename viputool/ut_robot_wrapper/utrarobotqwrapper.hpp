@@ -25,12 +25,15 @@ public:
     Q_INVOKABLE bool test_repeatability_and_spin();
 
     Q_INVOKABLE bool laserCalib_load_file(QString filePath);
+    // deprecated, robot laser calibration next position should be fetched from kinematiccalibqwrapper
     Q_INVOKABLE bool laserCalib_Robot_MoveTo_NextPos_and_spin();
 
     Q_INVOKABLE bool PostLaserCalib_Write_MDH_offset();
 
     Q_INVOKABLE bool Check_MDH_Offset_Parm_All_Zero();
     Q_INVOKABLE bool ZeroOut_MDH_offset();
+
+    Q_INVOKABLE bool Reboot_Robot_And_Wait_Reconnect();
 
     Q_INVOKABLE bool Move_To_Joint_Position(QVariantList jointpos);
 

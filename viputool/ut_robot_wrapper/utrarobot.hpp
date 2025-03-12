@@ -70,7 +70,7 @@ public:
 
     bool Robot_Set_ToolCenterlPoint();
 
-    bool Robot_Set_Mdh_Offset();
+    bool Robot_Set_Mdh_Offset_With_Calib_Result();
 
     bool Robot_Check_Mdh_Offset_Are_All_Zero();
 

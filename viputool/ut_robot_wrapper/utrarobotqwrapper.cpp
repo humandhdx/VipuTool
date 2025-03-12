@@ -68,6 +68,17 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
             spinner.exit();
             return executionResult;
         });
+        spinner.exec();
+        if(executionResult)
+        {
+            qDebug() << "开启拖拽，成功";
+            return true;
+        }
+        else
+        {
+            qWarning() << "开启拖拽，失败";
+            return false;
+        }
     }
     else
     {
@@ -76,13 +87,18 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
             spinner.exit();
             return executionResult;
         });
+        spinner.exec();
+        if(executionResult)
+        {
+            qDebug() << "关闭拖拽，成功";
+            return true;
+        }
+        else
+        {
+            qWarning() << "关闭拖拽，失败";
+            return false;
+        }
     }
-    spinner.exec();
-    if(executionResult)
-    {
-        emit Robot_Drag_Activate(on);
-    }
-    return executionResult;
 }
 
 bool UtraRobot_QWrapper::test_graivty_and_spin()
@@ -100,8 +116,16 @@ bool UtraRobot_QWrapper::test_graivty_and_spin()
         spinner.exit();
         return executionResult;
     });
-    spinner.exec();
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "机械臂负载测试，走位成功";
+        return true;
+    }
+    else
+    {
+        qWarning() << "机械臂负载测试，走位失败";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::test_accuracy_and_spin()
@@ -120,7 +144,16 @@ bool UtraRobot_QWrapper::test_accuracy_and_spin()
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "机械臂位置准确性测试，走位成功";
+        return true;
+    }
+    else
+    {
+        qWarning() << "机械臂位置准确性测试，走位失败";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::test_workspace_and_spin()
@@ -139,7 +172,16 @@ bool UtraRobot_QWrapper::test_workspace_and_spin()
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "机械臂工作空间运动测试，走位成功";
+        return true;
+    }
+    else
+    {
+        qWarning() << "机械臂工作空间运动测试，走位失败";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::test_repeatability_and_spin()
@@ -158,7 +200,16 @@ bool UtraRobot_QWrapper::test_repeatability_and_spin()
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "机械臂位置重复性测试，走位成功";
+        return true;
+    }
+    else
+    {
+        qWarning() << "机械臂位置重复性测试，走位失败";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::laserCalib_load_file(QString filePath)
@@ -240,13 +291,21 @@ bool UtraRobot_QWrapper::PostLaserCalib_Write_MDH_offset()
     QEventLoop spinner;
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
-        executionResult = this->Robot_ZeroOut_Mdh_offset();
+        executionResult = this->Robot_Set_Mdh_Offset_With_Calib_Result();
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "机械臂标定参数已经写入控制器，请调用Reboot_Robot_And_Wait_Reconnect来重启机械臂控制器";
+        return true;
+    }
+    else
+    {
+        qWarning() << "机械臂标定参数写入控制器失败";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::Check_MDH_Offset_Parm_All_Zero()
@@ -265,8 +324,16 @@ bool UtraRobot_QWrapper::Check_MDH_Offset_Parm_All_Zero()
         return executionResult;
     });
     spinner.exec();
-    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
-    return executionResult;
+    if(executionResult)
+    {
+        qWarning() << "MDH参数补偿值为零，说明未进行过机械臂标定，请进行机械臂标定后再使用";
+        return true;
+    }
+    else
+    {
+        qWarning() << "MDH参数补偿值不为零，运行机械臂标定前，请调用ZeroOut_MDH_offset来清零";
+        return false;
+    }
 }
 
 bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
@@ -285,8 +352,83 @@ bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
         return executionResult;
     });
     spinner.exec();
-    qWarning() << "Mdh参数已经清零,机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
-    return executionResult;
+    if(executionResult)
+    {
+        qDebug() << "Mdh参数已经清零, 请调用功能Reboot_Robot_And_Wait_Reconnect来进行重启";
+        return true;
+    }
+    else
+    {
+        qWarning() << "Mdh清零失败";
+        return false;
+    }
+}
+
+bool UtraRobot_QWrapper::Reboot_Robot_And_Wait_Reconnect()
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    QEventLoop spinner_cmd_reboot;
+    bool executionResult = false;
+    std::future<bool> fut_reboot = std::async(std::launch::async, [&spinner_cmd_reboot, &executionResult, this](){
+        executionResult = this->Robot_Reboot();
+        spinner_cmd_reboot.exit();
+        return executionResult;
+    });
+    spinner_cmd_reboot.exec();
+    if(!executionResult)
+    {
+        qWarning() << __FUNCTION__ << " - failed to send reboot command to controller!";
+        return false;
+    }
+    qDebug() << "已经给机械臂下发重启指令，等待断开链接";
+
+    QEventLoop spinner_disconnect;
+    std::future<bool> fut_diconnect = std::async(std::launch::async, [&spinner_disconnect, &executionResult, this](){
+        executionResult = this->Robot_Wait_Until_Disconnected();
+        spinner_disconnect.exit();
+        return executionResult;
+    });
+    spinner_disconnect.exec();
+    if(!executionResult)
+    {
+        qWarning() << __FUNCTION__ << " - wait controller disconnection timeout!";
+        return false;
+    }
+    qDebug() << "机械臂控制器已经断开链接，等待重新链接";
+
+    QEventLoop spinner_connect;
+    std::future<bool> fut_connect = std::async(std::launch::async, [&spinner_connect, &executionResult, this](){
+        executionResult = this->Robot_Wait_Until_Connected();
+        spinner_connect.exit();
+        return executionResult;
+    });
+    spinner_connect.exec();
+    if(!executionResult)
+    {
+        qWarning() << __FUNCTION__ << " - wait controller reconnection timeout!";
+        return false;
+    }
+    qDebug() << "机械臂重新链接， 准备初始化";
+
+    QEventLoop spinner_init;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner_init, &executionResult, this](){
+        executionResult = this->InitRobot();
+        spinner_init.exit();
+        return executionResult;
+    });
+    spinner_init.exec();
+    if(!executionResult)
+    {
+        qWarning() << __FUNCTION__ << " - 机械臂初始化失败，建议重新打开程序!";
+        return false;
+    }
+    qDebug() << "机械臂初始化成功";
+    return true;
 }
 
 bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
@@ -309,7 +451,7 @@ bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
     joint_pos_str += "}";
     if(7 != jp_index)
     {
-        qWarning() << "机械臂肘关节运动，给予的肘关节数量不正确[7]";
+        qWarning() << "机械臂肘关节运动，给予的肘关节数量不正确，应该长度为[7]";
         return false;
     }
 
@@ -321,17 +463,16 @@ bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
         return executionResult;
     });
     spinner.exec();
-    qWarning() << "机械臂已经重启，机械臂重联需要关闭后此程序需要重新打开";
     if(executionResult)
     {
         qDebug() << "Robot Arm move to given joint position" << joint_pos_str;
+        return true;
     }
     else
     {
         qWarning() << "Robot Arm failed to move to given joint position" << joint_pos_str;
+        return false;
     }
-
-    return executionResult;
 }
 
 QVariantList UtraRobot_QWrapper::convert_JPos_To_VariantList(UtRobotConfig::JointPos &Jpos)

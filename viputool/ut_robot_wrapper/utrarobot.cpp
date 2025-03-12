@@ -626,7 +626,7 @@ bool UtraRobot::RobotCommand_ResetError()
     return true;
 }
 
-bool UtraRobot::Robot_Set_Mdh_Offset()
+bool UtraRobot::Robot_Set_Mdh_Offset_With_Calib_Result()
 {
     UtRobotConfig::RobotDhModel_UtraRobot mdh_offset_struct;
 
@@ -669,7 +669,7 @@ bool UtraRobot::Robot_Set_Mdh_Offset()
         printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
         return false;
     }
-    return Robot_Reboot();
+    return true;
 }
 
 bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
@@ -744,7 +744,7 @@ bool UtraRobot::Robot_ZeroOut_Mdh_offset()
         printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
         return false;
     }
-    return Robot_Reboot();
+    return true;
 }
 
 bool UtraRobot::Robot_Get_Param_Gravity_Direct(float gravity_direction[3])
