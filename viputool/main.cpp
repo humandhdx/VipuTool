@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     UnixSignal::Register_Hookers();
 
     logger* logInstance = logger::instance();
-    qInstallMessageHandler(logger::myMessageHandler);
+    //qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));

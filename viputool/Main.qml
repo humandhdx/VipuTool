@@ -76,6 +76,10 @@ Window {
                     type:"SSH连接"
                     pageurl:"qrc:/SSHLink.qml"
                 }
+                ListElement{
+                    type:"机械臂控制"
+                    pageurl:"qrc:/ArmControl.qml"
+                }
 
             }
             delegate: Item {

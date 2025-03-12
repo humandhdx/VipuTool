@@ -21,6 +21,8 @@
 #include <chrono>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/opencv.hpp>
 #include "v4l2/struct.h"
 #include <thread>
 #include <QProcess>
@@ -28,16 +30,30 @@
 class cameraManager: public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(double max_foc READ max_foc WRITE setMax_foc NOTIFY max_focChanged FINAL)
+    Q_PROPERTY(double min_foc READ min_foc WRITE setMin_foc NOTIFY min_focChanged FINAL)
+    Q_PROPERTY(double cur_foc READ cur_foc WRITE setCur_foc NOTIFY cur_focChanged FINAL)
 public:
     cameraManager(QObject *parent = nullptr);
     ~cameraManager();
+    double max_foc() const;
+    void setMax_foc(double newMax_foc);
+
+    double min_foc() const;
+    void setMin_foc(double newMin_foc);
+
+    double cur_foc() const;
+    void setCur_foc(double newCur_foc);
+
 public slots:
     bool startCamera(const int l_r);//0-left 1-right 2-double
     void stopCamera();
     bool start_camera_capture(const QString &path, int type, int count);
     bool deleteFisterCaptureImage(QString path);
     bool clearCaptureCount(QString path);
+    void open_path(QString path);
     void openMalLab();
+    void startFouc(int l_r);
     QString currentDirectory() const {
         return QDir::currentPath();
     }
@@ -55,9 +71,14 @@ private:
     void shutdown_leftcapture();
     void shutdown_rightcapture();
     void shutdown_middlecapture();
-    double EOG(const cv::Mat &mat);
+    void EOG(const cv::Mat &mat);
     bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
     bool captureImage(const std::string &path, int type, int count);
+    std::atomic_bool is_left_fouc=false;
+    std::atomic_bool is_right_fouc=false;
+    double m_max_foc=0;
+    double m_min_foc=0;
+    double m_cur_foc=0;
 
     int format_ = V4L2_PIX_FMT_MJPEG;
     int height_ = 992;
@@ -127,6 +148,9 @@ signals:
     void signalSendRightImage(QImage image);
     void signalSendMiddleImage(QImage image);
     void signalDeviceErro();
+    void max_focChanged();
+    void min_focChanged();
+    void cur_focChanged();
 };
 
 #endif // CAMERAMANAGER_H

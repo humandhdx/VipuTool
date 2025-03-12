@@ -918,11 +918,16 @@ void UtraRobot::ThreadFunction_UpdateRobotStatus()
             this->robotState_.motion_mode   = rx_data_.motion_mode;
             this->robotState_.err_code      = rx_data_.err_code;
             this->robotState_.war_code      = rx_data_.war_code;
+            this->robotState_.mt_brake      = rx_data_.mt_brake;
+            this->robotState_.mt_able       = rx_data_.mt_able;
 
             if ((this->robotState_.motion_status ^ prev_state.motion_status) ||
                 (this->robotState_.motion_mode   ^ prev_state.motion_mode) ||
                 (this->robotState_.err_code      ^ prev_state.err_code) ||
-                (this->robotState_.war_code      ^ prev_state.war_code)) {
+                (this->robotState_.war_code      ^ prev_state.war_code) ||
+                (this->robotState_.mt_brake      ^ prev_state.mt_brake) ||
+                (this->robotState_.mt_able      ^ prev_state.mt_able)
+                ) {
                 
                 if(this->robotState_.motion_status ^ prev_state.motion_status)
                 {
@@ -937,6 +942,16 @@ void UtraRobot::ThreadFunction_UpdateRobotStatus()
                 if(this->robotState_.err_code ^ prev_state.err_code)
                 {
                     printf("motion error code changed from {%d}->{%d}\r\n",  prev_state.err_code, this->robotState_.err_code);
+                }
+
+                if(this->robotState_.mt_brake ^ prev_state.mt_brake)
+                {
+                    printf("brak status changed from {%04X}->{%04X}\r\n",  prev_state.mt_brake, this->robotState_.mt_brake);
+                }
+
+                if(this->robotState_.mt_able ^ prev_state.mt_able)
+                {
+                    printf("enable status code changed from {%04X}->{%04X}\r\n",  prev_state.mt_able, this->robotState_.mt_able);
                 }
 
                 std::lock_guard lck{this->mtx_robotState_};

@@ -114,6 +114,8 @@ private:
         uint8_t     motion_mode{0};
         uint8_t     err_code{0};
         uint8_t     war_code{0};
+        uint32_t    mt_brake;
+        uint32_t    mt_able;
     };
 
     float speed=5.0/57.54;  // rad/s

@@ -1,6 +1,7 @@
 #include "cameramanager.h"
 #include <QThread>
 #include <QEventLoop>
+#include <QDesktopServices>
 
 
 cameraManager::cameraManager(QObject *parent): QObject{parent},
@@ -72,6 +73,11 @@ cameraManager::~cameraManager()
 
 void cameraManager::stopCamera()
 {
+    is_left_fouc=false;
+    is_right_fouc=false;
+    setCur_foc(0);
+    setMax_foc(0);
+    setMin_foc(0);
     shutdown_leftcapture();
     shutdown_rightcapture();
     shutdown_middlecapture();
@@ -136,13 +142,13 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, left_image_0_, "", count);
+        return saveImage(path, left_image_0_, "Global_Left_Image", count);
     case 1:
         if (right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, right_image_0_, "HandEye_Image", count);
+        return saveImage(path, right_image_0_, "Global_Right_Image", count);
     case 2:
         if (left_image_0_.empty() || right_image_0_.empty()) {
             qDebug() << "保存图像失败";
@@ -153,6 +159,18 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
         return left_saved && right_saved;
 
     case 3:
+        if (middle_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, middle_image_0_, "Middle_Image", count);
+    case 4:
+        if (middle_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        return saveImage(path, middle_image_0_, "Middle_Image", count);
+    case 5:
         if (middle_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
@@ -173,7 +191,11 @@ bool cameraManager::clearCaptureCount(QString path)
     QFileInfoList fileList;
     // 确保目录存在
     if (!dir.exists()) {
-        qWarning() << "清空目录不存在：" << path;
+        //qWarning() << "清空目录不存在：" << path;
+        if (!dir.mkpath(".")) {
+            qWarning() << "无法创建目录：" << path;
+            return false;
+        }
         return false;
     }
     // 设置文件筛选器，删除所有 ".jpg" 文件
@@ -195,6 +217,24 @@ bool cameraManager::clearCaptureCount(QString path)
     return true;
 }
 
+void cameraManager::open_path(QString path)
+{
+    if (path.isEmpty()) {
+        qWarning() << "传入的路径为空";
+        return;
+    }
+
+    // 将路径转换为 QUrl
+    QUrl url = QUrl::fromLocalFile(path);
+
+    // 使用桌面服务打开路径
+    if (QDesktopServices::openUrl(url)) {
+        qDebug() << "已打开路径：" << path;
+    } else {
+        qWarning() << "打开路径失败：" << path;
+    }
+}
+
 void cameraManager::openMalLab()
 {
     if (matlab_process->state() == QProcess::Running) {
@@ -205,6 +245,16 @@ void cameraManager::openMalLab()
     QStringList arguments;
     arguments << "-desktop";
     matlab_process->start(matlabPath, arguments);
+}
+
+void cameraManager::startFouc(int l_r)
+{
+    if(l_r==0){
+        is_left_fouc=true;
+    }
+    else{
+        is_right_fouc=true;
+    }
 }
 
 void cameraManager::init_cam()
@@ -411,6 +461,7 @@ void cameraManager::capture_left()
                 // left_image_available_0_.time = left_imgae_available_time_;
                 // UpdateLeftImage();
                 if(left_image_0_.empty())return;
+                if(is_left_fouc)EOG(left_image_0_);
                 QImage image(left_image_0_.data,
                              left_image_0_.cols,
                              left_image_0_.rows,
@@ -494,6 +545,7 @@ void cameraManager::capture_right()
                 // left_image_available_0_.time = left_imgae_available_time_;
                 // UpdateLeftImage();
                 if(right_image_0_.empty())return;
+                if(is_right_fouc)EOG(right_image_0_);
                 QImage image(right_image_0_.data,
                              right_image_0_.cols,
                              right_image_0_.rows,
@@ -708,20 +760,40 @@ void cameraManager::shutdown_middlecapture()
     }
 }
 
-double cameraManager::EOG(const cv::Mat &mat)
+void cameraManager::EOG(const cv::Mat &mat)
 {
     cv::Mat gray;
     cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
     cv::Mat kernely = (cv::Mat_<char>(2, 1) << -1, 1);
     cv::Mat kernelx = (cv::Mat_<char>(1, 2) << -1, 1);
-
     cv::Mat engx, engy;
-    (gray, engx, CV_32F, kernelx);
+    filter2D(gray, engx, CV_32F, kernelx);
     filter2D(gray, engy, CV_32F, kernely);
 
     cv::Mat result = engx.mul(engx) + engy.mul(engy);
-    double outvalue = cv::mean(result)[0];
-    return outvalue;
+    double focus_metric = cv::mean(result)[0];
+    // 初始化 min_foc 和 max_foc（如果是第一次调用）
+    if (min_foc() == 0 && max_foc() == 0) {
+        setMin_foc(focus_metric);
+        setMax_foc(focus_metric);
+        qDebug() << "First run: Initialized min_foc and max_foc to: " << focus_metric;
+        return;
+    }
+
+    // 更新最小和最大清晰度值
+    if (focus_metric < min_foc()) {
+        setMin_foc(focus_metric);
+    }
+
+    if (focus_metric > max_foc()) {
+        setMax_foc(focus_metric);
+    }
+    setCur_foc(focus_metric);
+
+    // 输出当前的清晰度信息
+    // qDebug() << "当前图像清晰度为:" << focus_metric;
+    // qDebug() << "最小清晰度为:" << min_foc;
+    // qDebug() << "最大清晰度为:" << max_foc;
 }
 
 bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)
@@ -760,4 +832,43 @@ bool cameraManager::startCamera(const int l_r)
         break;
     }
     return false;
+}
+
+double cameraManager::max_foc() const
+{
+    return m_max_foc;
+}
+
+void cameraManager::setMax_foc(double newMax_foc)
+{
+    if (qFuzzyCompare(m_max_foc, newMax_foc))
+        return;
+    m_max_foc = newMax_foc;
+    emit max_focChanged();
+}
+
+double cameraManager::min_foc() const
+{
+    return m_min_foc;
+}
+
+void cameraManager::setMin_foc(double newMin_foc)
+{
+    if (qFuzzyCompare(m_min_foc, newMin_foc))
+        return;
+    m_min_foc = newMin_foc;
+    emit min_focChanged();
+}
+
+double cameraManager::cur_foc() const
+{
+    return m_cur_foc;
+}
+
+void cameraManager::setCur_foc(double newCur_foc)
+{
+    if (qFuzzyCompare(m_cur_foc, newCur_foc))
+        return;
+    m_cur_foc = newCur_foc;
+    emit cur_focChanged();
 }

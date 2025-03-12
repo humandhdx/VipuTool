@@ -56,7 +56,9 @@ Item {
             }
             Component.onDestruction: {
                 cameraManager.stopCamera()
-                urtrobot_right.robot_drag_activate(false)
+                if(urtrobot_right.arm_connect){
+                    urtrobot_right.robot_drag_activate(false)
+                }
             }
             Rectangle{
                 width: 800
@@ -811,7 +813,9 @@ Item {
             }
             Component.onDestruction: {
                 cameraManager.stopCamera()
-                urtrobot_right.robot_drag_activate(false)
+                if(urtrobot_right.arm_connect){
+                    urtrobot_right.robot_drag_activate(false)
+                }
             }
             Rectangle{
                 width: 800

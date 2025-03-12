@@ -11,5 +11,7 @@
         <file>CameraFocus.qml</file>
         <file>Kinematiccalibrtion.qml</file>
         <file>SSHLink.qml</file>
+        <file>ArmControl.qml</file>
+        <file>CustomToggle.qml</file>
     </qresource>
 </RCC>
