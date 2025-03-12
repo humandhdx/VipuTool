@@ -64,6 +64,7 @@ qt_add_executable(${PROJECT_NAME}
     json.hpp
     ut_robot_wrapper/camera_calibration/cameracalib_config.h ut_robot_wrapper/camera_calibration/cameracalib_config.cpp
     ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h ut_robot_wrapper/camera_calibration/cameracalibqwrapper.cpp
+    unixsignalqhandler.h
 
 )
 include_directories(/usr/include)

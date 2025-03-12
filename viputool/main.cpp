@@ -14,6 +14,8 @@
 #include <QtMessageHandler>
 #include "filedialogwrap.h"
 
+#include "unixsignalqhandler.h"
+
 // #define TEST_MAIN
 
 #ifdef TEST_MAIN
@@ -32,6 +34,8 @@ int main(int argc, char *argv[])
     //QQuickWindow::setSceneGraphBackend("opengl");
     //QGuiApplication  app(argc, argv);
     QApplication app(argc, argv);
+    UnixSignal::Register_Hookers();
+
     logger* logInstance = logger::instance();
     qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
@@ -44,6 +48,16 @@ int main(int argc, char *argv[])
     //robot
     UtraRobot_QWrapper *m_urtrobot_left=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotLeft);
     UtraRobot_QWrapper *m_urtrobot_right=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotRight);
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, [m_urtrobot_left, m_urtrobot_right](){
+        const char msg[] = "qt about to quit, now try to stop robot movements\n";
+        write(STDOUT_FILENO, msg, sizeof(msg) - 1);
+        std::thread thread_robot_hold_left{&UtraRobot::RobotCommand_Hold, m_urtrobot_left};
+        std::thread thread_robot_hold_right{&UtraRobot::RobotCommand_Hold, m_urtrobot_right};
+        thread_robot_hold_left.join();
+        thread_robot_hold_right.join();
+        const char msg_end[] = "Robot Stoped\n";
+        write(STDOUT_FILENO, msg_end, sizeof(msg_end) - 1);
+    });
     //video
     ImageProvider *image_provider_gl = new ImageProvider();
     ImageProvider *image_provider_gr = new ImageProvider();
