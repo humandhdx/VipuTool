@@ -13,46 +13,46 @@ using namespace KinematicCalib_Config::FileRelativePath;
 
 #define QStr_ABS_PATH(rel_path) QString::fromStdString(Utilities::BIN_ABSOLUTE_DIR_PATH + '/' + rel_path)
 
-KinematicCalib_QWrapper::KinematicCalib_QWrapper(QObject *parent)
+KinematicCalibQWrapper::KinematicCalibQWrapper(QObject *parent)
     : QObject{parent}
 {
 }
 
-void KinematicCalib_QWrapper::calibration_resource_load(bool isLeftArm)
+void KinematicCalibQWrapper::calibration_resource_load(bool isLeftArm)
 {
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_right_base_in_laser,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_right_base_in_laser_)));
+                                                                       std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_right_base_in_laser_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_left_base_in_laser,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_left_base_in_laser_)));
+                                                                       std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_left_base_in_laser_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_tool_frame,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_tool_in_flange_)));
+                                                                       std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_tool_in_flange_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_laser_offset,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file, this, std::placeholders::_1, std::ref(vector2d_laser_angle_calibrate_)));
+                                                                       std::bind(&KinematicCalibQWrapper::read_laser_angle_calibrate_from_file, this, std::placeholders::_1, std::ref(vector2d_laser_angle_calibrate_)));
 
     if(isLeftArm)
     {
         this->m_kinematic_calib_data_ready_left = false;
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_left_tcp_in_laser_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_left_tcp_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, true ,std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_jpos_from_file, this, true ,std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
 
     }
     else
     {
         this->m_kinematic_calib_data_ready_right = false;
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_right_tcp_in_laser_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_right_tcp_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose,
-                                                                           std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
+                                                                           std::bind(&KinematicCalibQWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
     }
 }
 
-void KinematicCalib_QWrapper::calibration_resource_unload(bool isLeftArm)
+void KinematicCalibQWrapper::calibration_resource_unload(bool isLeftArm)
 {
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_right_base_in_laser);
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_left_base_in_laser);
@@ -74,20 +74,20 @@ void KinematicCalib_QWrapper::calibration_resource_unload(bool isLeftArm)
     }
 }
 
-void KinematicCalib_QWrapper::reset_kinematic_calib()
+void KinematicCalibQWrapper::reset_kinematic_calib()
 {
     m_lst_masked_robot_pose_index.clear();
     emit lst_masked_robot_pose_index_changed();
     remove_all_output_files();
 }
 
-void KinematicCalib_QWrapper::add_mask_index_for_position_recorder(uint32_t index_of_position_record)
+void KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index_of_position_record)
 {
     m_lst_masked_robot_pose_index.append(index_of_position_record);
     emit lst_masked_robot_pose_index_changed();
 }
 
-bool KinematicCalib_QWrapper::check_calib_data_ready(bool isLeftArm)
+bool KinematicCalibQWrapper::check_calib_data_ready(bool isLeftArm)
 {
     bool check_result = true;
     if(isLeftArm)
@@ -179,7 +179,7 @@ bool KinematicCalib_QWrapper::check_calib_data_ready(bool isLeftArm)
     return check_result;
 }
 
-bool KinematicCalib_QWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
+bool KinematicCalibQWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
 {
     if(isLeftArm)
     {
@@ -250,7 +250,7 @@ bool KinematicCalib_QWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
     }
 }
 
-bool KinematicCalib_QWrapper::Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
+bool KinematicCalibQWrapper::Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
 {
     QDir export_dir{export_dir_path};
     if(!export_dir.exists())
@@ -333,12 +333,12 @@ bool KinematicCalib_QWrapper::Export_Calib_Result(bool isLeftArm, QString export
     return true;
 }
 
-bool KinematicCalib_QWrapper::Merge_Left_And_Right_Calib_Result()
+bool KinematicCalibQWrapper::Merge_Left_And_Right_Calib_Result()
 {
 
 }
 
-bool KinematicCalib_QWrapper::Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path)
+bool KinematicCalibQWrapper::Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path)
 {
     QString target_filepath = isLeftArm?
         QStr_ABS_PATH(CONFIG_ROBOT_DATA_left_arm_joint_pose)
@@ -346,7 +346,7 @@ bool KinematicCalib_QWrapper::Updata_Planned_Robot_Pose(bool isLeftArm, QString 
     return copy_replace_file(source_file_path, target_filepath);
 }
 
-bool KinematicCalib_QWrapper::copy_replace_file(QString &path_sourceFile, QString &path_targetFile)
+bool KinematicCalibQWrapper::copy_replace_file(QString &path_sourceFile, QString &path_targetFile)
 {
     QFile sourceFile{path_sourceFile};
     if(!sourceFile.exists())
@@ -368,7 +368,7 @@ bool KinematicCalib_QWrapper::copy_replace_file(QString &path_sourceFile, QStrin
     return true;
 }
 
-void KinematicCalib_QWrapper::remove_all_output_files()
+void KinematicCalibQWrapper::remove_all_output_files()
 {
     QStringList qstrlst={
         QStr_ABS_PATH(OUTPUT_JSON_left_arm_info),
@@ -392,7 +392,7 @@ void KinematicCalib_QWrapper::remove_all_output_files()
     }
 }
 
-void KinematicCalib_QWrapper::read_frames_from_file(const std::string &file_path, std::vector<std::vector<double> > &vector2d)
+void KinematicCalibQWrapper::read_frames_from_file(const std::string &file_path, std::vector<std::vector<double> > &vector2d)
 {
     QFileInfo fileInfo{QString::fromStdString(file_path)};
     vector2d.clear();
@@ -413,7 +413,7 @@ void KinematicCalib_QWrapper::read_frames_from_file(const std::string &file_path
     set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
 }
 
-void KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file(const std::string &file_path, std::vector<std::vector<double> > &vector2d)
+void KinematicCalibQWrapper::read_laser_angle_calibrate_from_file(const std::string &file_path, std::vector<std::vector<double> > &vector2d)
 {
     QFileInfo fileInfo{QString::fromStdString(file_path)};
     vector2d.clear();
@@ -434,7 +434,7 @@ void KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file(const std::st
     set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
 }
 
-void KinematicCalib_QWrapper::read_jpos_from_file(bool isLeftArm, const std::string &file_path, std::vector<std::vector<double> > &vector2d)
+void KinematicCalibQWrapper::read_jpos_from_file(bool isLeftArm, const std::string &file_path, std::vector<std::vector<double> > &vector2d)
 {
     QFileInfo fileInfo{QString::fromStdString(file_path)};
     vector2d.clear();
@@ -465,7 +465,7 @@ void KinematicCalib_QWrapper::read_jpos_from_file(bool isLeftArm, const std::str
     }
 }
 
-bool KinematicCalib_QWrapper::combine_json_file_kinematics_paramters()
+bool KinematicCalibQWrapper::combine_json_file_kinematics_paramters()
 {
     //OUTPUT_JSON_left_arm_info
     std::ifstream inFile_left_arm_info{Utilities::BIN_ABSOLUTE_DIR_PATH + '/' + OUTPUT_JSON_left_arm_info};
@@ -516,12 +516,12 @@ bool KinematicCalib_QWrapper::combine_json_file_kinematics_paramters()
     return true;
 }
 
-bool KinematicCalib_QWrapper::combine_xml_file_dual_arm_fue_urdf()
+bool KinematicCalibQWrapper::combine_xml_file_dual_arm_fue_urdf()
 {
 
 }
 
-bool KinematicCalib_QWrapper::CheckDataReady_LeftArm()
+bool KinematicCalibQWrapper::CheckDataReady_LeftArm()
 {
     return (1 ==vector2d_frame_tool_in_flange_.size())
         && (1 == vector2d_frame_prev_right_base_in_laser_.size())
@@ -533,7 +533,7 @@ bool KinematicCalib_QWrapper::CheckDataReady_LeftArm()
         && (vector2d_frame_list_left_tcp_in_laser_.size() == vector2d_jpos_list_left_.size());
 }
 
-bool KinematicCalib_QWrapper::CheckDataReady_RightArm()
+bool KinematicCalibQWrapper::CheckDataReady_RightArm()
 {
     return (1 ==vector2d_frame_tool_in_flange_.size())
         && (1 == vector2d_frame_prev_right_base_in_laser_.size())
@@ -546,12 +546,12 @@ bool KinematicCalib_QWrapper::CheckDataReady_RightArm()
 }
 
 
-bool KinematicCalib_QWrapper::kinematic_calib_data_ready_left() const
+bool KinematicCalibQWrapper::kinematic_calib_data_ready_left() const
 {
     return m_kinematic_calib_data_ready_left;
 }
 
-void KinematicCalib_QWrapper::set_kinematic_calib_data_ready_left(bool newKinematic_calib_data_ready_left)
+void KinematicCalibQWrapper::set_kinematic_calib_data_ready_left(bool newKinematic_calib_data_ready_left)
 {
     if (m_kinematic_calib_data_ready_left == newKinematic_calib_data_ready_left)
         return;
@@ -559,12 +559,12 @@ void KinematicCalib_QWrapper::set_kinematic_calib_data_ready_left(bool newKinema
     emit kinematic_calib_data_ready_left_changed();
 }
 
-bool KinematicCalib_QWrapper::kinematic_calib_data_ready_right() const
+bool KinematicCalibQWrapper::kinematic_calib_data_ready_right() const
 {
     return m_kinematic_calib_data_ready_right;
 }
 
-void KinematicCalib_QWrapper::set_kinematic_calib_data_ready_right(bool newKinematic_calib_data_ready_right)
+void KinematicCalibQWrapper::set_kinematic_calib_data_ready_right(bool newKinematic_calib_data_ready_right)
 {
     if (m_kinematic_calib_data_ready_right == newKinematic_calib_data_ready_right)
         return;
@@ -572,12 +572,12 @@ void KinematicCalib_QWrapper::set_kinematic_calib_data_ready_right(bool newKinem
     emit kinematic_calib_data_ready_right_changed();
 }
 
-QList<int> KinematicCalib_QWrapper::get_lst_masked_robot_pose_index() const
+QList<int> KinematicCalibQWrapper::get_lst_masked_robot_pose_index() const
 {
     return m_lst_masked_robot_pose_index;
 }
 
-void KinematicCalib_QWrapper::set_lst_masked_robot_pose_index(const QList<int> &newLst_masked_robot_pose_index)
+void KinematicCalibQWrapper::set_lst_masked_robot_pose_index(const QList<int> &newLst_masked_robot_pose_index)
 {
     if (m_lst_masked_robot_pose_index == newLst_masked_robot_pose_index)
         return;
@@ -585,15 +585,15 @@ void KinematicCalib_QWrapper::set_lst_masked_robot_pose_index(const QList<int> &
     emit lst_masked_robot_pose_index_changed();
 }
 
-int KinematicCalib_QWrapper::joint_pos_index() const
+int KinematicCalibQWrapper::joint_pos_index() const
 {
     return m_joint_pos_index;
 }
 
-void KinematicCalib_QWrapper::set_joint_pos_index(int newJoint_pos_index)
+void KinematicCalibQWrapper::set_joint_pos_index(int newJoint_pos_index)
 {
-    if (m_joint_pos_index == newJoint_pos_index)
-        return;
+    // if (m_joint_pos_index == newJoint_pos_index)
+    //     return;
     m_joint_pos_index = newJoint_pos_index;
     if(m_joint_pos_index < vector2d_jpos_list_left_.size())
     {
@@ -616,12 +616,12 @@ void KinematicCalib_QWrapper::set_joint_pos_index(int newJoint_pos_index)
     emit joint_pos_indexChanged();
 }
 
-int KinematicCalib_QWrapper::joint_pos_total_num_left() const
+int KinematicCalibQWrapper::joint_pos_total_num_left() const
 {
     return m_joint_pos_total_num_left;
 }
 
-void KinematicCalib_QWrapper::set_joint_pos_total_num_left(int newJoint_pos_total_num_left)
+void KinematicCalibQWrapper::set_joint_pos_total_num_left(int newJoint_pos_total_num_left)
 {
     if (m_joint_pos_total_num_left == newJoint_pos_total_num_left)
         return;
@@ -629,12 +629,12 @@ void KinematicCalib_QWrapper::set_joint_pos_total_num_left(int newJoint_pos_tota
     emit joint_pos_index_leftChanged();
 }
 
-int KinematicCalib_QWrapper::joint_pos_total_num_right() const
+int KinematicCalibQWrapper::joint_pos_total_num_right() const
 {
     return m_joint_pos_total_num_right;
 }
 
-void KinematicCalib_QWrapper::set_joint_pos_total_num_right(int newJoint_pos_total_num_right)
+void KinematicCalibQWrapper::set_joint_pos_total_num_right(int newJoint_pos_total_num_right)
 {
     if (m_joint_pos_total_num_right == newJoint_pos_total_num_right)
         return;
@@ -642,12 +642,12 @@ void KinematicCalib_QWrapper::set_joint_pos_total_num_right(int newJoint_pos_tot
     emit joint_pos_index_rightChanged();
 }
 
-QVariantList KinematicCalib_QWrapper::get_calib_target_joint_pose_left() const
+QVariantList KinematicCalibQWrapper::get_calib_target_joint_pose_left() const
 {
     return m_calib_target_joint_pose_left;
 }
 
-void KinematicCalib_QWrapper::set_calib_target_joint_pose_left(const QVariantList &newCalib_target_joint_pose_left)
+void KinematicCalibQWrapper::set_calib_target_joint_pose_left(const QVariantList &newCalib_target_joint_pose_left)
 {
     if (m_calib_target_joint_pose_left == newCalib_target_joint_pose_left)
         return;
@@ -655,12 +655,12 @@ void KinematicCalib_QWrapper::set_calib_target_joint_pose_left(const QVariantLis
     emit calib_target_joint_pose_left_changed();
 }
 
-QVariantList KinematicCalib_QWrapper::get_calib_target_joint_pose_right() const
+QVariantList KinematicCalibQWrapper::get_calib_target_joint_pose_right() const
 {
     return m_calib_target_joint_pose_right;
 }
 
-void KinematicCalib_QWrapper::set_calib_target_joint_pose_right(const QVariantList &newCalib_target_joint_pose_right)
+void KinematicCalibQWrapper::set_calib_target_joint_pose_right(const QVariantList &newCalib_target_joint_pose_right)
 {
     if (m_calib_target_joint_pose_right == newCalib_target_joint_pose_right)
         return;

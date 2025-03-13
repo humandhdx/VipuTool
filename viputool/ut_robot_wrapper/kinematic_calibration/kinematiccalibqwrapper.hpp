@@ -7,11 +7,11 @@
 #include <QTimer>
 #include "ut_robot_wrapper/kinematic_calibration/posefileparser.hpp"
 
-class KinematicCalib_QWrapper : public QObject, KinematicCalibrator
+class KinematicCalibQWrapper : public QObject, KinematicCalibrator
 {
     Q_OBJECT
 public:
-    explicit KinematicCalib_QWrapper(QObject *parent = nullptr);
+    explicit KinematicCalibQWrapper(QObject *parent = nullptr);
 
     Q_INVOKABLE void calibration_resource_load(bool isLeftArm);
     Q_INVOKABLE void calibration_resource_unload(bool isLeftArm);

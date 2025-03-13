@@ -433,6 +433,7 @@ bool UtraRobot_QWrapper::Reboot_Robot_And_Wait_Reconnect()
 
 bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
 {
+    qDebug() << __FUNCTION__ <<jointpos.size();
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
     {

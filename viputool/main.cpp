@@ -13,7 +13,8 @@
 #include "ut_robot_wrapper/utrarobotqwrapper.hpp"
 #include <QtMessageHandler>
 #include "filedialogwrap.h"
-
+#include "ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.hpp"
+#include "ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h"
 #include "unixsignalqhandler.h"
 
 // #define TEST_MAIN
@@ -48,6 +49,8 @@ int main(int argc, char *argv[])
     //robot
     UtraRobot_QWrapper *m_urtrobot_left=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotLeft);
     UtraRobot_QWrapper *m_urtrobot_right=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotRight);
+    KinematicCalibQWrapper *m_kinematiccalibqwrapper=new KinematicCalibQWrapper();
+    CameraCalibQWrapper *m_cameracalibqwrapper=new CameraCalibQWrapper();
     QObject::connect(&app, &QCoreApplication::aboutToQuit, [m_urtrobot_left, m_urtrobot_right](){
         const char msg[] = "qt about to quit, now try to stop robot movements\n";
         write(STDOUT_FILENO, msg, sizeof(msg) - 1);
@@ -79,6 +82,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("handeyeCulate", m_heculate);
     engine.rootContext()->setContextProperty("sshManager", my_ssh_manager);
     engine.rootContext()->setContextProperty("logger", logInstance);
+    engine.rootContext()->setContextProperty("kinematiccalibqwrapper",m_kinematiccalibqwrapper);
+    engine.rootContext()->setContextProperty("cameracalibqwrapper",m_cameracalibqwrapper);
     engine.addImageProvider(QLatin1String("GlImg"), image_provider_gl);
     engine.addImageProvider(QLatin1String("GrImg"), image_provider_gr);
     engine.addImageProvider(QLatin1String("MlImg"), image_provider_ml);
