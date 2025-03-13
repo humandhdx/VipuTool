@@ -28,14 +28,14 @@ public:
     // deprecated, robot laser calibration next position should be fetched from kinematiccalibqwrapper
     Q_INVOKABLE bool laserCalib_Robot_MoveTo_NextPos_and_spin();
 
-    Q_INVOKABLE bool PostLaserCalib_Write_MDH_offset();
+    Q_INVOKABLE bool postLaserCalib_Write_MDH_offset();
 
-    Q_INVOKABLE bool Check_MDH_Offset_Parm_All_Zero();
-    Q_INVOKABLE bool ZeroOut_MDH_offset();
+    Q_INVOKABLE bool check_MDH_Offset_Parm_All_Zero();
+    Q_INVOKABLE bool zeroOut_MDH_offset();
 
-    Q_INVOKABLE bool Reboot_Robot_And_Wait_Reconnect();
+    Q_INVOKABLE bool reboot_Robot_And_Wait_Reconnect();
 
-    Q_INVOKABLE bool Move_To_Joint_Position(QVariantList jointpos);
+    Q_INVOKABLE bool move_To_Joint_Position(QVariantList jointpos);
 
     Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
 

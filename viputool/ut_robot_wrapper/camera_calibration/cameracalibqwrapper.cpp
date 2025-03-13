@@ -48,19 +48,19 @@ void CameraCalibQWrapper::calibration_resource_unload()
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose);
 }
 
-bool CameraCalibQWrapper::Updata_Joint_Pos_Global_Right(QString source_file_path)
+bool CameraCalibQWrapper::updata_Joint_Pos_Global_Right(QString source_file_path)
 {
     QString target_filepath =  QStr_ABS_PATH(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose);
     return copy_replace_file(source_file_path, target_filepath);
 }
 
-bool CameraCalibQWrapper::Updata_Joint_Pos_Following_Right(QString source_file_path)
+bool CameraCalibQWrapper::updata_Joint_Pos_Following_Right(QString source_file_path)
 {
     QString target_filepath =  QStr_ABS_PATH(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose);
     return copy_replace_file(source_file_path, target_filepath);
 }
 
-bool CameraCalibQWrapper::Updata_Joint_Pos_Local_Left(QString source_file_path)
+bool CameraCalibQWrapper::updata_Joint_Pos_Local_Left(QString source_file_path)
 {
     QString target_filepath =  QStr_ABS_PATH(CONFIG_LOCAL_CAMERA_left_arm_joint_pose);
     return copy_replace_file(source_file_path, target_filepath);

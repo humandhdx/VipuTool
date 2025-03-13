@@ -22,13 +22,15 @@ public:
 
     Q_INVOKABLE bool check_calib_data_ready(bool isLeftArm);
 
-    Q_INVOKABLE bool KinematicCalib_Calculate_Start(bool isLeftArm);
+    Q_INVOKABLE bool kinematicCalib_Calculate_Start(bool isLeftArm);
 
-    Q_INVOKABLE bool Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number);
+    Q_INVOKABLE bool export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number);
 
-    Q_INVOKABLE bool Merge_Left_And_Right_Calib_Result();
+    // Q_INVOKABLE bool Merge_Left_And_Right_Calib_Result();
 
-    Q_INVOKABLE bool Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path);
+    Q_INVOKABLE bool updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path);
+
+    Q_INVOKABLE bool updata_Laser_Observed_Pose(bool isLeftArm, QString source_file_path);
 
     Q_PROPERTY( bool kinematic_calib_data_ready_left READ kinematic_calib_data_ready_left WRITE set_kinematic_calib_data_ready_left NOTIFY kinematic_calib_data_ready_left_changed FINAL)
     Q_PROPERTY( bool kinematic_calib_data_ready_right READ kinematic_calib_data_ready_right WRITE set_kinematic_calib_data_ready_right NOTIFY kinematic_calib_data_ready_right_changed FINAL)

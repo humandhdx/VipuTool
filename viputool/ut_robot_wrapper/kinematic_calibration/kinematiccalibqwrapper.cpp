@@ -179,7 +179,7 @@ bool KinematicCalibQWrapper::check_calib_data_ready(bool isLeftArm)
     return check_result;
 }
 
-bool KinematicCalibQWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
+bool KinematicCalibQWrapper::kinematicCalib_Calculate_Start(bool isLeftArm)
 {
     if(isLeftArm)
     {
@@ -249,8 +249,8 @@ bool KinematicCalibQWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
         return result;
     }
 }
-
-bool KinematicCalibQWrapper::Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
+// export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
+bool KinematicCalibQWrapper::export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
 {
     QDir export_dir{export_dir_path};
     if(!export_dir.exists())
@@ -333,16 +333,24 @@ bool KinematicCalibQWrapper::Export_Calib_Result(bool isLeftArm, QString export_
     return true;
 }
 
-bool KinematicCalibQWrapper::Merge_Left_And_Right_Calib_Result()
-{
+// bool KinematicCalibQWrapper::Merge_Left_And_Right_Calib_Result()
+// {
 
-}
+// }
 
-bool KinematicCalibQWrapper::Updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path)
+bool KinematicCalibQWrapper::updata_Planned_Robot_Pose(bool isLeftArm, QString source_file_path)
 {
     QString target_filepath = isLeftArm?
         QStr_ABS_PATH(CONFIG_ROBOT_DATA_left_arm_joint_pose)
-        :QStr_ABS_PATH(CONFIG_ROBOT_DATA_right_arm_joint_pose);;
+        :QStr_ABS_PATH(CONFIG_ROBOT_DATA_right_arm_joint_pose);
+    return copy_replace_file(source_file_path, target_filepath);
+}
+
+bool KinematicCalibQWrapper::updata_Laser_Observed_Pose(bool isLeftArm, QString source_file_path)
+{
+    QString target_filepath = isLeftArm?
+        QStr_ABS_PATH(INPUT_LASER_DATA_left_tcp_frames)
+        :QStr_ABS_PATH(INPUT_LASER_DATA_right_tcp_frames);
     return copy_replace_file(source_file_path, target_filepath);
 }
 

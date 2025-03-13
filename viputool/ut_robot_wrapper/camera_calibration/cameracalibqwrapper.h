@@ -26,9 +26,9 @@ public:
     Q_INVOKABLE void calibration_resource_load();
     Q_INVOKABLE void calibration_resource_unload();
 
-    Q_INVOKABLE bool Updata_Joint_Pos_Global_Right(QString source_file_path);
-    Q_INVOKABLE bool Updata_Joint_Pos_Following_Right(QString source_file_path);
-    Q_INVOKABLE bool Updata_Joint_Pos_Local_Left(QString source_file_path);
+    Q_INVOKABLE bool updata_Joint_Pos_Global_Right(QString source_file_path);
+    Q_INVOKABLE bool updata_Joint_Pos_Following_Right(QString source_file_path);
+    Q_INVOKABLE bool updata_Joint_Pos_Local_Left(QString source_file_path);
 
     Q_PROPERTY( int joint_pos_index_global_right READ joint_pos_index_global_right WRITE set_joint_pos_index_global_right NOTIFY joint_pos_index_global_right_Changed FINAL)
     Q_PROPERTY( int joint_pos_total_num_global_right READ joint_pos_total_num_global_right WRITE set_joint_pos_total_num_global_right NOTIFY joint_pos_total_num_global_right_Changed FINAL)

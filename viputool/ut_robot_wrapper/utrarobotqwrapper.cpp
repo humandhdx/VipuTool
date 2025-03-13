@@ -280,7 +280,7 @@ bool UtraRobot_QWrapper::laserCalib_Robot_MoveTo_NextPos_and_spin()
     return executionResult;
 }
 
-bool UtraRobot_QWrapper::PostLaserCalib_Write_MDH_offset()
+bool UtraRobot_QWrapper::postLaserCalib_Write_MDH_offset()
 {
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
@@ -308,7 +308,7 @@ bool UtraRobot_QWrapper::PostLaserCalib_Write_MDH_offset()
     }
 }
 
-bool UtraRobot_QWrapper::Check_MDH_Offset_Parm_All_Zero()
+bool UtraRobot_QWrapper::check_MDH_Offset_Parm_All_Zero()
 {
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
@@ -336,7 +336,7 @@ bool UtraRobot_QWrapper::Check_MDH_Offset_Parm_All_Zero()
     }
 }
 
-bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
+bool UtraRobot_QWrapper::zeroOut_MDH_offset()
 {
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
@@ -364,7 +364,7 @@ bool UtraRobot_QWrapper::ZeroOut_MDH_offset()
     }
 }
 
-bool UtraRobot_QWrapper::Reboot_Robot_And_Wait_Reconnect()
+bool UtraRobot_QWrapper::reboot_Robot_And_Wait_Reconnect()
 {
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
@@ -431,7 +431,7 @@ bool UtraRobot_QWrapper::Reboot_Robot_And_Wait_Reconnect()
     return true;
 }
 
-bool UtraRobot_QWrapper::Move_To_Joint_Position(QVariantList jointpos)
+bool UtraRobot_QWrapper::move_To_Joint_Position(QVariantList jointpos)
 {
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
