@@ -175,10 +175,13 @@ bool UtraRobot::RobotTest_Accuracy()
         std::cout << __FUNCTION__ << " inital joint position move failed!" << std::endl;
         return false;
     }
+    std::array<float, 6> cartesian_pose_target;
+    memcpy(cartesian_pose_target.data(), this->rx_data_.pose, sizeof(cartesian_pose_target));
 
     for(unsigned long i=0; (sizeof(config_.accuracyTest.mid_CartPoses)/sizeof(config_.accuracyTest.mid_CartPoses[0])) > i; i++)
     {
-        if(!RobotCommand_CartesianLine(config_.accuracyTest.mid_CartPoses[i]))
+        memcpy(cartesian_pose_target.data(), config_.accuracyTest.mid_CartPoses[i].data(), sizeof(float)*3);
+        if(!RobotCommand_CartesianLine(cartesian_pose_target))
         {
             std::cout << __FUNCTION__ << " " << (i+1) << "th mid cartisian pos failed to reach!" << std::endl;
             return false;
@@ -214,10 +217,13 @@ bool UtraRobot::RobotTest_Workspace()
         std::cout << __FUNCTION__ << " inital joint position move failed!" << std::endl;
         return false;
     }
+    std::array<float, 6> cartesian_pose_target;
+    memcpy(cartesian_pose_target.data(), this->rx_data_.pose, sizeof(cartesian_pose_target));
 
     for(unsigned long i=0; (sizeof(config_.workspaceTest.mid_CartPoses)/sizeof(config_.workspaceTest.mid_CartPoses[0])) > i; i++)
     {
-        if(!RobotCommand_CartesianLine(config_.workspaceTest.mid_CartPoses[i]))
+        memcpy(cartesian_pose_target.data(), config_.workspaceTest.mid_CartPoses[i].data(), sizeof(float)*3);
+        if(!RobotCommand_CartesianLine(cartesian_pose_target))
         {
             std::cout << __FUNCTION__ << " " << (i+1) << "th mid cartisian pos failed to reach!" << std::endl;
             return false;
@@ -295,6 +301,9 @@ bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_
     this->cmd_stop = false;
     auto timestamp_timeout = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout_ms);
     lck.unlock();
+
+    printf("%s - target pos {%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f}\r\n",__FUNCTION__,
+    jPos[0], jPos[1], jPos[2], jPos[3], jPos[4], jPos[5], jPos[6]);
     if(ROBOT_NO_ERROR != ubot_->moveto_joint_p2p(jPos.data(), speed, acc, 0))
     {
         std::cout << __FUNCTION__ << " utr robot API 'moveto_joint_p2p' failed!"<<std::endl;
@@ -359,8 +368,9 @@ bool UtraRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int 
     this->cmd_stop = false;
     auto timestamp_timeout = std::chrono::system_clock::now() + std::chrono::milliseconds(timeout_ms);
     lck.unlock();
-
-    if(ROBOT_NO_ERROR != ubot_->moveto_cartesian_line(Pos.data(), speed, acc, 0))
+    printf("%s - target cartesian pos {%.4f, %.4f, %.4f, %.4f, %.4f, %.4f}\r\n",__FUNCTION__,
+           Pos[0], Pos[1], Pos[2], Pos[3], Pos[4], Pos[5]);
+    if(ROBOT_NO_ERROR != ubot_->moveto_cartesian_line(Pos.data(), mvvelo, mvacc, 0))
     {
         std::cout << __FUNCTION__ << " utr robot API 'moveto_cartesian_line' failed!"<<std::endl;
         Print_Error_Info();
@@ -690,7 +700,9 @@ bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
             // std::cout << __FUNCTION__ << " - succeed mdh offset update for joint " << (i+1) << std::endl;
             if(memcmp(&mdh_offset_array[i][0], Template_Zero_Arr, sizeof((Template_Zero_Arr))))
             {
-                std::cout << __FUNCTION__ << " - mdh offset update for joint " << (i+1) << " is not zero" << std::endl;
+                // std::cout << __FUNCTION__ << " - mdh offset update for joint " << (i+1) << " is not zero" << std::endl;
+                printf("%s - Robot mdh offset for [%d]th axis is {%f, %f, %f, %f}\r\n"
+                       , __FUNCTION__, (i+1), mdh_offset_array[i][0], mdh_offset_array[i][1], mdh_offset_array[i][2], mdh_offset_array[i][3]);
                 all_joint_mdh_zero = false;
             }
             else
@@ -710,7 +722,7 @@ bool UtraRobot::Robot_Check_Mdh_Offset_Are_All_Zero()
 
 bool UtraRobot::Robot_ZeroOut_Mdh_offset()
 {
-    std::array<std::array<float,4>,7> mdh_offset_array={{{0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.01,0.01,0.01,0.01}}};
+    std::array<std::array<float,4>,7> mdh_offset_array={{{0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}, {0.0}}};
     int ret = 0;
     bool all_joint_updated = true;
     for(int i=0; i<7; i++)
@@ -768,7 +780,7 @@ bool UtraRobot::Robot_Get_Param_Tcp_Offset(float tcp_over_flange[6])
         std::cout << __FUNCTION__ << " - Robot Failed to Get Parameter Gravity Direction!" << std::endl;
         return false;
     }
-    printf("%s - Robot tcp offset {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}, {%0.4f}\r\n"
+    printf("%s - Robot tcp offset {%f}, {%f}, {%f}, {%f}, {%f}, {%f}\r\n"
            , __FUNCTION__, tcp_over_flange[0], tcp_over_flange[1], tcp_over_flange[2]
            , tcp_over_flange[3], tcp_over_flange[4], tcp_over_flange[5]);
     return true;
@@ -776,7 +788,7 @@ bool UtraRobot::Robot_Get_Param_Tcp_Offset(float tcp_over_flange[6])
 
 bool UtraRobot::Robot_Set_Param_Tcp_Offset(float tcp_over_flange[6])
 {
-    int ret = ubot_->get_tcp_offset(tcp_over_flange);
+    int ret = ubot_->set_tcp_offset(tcp_over_flange);
     if (0 != ret)
     {
         std::cout << __FUNCTION__ << " - Robot Failed to Get Parameter Gravity Direction!" << std::endl;
