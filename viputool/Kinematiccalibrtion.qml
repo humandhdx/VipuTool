@@ -41,6 +41,7 @@ Item {
         id:left_arm_cali
         Item {
             anchors.fill: parent
+
             Connections{
                 target: logger
                 function onSendLogMesseg (msg ,level){

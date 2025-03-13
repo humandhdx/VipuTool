@@ -13,13 +13,15 @@ class KinematicCalib_QWrapper : public QObject, KinematicCalibrator
 public:
     explicit KinematicCalib_QWrapper(QObject *parent = nullptr);
 
+    Q_INVOKABLE void stat_listen_file_change(bool isLeftArm);
+
     /* remove the output file and reset mask index list */
     Q_INVOKABLE void reset_kinematic_calib();//重新开始
     Q_INVOKABLE void add_mask_index_for_position_recorder(uint32_t index_of_position_record);//标识错误点位
 
-    Q_INVOKABLE void log_calib_data_ready_info(bool isLeftArm);
+    Q_INVOKABLE bool check_calib_data_ready(bool isLeftArm);
 
-    Q_INVOKABLE bool KinematicCalib_Start(bool isLeftArm);
+    Q_INVOKABLE bool KinematicCalib_Calculate_Start(bool isLeftArm);
 
     Q_INVOKABLE bool Export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number);
 

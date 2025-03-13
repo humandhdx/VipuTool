@@ -44,10 +44,7 @@ Window {
                     font.pixelSize: 24
                 }
             }
-
         }
-
-
         ListView{
             id:typelist
             anchors.top: parent.top
@@ -55,6 +52,7 @@ Window {
             anchors.horizontalCenter: parent.horizontalCenter
             width:parent.width-20
             height:900
+            interactive: false
             model: ListModel{
                 ListElement{
                     type:"相机标定"
@@ -80,7 +78,6 @@ Window {
                     type:"机械臂控制"
                     pageurl:"qrc:/ArmControl.qml"
                 }
-
             }
             delegate: Item {
                 width: parent.width

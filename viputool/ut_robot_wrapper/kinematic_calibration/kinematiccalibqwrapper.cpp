@@ -46,6 +46,11 @@ KinematicCalib_QWrapper::KinematicCalib_QWrapper(QObject *parent)
                                                                        std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
 }
 
+void KinematicCalib_QWrapper::start_listen_file_change(bool isLeftArm)
+{
+
+}
+
 void KinematicCalib_QWrapper::reset_kinematic_calib()
 {
     m_lst_masked_robot_pose_index.clear();
@@ -59,15 +64,12 @@ void KinematicCalib_QWrapper::add_mask_index_for_position_recorder(uint32_t inde
     emit lst_masked_robot_pose_index_changed();
 }
 
-void KinematicCalib_QWrapper::log_calib_data_ready_info(bool isLeftArm)
+bool KinematicCalib_QWrapper::check_calib_data_ready(bool isLeftArm)
 {
+    bool check_result = true;
     if(isLeftArm)
     {
-        if(CheckDataReady_LeftArm())
-        {
-            qDebug() << "Kinematic Calibration Data is ready for left arm!";
-            return;
-        }
+        check_result = CheckDataReady_LeftArm();
 
         if(1 !=vector2d_frame_tool_in_flange_.size())
         {
@@ -110,11 +112,7 @@ void KinematicCalib_QWrapper::log_calib_data_ready_info(bool isLeftArm)
     }
     else
     {
-        if(CheckDataReady_RightArm())
-        {
-            qDebug() << "Kinematic Calibration Data is ready for right arm!";
-            return;
-        }
+        check_result = CheckDataReady_RightArm();
 
         if(1 !=vector2d_frame_tool_in_flange_.size())
         {
@@ -155,9 +153,10 @@ void KinematicCalib_QWrapper::log_calib_data_ready_info(bool isLeftArm)
             qWarning() << CONFIG_ROBOT_DATA_right_arm_joint_pose;
         }
     }
+    return check_result;
 }
 
-bool KinematicCalib_QWrapper::KinematicCalib_Start(bool isLeftArm)
+bool KinematicCalib_QWrapper::KinematicCalib_Calculate_Start(bool isLeftArm)
 {
     if(isLeftArm)
     {
