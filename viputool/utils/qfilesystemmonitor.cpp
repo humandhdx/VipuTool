@@ -70,6 +70,41 @@ bool QFileSystemMonitor::Register_Callback_On_File_Modified(const std::string &f
     return true;
 }
 
+void QFileSystemMonitor::Deregister_Callback_On_File_Modified(const std::string &filePath_relative)
+{
+    if(0 == filePath_relative.size())
+    {
+        qDebug() << __FUNCTION__ << " - given file relative path should not be empty!";
+        return ;
+    }
+    if(('/' == filePath_relative.at(0)))
+    {
+        qDebug() << __FUNCTION__ << " - given file relative path" << QString::fromStdString(filePath_relative) << " should not start with '/'!";
+        return ;
+    }
+
+    QString fileAbsPath = QString::fromStdString(this->path_binary_dir_ + filePath_relative);
+    // qDebug() << "fileAbsPath:" << fileAbsPath;
+    QFileInfo file_info{fileAbsPath};
+    QString dirPath = file_info.dir().absolutePath();
+    QFileInfo dir_info{dirPath};
+    if(!map_dirPath_To_WatchFilePathSet_.contains(dirPath))
+    {
+        return;
+    }
+    auto watchFilePathSet_byDir = (*(map_dirPath_To_WatchFilePathSet_.find(dirPath)));
+
+    watchFilePathSet_byDir.remove(fileAbsPath);
+    map_WatchFilePath_To_Info_.remove(fileAbsPath);
+    if(0 == watchFilePathSet_byDir.size())
+    {
+        map_dirPath_To_WatchFilePathSet_.remove(dirPath);
+        (*map_dirPath_To_Qtimer_.find(dirPath))->disconnect();
+        qFileWatcher_.removePath(dirPath);
+        map_dirPath_To_Qtimer_.remove(dirPath);
+    }
+}
+
 QFileSystemMonitor::QFileSystemMonitor(QObject *parent)
     : QObject{parent}
 {

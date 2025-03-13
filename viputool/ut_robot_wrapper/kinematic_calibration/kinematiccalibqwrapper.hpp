@@ -13,7 +13,8 @@ class KinematicCalib_QWrapper : public QObject, KinematicCalibrator
 public:
     explicit KinematicCalib_QWrapper(QObject *parent = nullptr);
 
-    Q_INVOKABLE void stat_listen_file_change(bool isLeftArm);
+    Q_INVOKABLE void calibration_resource_load(bool isLeftArm);
+    Q_INVOKABLE void calibration_resource_unload(bool isLeftArm);
 
     /* remove the output file and reset mask index list */
     Q_INVOKABLE void reset_kinematic_calib();//重新开始

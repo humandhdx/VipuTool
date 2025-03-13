@@ -16,39 +16,62 @@ using namespace KinematicCalib_Config::FileRelativePath;
 KinematicCalib_QWrapper::KinematicCalib_QWrapper(QObject *parent)
     : QObject{parent}
 {
-    this->m_kinematic_calib_data_ready_left = false;
-    this->m_kinematic_calib_data_ready_right = false;
+}
 
+void KinematicCalib_QWrapper::calibration_resource_load(bool isLeftArm)
+{
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_right_base_in_laser,
                                                                        std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_right_base_in_laser_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_left_base_in_laser,
                                                                        std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_prev_left_base_in_laser_)));
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
-
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_right_tcp_in_laser_)));
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_left_tcp_in_laser_)));
-
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_tool_frame,
                                                                        std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_tool_in_flange_)));
-
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_laser_offset,
                                                                        std::bind(&KinematicCalib_QWrapper::read_laser_angle_calibrate_from_file, this, std::placeholders::_1, std::ref(vector2d_laser_angle_calibrate_)));
 
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, true ,std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
+    if(isLeftArm)
+    {
+        this->m_kinematic_calib_data_ready_left = false;
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_left_tcp_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, true ,std::placeholders::_1, std::ref(vector2d_jpos_list_left_)));
 
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose,
-                                                                       std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
+    }
+    else
+    {
+        this->m_kinematic_calib_data_ready_right = false;
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_right_tcp_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose,
+                                                                           std::bind(&KinematicCalib_QWrapper::read_jpos_from_file, this, false , std::placeholders::_1, std::ref(vector2d_jpos_list_right_)));
+    }
 }
 
-void KinematicCalib_QWrapper::start_listen_file_change(bool isLeftArm)
+void KinematicCalib_QWrapper::calibration_resource_unload(bool isLeftArm)
 {
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_right_base_in_laser);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_left_base_in_laser);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_tool_frame);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_laser_offset);
 
+    if(isLeftArm)
+    {
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose);
+
+    }
+    else
+    {
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose);
+    }
 }
 
 void KinematicCalib_QWrapper::reset_kinematic_calib()

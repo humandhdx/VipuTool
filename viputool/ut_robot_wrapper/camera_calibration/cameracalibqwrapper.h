@@ -23,6 +23,9 @@ public:
 
     explicit CameraCalibQWrapper(QObject *parent = nullptr);
 
+    Q_INVOKABLE void calibration_resource_load();
+    Q_INVOKABLE void calibration_resource_unload();
+
     Q_INVOKABLE bool Updata_Joint_Pos_Global_Right(QString source_file_path);
     Q_INVOKABLE bool Updata_Joint_Pos_Following_Right(QString source_file_path);
     Q_INVOKABLE bool Updata_Joint_Pos_Local_Left(QString source_file_path);

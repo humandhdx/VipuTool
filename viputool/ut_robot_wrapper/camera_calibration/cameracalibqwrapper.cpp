@@ -11,12 +11,41 @@ using namespace CameraCalib_Config::FileRelativePath;
 CameraCalibQWrapper::CameraCalibQWrapper(QObject *parent)
     : QObject{parent}
 {
+}
+
+void CameraCalibQWrapper::calibration_resource_load()
+{
+    set_joint_pos_index_global_right(0);
+    set_joint_pos_index_following_right(0);
+    set_joint_pos_index_local_left(0);
+    set_joint_pos_total_num_global_right(0);
+    set_joint_pos_total_num_following_right(0);
+    set_joint_pos_total_num_local_left(0);
+    QVariantList zero_jointPos;
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    zero_jointPos.append(QVariant::fromValue((double)1.0));
+    set_current_joint_pos_global_right(zero_jointPos);
+    set_current_joint_pos_following_right(zero_jointPos);
+    set_current_joint_pos_local_left(zero_jointPos);
+
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose,
                                                                        std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose,
                                                                        std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::FOLLOWING_CAMERA_RIGHT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_following_right_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose,
                                                                        std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::LOCAL_CAMERA_LEFT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_local_left_)));
+}
+
+void CameraCalibQWrapper::calibration_resource_unload()
+{
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose);
 }
 
 bool CameraCalibQWrapper::Updata_Joint_Pos_Global_Right(QString source_file_path)

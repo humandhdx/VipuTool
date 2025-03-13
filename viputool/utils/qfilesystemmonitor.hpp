@@ -24,6 +24,8 @@ public:
 
     bool Register_Callback_On_File_Modified(const std::string &filePath, CALLBACK_ON_FILE_CHANGED cb);
 
+    void Deregister_Callback_On_File_Modified(const std::string &filePath);
+
 signals:
 
 private:
