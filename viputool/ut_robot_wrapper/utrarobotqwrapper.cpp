@@ -282,12 +282,6 @@ bool UtraRobot_QWrapper::laserCalib_Robot_MoveTo_NextPos_and_spin()
 
 bool UtraRobot_QWrapper::postLaserCalib_Write_MDH_offset()
 {
-    QMutexTryLocker lck{mutext};
-    if(!lck.isLocked())
-    {
-        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
-        return false;
-    }
     QEventLoop spinner;
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
@@ -298,8 +292,8 @@ bool UtraRobot_QWrapper::postLaserCalib_Write_MDH_offset()
     spinner.exec();
     if(executionResult)
     {
-        qDebug() << "机械臂标定参数已经写入控制器，请调用Reboot_Robot_And_Wait_Reconnect来重启机械臂控制器";
-        return true;
+        qDebug() << "机械臂标定参数已经写入控制器，接下来重启机械臂控制器";
+        return reboot_Robot_And_Wait_Reconnect();
     }
     else
     {

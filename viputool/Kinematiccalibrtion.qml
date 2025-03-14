@@ -473,9 +473,14 @@ Item {
                                 enabled: urtrobot_left.arm_connect
                                 onClicked: {
                                     mask.open()
-                                    var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(true)
-                                    if(result){
+                                    var check=kinematiccalibqwrapper.check_calib_data_ready(true)
+                                    if(check){
+                                        kinematiccalibqwrapper.add_mask_index_for_position_recorder(38)
+                                        kinematiccalibqwrapper.add_mask_index_for_position_recorder(45)
+                                        var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(true)
+                                        if(result){
 
+                                        }
                                     }
                                     mask.close()
                                 }
@@ -538,7 +543,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "查看保存的计算结果"
-                                enabled: urtrobot_left.arm_connect&&isComplete
+                                enabled: urtrobot_left.arm_connect//&&isComplete
                                 onClicked: {
                                     var path=cameraManager.currentDirectory()+"/kinematic_calibration_data/output"
                                     cameraManager.open_path(path)
@@ -548,9 +553,9 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "写入控制器并重启"
-                                enabled: urtrobot_left.arm_connect&&isComplete
+                                enabled: urtrobot_left.arm_connect//&&isComplete
                                 onClicked: {
-                                    var result=urtrobot_left.PostLaserCalib_Write_MDH_offset()
+                                    var result=urtrobot_left.postLaserCalib_Write_MDH_offset()
                                     if(result){
 
                                     }
@@ -1032,9 +1037,12 @@ Item {
                                 enabled: urtrobot_right.arm_connect
                                 onClicked: {
                                     mask.open()
-                                    var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(true)
-                                    if(result){
+                                    var check=kinematiccalibqwrapper.check_calib_data_ready(false)
+                                    if(check){
+                                        var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(false)
+                                        if(result){
 
+                                        }
                                     }
                                     mask.close()
                                 }

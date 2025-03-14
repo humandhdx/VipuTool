@@ -8,6 +8,8 @@
 #include "utils/ReadAndWriteFile.hpp"
 #include <nlohmann/json.hpp>
 #include <QStringList>
+#include <QEventLoop>
+#include <future>
 
 using namespace KinematicCalib_Config::FileRelativePath;
 
@@ -32,8 +34,8 @@ void KinematicCalibQWrapper::calibration_resource_load(bool isLeftArm)
     if(isLeftArm)
     {
         this->m_kinematic_calib_data_ready_left = false;
-        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser,
-                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser,
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames,
                                                                            std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_left_tcp_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose,
@@ -43,8 +45,8 @@ void KinematicCalibQWrapper::calibration_resource_load(bool isLeftArm)
     else
     {
         this->m_kinematic_calib_data_ready_right = false;
-        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser,
-                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_right_base_in_laser_)));
+        QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser,
+                                                                           std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_current_left_base_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames,
                                                                            std::bind(&KinematicCalibQWrapper::read_frames_from_file, this, std::placeholders::_1, std::ref(vector2d_frame_list_right_tcp_in_laser_)));
         QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose,
@@ -61,14 +63,14 @@ void KinematicCalibQWrapper::calibration_resource_unload(bool isLeftArm)
 
     if(isLeftArm)
     {
-        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser);
         QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_left_tcp_frames);
         QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_ROBOT_DATA_left_arm_joint_pose);
 
     }
     else
     {
-        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_right_base_in_laser);
+        QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_left_base_in_laser);
         QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(INPUT_LASER_DATA_right_tcp_frames);
         QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_ROBOT_DATA_right_arm_joint_pose);
     }
@@ -182,74 +184,27 @@ bool KinematicCalibQWrapper::check_calib_data_ready(bool isLeftArm)
 
 bool KinematicCalibQWrapper::kinematicCalib_Calculate_Start(bool isLeftArm)
 {
-    if(isLeftArm)
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, isLeftArm, this](){
+        executionResult = this->kinematicCalib_Calculate(isLeftArm);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    if(executionResult)
     {
-        if(!CheckDataReady_LeftArm())
-        {
-            qWarning() << "Kinematic Calibration Data is not ready for left arm!";
-            return false;
-        }
-        if(0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.UUID.size()
-            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_HW.size()
-            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_SW.size())
-        {
-            qWarning() << "left arm identity infomation empty UUID/Version_sw/Version_hw!";
-            return false;
-        }
-        this->disable_data_set_.clear();
-        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
-        {
-            this->disable_data_set_.insert(masked_pose_index);
-        }
-
-        std::string log_info;
-        bool result = this->calibration_and_output(true, log_info);
-        if(result)
-        {
-            qDebug() << "Kinematic Calbiration for left arm finished!";
-        }
-        else
-        {
-            qWarning() << QString::fromStdString(log_info);
-            qWarning() << "Kinematic Calbiration for left arm failed!";
-        }
-        return result;
+        qDebug() << "kinematic Calibration Passed";
+        return true;
     }
     else
     {
-        if(!CheckDataReady_RightArm())
-        {
-            qWarning() << "Kinematic Calibration Data is not ready for right arm!";
-            return false;
-        }
-        if(0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.UUID.size()
-            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_HW.size()
-            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_SW.size())
-        {
-            qWarning() << "right arm identity infomation empty UUID/Version_sw/Version_hw!";
-            return false;
-        }
-
-        this->disable_data_set_.clear();
-        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
-        {
-            this->disable_data_set_.insert(masked_pose_index);
-        }
-
-        std::string log_info;
-        bool result = this->calibration_and_output(false, log_info);
-        if(result)
-        {
-            qDebug() << "Kinematic Calbiration for right arm finished!";
-        }
-        else
-        {
-            qWarning() << QString::fromStdString(log_info);
-            qWarning() << "Kinematic Calbiration for right arm failed!";
-        }
-        return result;
+        qWarning() << "kinematic Calibration failed";
+        return false;
     }
 }
+
+
 // export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
 bool KinematicCalibQWrapper::export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number)
 {
@@ -491,6 +446,77 @@ void KinematicCalibQWrapper::read_jpos_from_file(bool isLeftArm, const std::stri
         set_kinematic_calib_data_ready_right(CheckDataReady_RightArm());
         this->set_joint_pos_index(0);
         this->set_joint_pos_total_num_right(vector2d.size());
+    }
+}
+
+bool KinematicCalibQWrapper::kinematicCalib_Calculate(bool isLeftArm)
+{
+    if(isLeftArm)
+    {
+        if(!CheckDataReady_LeftArm())
+        {
+            qWarning() << "Kinematic Calibration Data is not ready for left arm!";
+            return false;
+        }
+        if(0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.UUID.size()
+            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_HW.size()
+            || 0 == UtRobotConfig::TestConfig_RobotLeft.identity_Info.VERSION_SW.size())
+        {
+            qWarning() << "left arm identity infomation empty UUID/Version_sw/Version_hw!";
+            return false;
+        }
+        this->disable_data_set_.clear();
+        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
+        {
+            this->disable_data_set_.insert(masked_pose_index);
+        }
+
+        std::string log_info;
+        bool result = this->calibration_and_output(true, log_info);
+        if(result)
+        {
+            qDebug() << "Kinematic Calbiration for left arm finished!";
+        }
+        else
+        {
+            qWarning() << QString::fromStdString(log_info);
+            qWarning() << "Kinematic Calbiration for left arm failed!";
+        }
+        return result;
+    }
+    else
+    {
+        if(!CheckDataReady_RightArm())
+        {
+            qWarning() << "Kinematic Calibration Data is not ready for right arm!";
+            return false;
+        }
+        if(0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.UUID.size()
+            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_HW.size()
+            || 0 == UtRobotConfig::TestConfig_RobotRight.identity_Info.VERSION_SW.size())
+        {
+            qWarning() << "right arm identity infomation empty UUID/Version_sw/Version_hw!";
+            return false;
+        }
+
+        this->disable_data_set_.clear();
+        for(auto masked_pose_index: m_lst_masked_robot_pose_index)
+        {
+            this->disable_data_set_.insert(masked_pose_index);
+        }
+
+        std::string log_info;
+        bool result = this->calibration_and_output(false, log_info);
+        if(result)
+        {
+            qDebug() << "Kinematic Calbiration for right arm finished!";
+        }
+        else
+        {
+            qWarning() << QString::fromStdString(log_info);
+            qWarning() << "Kinematic Calbiration for right arm failed!";
+        }
+        return result;
     }
 }
 

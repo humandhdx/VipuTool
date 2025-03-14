@@ -24,6 +24,7 @@ public:
 
     Q_INVOKABLE bool kinematicCalib_Calculate_Start(bool isLeftArm);
 
+
     Q_INVOKABLE bool export_Calib_Result(bool isLeftArm, QString export_dir_path, QString robot_serial_number);
 
     // Q_INVOKABLE bool Merge_Left_And_Right_Calib_Result();
@@ -78,6 +79,8 @@ private:
     void read_frames_from_file(const std::string& file_path , std::vector<std::vector<double>>& vector2d);
     void read_laser_angle_calibrate_from_file(const std::string& file_path , std::vector<std::vector<double>>& vector2d);
     void read_jpos_from_file(bool isLeftArm, const std::string& file_path , std::vector<std::vector<double>>& vector2d);
+
+    bool kinematicCalib_Calculate(bool isLeftArm);
 
     bool combine_json_file_kinematics_paramters();
 

@@ -8,8 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
-#define UTR_ROBOT_REBOOT_DISCONNECT_TIMEOUT_SEC  12
-#define UTR_ROBOT_REBOOT_RECONNECT_TIMEOUT_SEC  20
+#define UTR_ROBOT_REBOOT_DISCONNECT_TIMEOUT_SEC  16
+#define UTR_ROBOT_REBOOT_RECONNECT_TIMEOUT_SEC  24
 
 
 class UtraRobot

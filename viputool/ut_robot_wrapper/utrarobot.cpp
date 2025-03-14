@@ -72,22 +72,29 @@ bool UtraRobot::InitRobot()
     }
     std::cout << __FUNCTION__ << " UtApi Initialized!!!" << std::endl;;
     fflush(nullptr);
-    if(!this->RobotCommand_ResetError())
+    int retry_cnt=4;
+    while((!this->RobotCommand_ResetError()) && (retry_cnt > 0))
     {
-        std::cout << __FUNCTION__ << " RobotCommand_ResetError failed" << std::endl;
-        return false;
+        std::cout << __FUNCTION__ << " RobotCommand_ResetError failed, try " << (retry_cnt--) << std::endl;
+        sleep(1);
     }
+    fflush(nullptr);
     uint8_t uuid[18] = {0};
     uint8_t version_sw[21] = {0};
     uint8_t version_hw[21] = {0};
 
     int ret{-1};
+    //initilize after reboot robot cause the first api call failed
+    //here feed one request without caring the api result
+    ubot_->get_uuid(uuid);
+    sleep(1);
     ret = ubot_->get_uuid(uuid);
     if (ret)
     {
         uint8_t code;
         int ret_err = ubot_->get_error_code(&code);
-        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        printf("Failed to get uuid, Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        fflush(nullptr);
         return false;
     }
     std::string str_uuid{uuid, uuid + (sizeof uuid)/(sizeof uuid[0]) - 1};
@@ -97,7 +104,7 @@ bool UtraRobot::InitRobot()
     {
         uint8_t code;
         int ret_err = ubot_->get_error_code(&code);
-        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        printf("Failed to get software version, Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
         return false;
     }
     std::string str_version_sw{version_sw, version_sw + (sizeof version_sw)/(sizeof version_sw[0]) - 1};
@@ -108,7 +115,7 @@ bool UtraRobot::InitRobot()
     {
         uint8_t code;
         int ret_err = ubot_->get_error_code(&code);
-        printf("Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
+        printf("Failed to get hardware version, Error info error info[%d] code[%d]!\r\n", ret_err, (uint16_t)code);
         return false;
     }
     std::string str_version_hw{version_hw, version_hw + (sizeof version_hw)/(sizeof version_hw[0]) -1};
@@ -815,8 +822,7 @@ bool UtraRobot::Robot_Get_Param_Tcp_Load(float tcp_load[4])
 
 bool UtraRobot::Robot_Reboot()
 {
-    printf("Config ip {%s}\r\n", config_.ip.c_str());
-    fflush(nullptr);
+
     if(!this->is_robot_connected)
     {
         std::cout << __FUNCTION__ << " - connect robot before call this function!";
@@ -853,6 +859,8 @@ bool UtraRobot::Robot_Reboot()
 
 bool UtraRobot::Robot_Wait_Until_Disconnected(int timeout_sec)
 {
+    printf("%s - start wait disconnect!\r\n", config_.ip.c_str());
+    fflush(nullptr);
     int sockfd;
     struct sockaddr_in server_addr;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -875,7 +883,7 @@ bool UtraRobot::Robot_Wait_Until_Disconnected(int timeout_sec)
         } else {
             printf("%s - wait disconnection success\r\n", __FUNCTION__);
             fflush(nullptr);
-            break;
+            return true;
         }
         sleep(1); // 等待1秒后重试
     }
@@ -885,7 +893,8 @@ bool UtraRobot::Robot_Wait_Until_Disconnected(int timeout_sec)
 
 bool UtraRobot::Robot_Wait_Until_Connected(int timeout_sec)
 {
-
+    printf("%s - start wait reconnect!\r\n", config_.ip.c_str());
+    fflush(nullptr);
     int sockfd;
     struct sockaddr_in server_addr;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -910,6 +919,7 @@ bool UtraRobot::Robot_Wait_Until_Connected(int timeout_sec)
         sleep(1); // 等待1秒后重试
     }
     close(sockfd);
+    sleep(4);
     return false;
 }
 
