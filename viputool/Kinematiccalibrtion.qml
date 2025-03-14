@@ -399,6 +399,7 @@ Item {
                                         if((kinematiccalibqwrapper.joint_pos_index+1)===kinematiccalibqwrapper.joint_pos_total_num_left){
                                             kinematiccalibqwrapper.joint_pos_index=0
                                             isComplete=true
+                                            mask.close()
                                             return
                                         }
                                         kinematiccalibqwrapper.joint_pos_index++
@@ -412,13 +413,10 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-                                text: "标记当前点位无法到达"
-                                enabled: urtrobot_left.arm_connect&&!isComplete
+                                text: "标记当前点位("+kinematiccalibqwrapper.joint_pos_index+")无法观测"
+                                enabled: kinematiccalibqwrapper.joint_pos_index!==0&&urtrobot_left.arm_connect&&!isComplete
                                 onClicked: {
-                                    var result=kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index)
-                                    if(result){
-                                        kinematiccalibqwrapper.joint_pos_index++
-                                    }
+                                    var result=kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index-1)
                                 }
                             }
                         }
@@ -472,7 +470,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "开始计算"
-                                enabled: urtrobot_left.arm_connect&&isComplete
+                                enabled: urtrobot_left.arm_connect
                                 onClicked: {
                                     mask.open()
                                     var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(true)
@@ -957,6 +955,7 @@ Item {
                                         if((kinematiccalibqwrapper.joint_pos_index+1)===kinematiccalibqwrapper.joint_pos_total_num_right){
                                             kinematiccalibqwrapper.joint_pos_index=0
                                             isComplete=true
+                                            mask.close()
                                             return
                                         }
                                         kinematiccalibqwrapper.joint_pos_index++
@@ -970,8 +969,8 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-                                text: "标记当前点位无法到达"
-                                enabled: urtrobot_left.arm_connect&&!isComplete
+                                text:  "标记当前点位("+kinematiccalibqwrapper.joint_pos_index+")无法观测"
+                                enabled: kinematiccalibqwrapper.joint_pos_index!==0&&urtrobot_left.arm_connect&&!isComplete
                                 onClicked: {
                                     var result=kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index)
                                     if(result){
@@ -1021,7 +1020,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "加载跟踪仪数据"
-                                enabled: urtrobot_right.arm_connect&&isComplete
+                                enabled: urtrobot_right.arm_connect
                                 onClicked: {
                                     fileDialog.open()
                                 }
@@ -1030,7 +1029,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "开始计算"
-                                enabled: urtrobot_right.arm_connect&&isComplete
+                                enabled: urtrobot_right.arm_connect
                                 onClicked: {
                                     mask.open()
                                     var result=kinematiccalibqwrapper.kinematicCalib_Calculate_Start(true)
@@ -1098,7 +1097,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "查看保存的计算结果"
-                                enabled: urtrobot_right.arm_connect&&isComplete
+                                enabled: urtrobot_right.arm_connect
                                 onClicked: {
                                     var path=cameraManager.currentDirectory()+"/kinematic_calibration_data/output"
                                     cameraManager.open_path(path)
@@ -1108,7 +1107,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "写入控制器并重启"
-                                enabled: urtrobot_right.arm_connect&&isComplete
+                                enabled: urtrobot_right.arm_connect
                                 onClicked: {
                                     mask.open()
                                     var result=urtrobot_right.postLaserCalib_Write_MDH_offset()
