@@ -90,14 +90,14 @@ signals:
 
 private:
 
-    int m_joint_pos_index_global_right;
-    int m_joint_pos_total_num_global_right;
+    int m_joint_pos_index_global_right{0};
+    int m_joint_pos_total_num_global_right{0};
     QVariantList m_current_joint_pos_global_right;
-    int m_joint_pos_index_following_right;
-    int m_joint_pos_total_num_following_right;
+    int m_joint_pos_index_following_right{0};
+    int m_joint_pos_total_num_following_right{0};
     QVariantList m_current_joint_pos_following_right;
-    int m_joint_pos_index_local_left;
-    int m_joint_pos_total_num_local_left;
+    int m_joint_pos_index_local_left{0};
+    int m_joint_pos_total_num_local_left{0};
     QVariantList m_current_joint_pos_local_left;
 
 private:
