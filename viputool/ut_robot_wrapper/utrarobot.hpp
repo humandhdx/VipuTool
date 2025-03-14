@@ -62,8 +62,8 @@ public:
     bool RobotTest_Workspace();
     bool RobotTest_Repeat();
 
-    bool RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_ms=30000);
-    bool RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int timeout_ms=30000);
+    bool RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_ms=45000);
+    bool RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int timeout_ms=45000);
     bool RobotCommand_EnterTeachMode();
     bool RobotCommand_Hold();
     bool RobotCommand_ResetError();
