@@ -543,7 +543,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "查看保存的计算结果"
-                                enabled: urtrobot_left.arm_connect//&&isComplete
+                                enabled: urtrobot_left.arm_connect&&isComplete
                                 onClicked: {
                                     var path=cameraManager.currentDirectory()+"/kinematic_calibration_data/output"
                                     cameraManager.open_path(path)
@@ -553,7 +553,7 @@ Item {
                                 width: 200
                                 height: 40
                                 text: "写入控制器并重启"
-                                enabled: urtrobot_left.arm_connect//&&isComplete
+                                enabled: urtrobot_left.arm_connect&&isComplete
                                 onClicked: {
                                     var result=urtrobot_left.postLaserCalib_Write_MDH_offset()
                                     if(result){
