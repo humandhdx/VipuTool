@@ -85,6 +85,7 @@ void KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index
 {
     m_lst_masked_robot_pose_index.append(index_of_position_record);
     emit lst_masked_robot_pose_index_changed();
+    emit mask_list_changed();
 }
 
 bool KinematicCalibQWrapper::check_calib_data_ready(bool isLeftArm)
@@ -352,6 +353,26 @@ bool KinematicCalibQWrapper::updata_Laser_Observed_Pose(bool isLeftArm, QString 
         QStr_ABS_PATH(INPUT_LASER_DATA_left_tcp_frames)
         :QStr_ABS_PATH(INPUT_LASER_DATA_right_tcp_frames);
     return copy_replace_file(source_file_path, target_filepath);
+}
+
+QVariantList KinematicCalibQWrapper::get_mask_list()
+{
+    QVariantList list_mask;
+    for(auto mask_index: m_lst_masked_robot_pose_index)
+    {
+        list_mask.append(mask_index);
+    }
+    return list_mask;
+}
+
+void KinematicCalibQWrapper::set_mask_list(QVariantList list_mask)
+{
+    m_lst_masked_robot_pose_index.clear();
+    for(auto mask_index: list_mask)
+    {
+        m_lst_masked_robot_pose_index.append(mask_index.toInt());
+    }
+    emit mask_list_changed();
 }
 
 bool KinematicCalibQWrapper::copy_replace_file(QString &path_sourceFile, QString &path_targetFile)

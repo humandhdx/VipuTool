@@ -32,6 +32,9 @@ public:
 
     Q_INVOKABLE bool updata_Laser_Observed_Pose(bool isLeftArm, QString source_file_path);
 
+    Q_INVOKABLE QVariantList get_mask_list();
+    Q_INVOKABLE void set_mask_list(QVariantList list_mask);
+
     Q_PROPERTY( bool kinematic_calib_data_ready_left READ kinematic_calib_data_ready_left WRITE set_kinematic_calib_data_ready_left NOTIFY kinematic_calib_data_ready_left_changed FINAL)
     Q_PROPERTY( bool kinematic_calib_data_ready_right READ kinematic_calib_data_ready_right WRITE set_kinematic_calib_data_ready_right NOTIFY kinematic_calib_data_ready_right_changed FINAL)
 
@@ -61,6 +64,8 @@ signals:
     void calib_target_joint_pose_left_changed();
 
     void calib_target_joint_pose_right_changed();
+
+    void mask_list_changed();
 
 private:
     PoseFileParser parser_;
