@@ -513,7 +513,7 @@ Item {
                             anchors.topMargin: 30
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 390
-                            height: 405
+                            height: 310
                             clip: true
                             orientation: ListView.Vertical
                             boundsBehavior: Flickable.StopAtBounds
@@ -598,18 +598,241 @@ Item {
                 }
                 cameracalibqwrapper.calibration_resource_unload()
             }
-            Row{
-                anchors.horizontalCenter: parent.horizontalCenter
+            Rectangle{
+                anchors.left: parent.left
+                anchors.leftMargin: 10
                 anchors.top: parent.top
                 anchors.topMargin: 10
-                spacing: 5
+                width: 800
+                height: 600
+                color: "#D9D9D9"
+                Image {
+                    id:image
+                    anchors.fill: parent
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+            Column{
+                anchors.left: parent.left
+                anchors.leftMargin: 830
+                anchors.top: parent.top
+                anchors.topMargin: 20
+                spacing: 10
+                Row{
+                    spacing: 20
+                    Button{
+                        width: 200
+                        height: 40
+                        text: "开启相机"
+                        enabled: !isCamera
+                        onClicked: {
+                            isCamera= cameraManager.startCamera(3)
+                            if(isCamera)console.log("相机连接成功")
+                        }
+                    }
+                    Item {
+                        width: 200
+                        height: 40
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: qsTr("连接状态:")
+                            font.pixelSize: 12
+                        }
+                        Rectangle{
+                            anchors.right: parent.right
+                            width: 140
+                            height: 40
+                            radius: 5
+                            color: "#F5F5F5"
+                            border.width: 1
+                            border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: isCamera?qsTr("已连接"):qsTr("未连接")
+                                color: isCamera?"green":"red"
+                            }
+                        }
+                    }
+                }
+                Row{
+                    spacing: 20
+                    Button{
+                        width: 200
+                        height: 40
+                        text: "采集图片"
+                        enabled: isCamera&&captureCount<=handeyeCulate.arm_pose_count?true:false
+                        onClicked: {
+                            if(capturePath===""){
+                                console.log("请选择保存路径")
+                                return
+                            }
+                            mask.open()
+                            captureCount++
+                            cameraManager.start_camera_capture(capturePath,3,captureCount)
+                            mask.close()
+                        }
+                    }
+                    Item {
+                        width: 200
+                        height: 40
+                        Text {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: qsTr("采集次数:")
+                            font.pixelSize: 12
+                            color: "#000"
+                        }
+                        Rectangle{
+                            anchors.right: parent.right
+                            width: 140
+                            height: 40
+                            radius: 5
+                            color: "#F5F5F5"
+                            border.width: 1
+                            border.color: "#c9c9c9"
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 20
+                                anchors.verticalCenter: parent.verticalCenter
+                                color: isCamera?"#000":"#c9c9c9"
+                                text: captureCount
+                            }
+                            Row{
+                                anchors.right: parent.right
+                                anchors.rightMargin: 10
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 10
+                                FueButton{
+                                    width: 16
+                                    height: 16
+                                    enabled: captureCount>0?true:false
+                                    Image {
+                                        sourceSize.width: 16
+                                        sourceSize.height: 16
+                                        source: "qrc:/Image/delete.svg"
+                                        opacity: captureCount>0?1.0:0.5
+                                    }
+                                    onClicked: {
+                                        var result= cameraManager.deleteFisterCaptureImage(capturePath)
+                                        if(result)captureCount--
+                                    }
+                                }
+                                FueButton{
+                                    width: 16
+                                    height: 16
+                                    enabled: captureCount>0?true:false
+                                    Image {
+                                        anchors.fill: parent
+                                        source: "qrc:/Image/Clear.svg"
+                                        opacity: captureCount>0?1.0:0.5
+                                    }
+                                    onClicked: {
+                                        var result=cameraManager.clearCaptureCount(capturePath)
+                                        if(result)captureCount=0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                Row{
+                    spacing: 10
+                    Rectangle{
+                        width: 300
+                        height: 40
+                        color: "#00000000"
+                        radius: 5
+                        border.width: 1
+                        border.color: "#000000"
+                        property int dynamicFontSize: {
+                            // 假设初始字号为 10
+                            var availableWidth = width - 10; // 考虑左右边距
+                            var scale = availableWidth / textMetrics.width;
+                            // 限制字号范围，防止缩放过小或过大
+                            return Math.max(8, Math.min(10, Math.floor(10 * scale)));
+                        }
+                        TextMetrics {
+                            id: textMetrics
+                            text: qsTr("保存路径：" + capturePath)
+                            font.pixelSize: 10 // 初始字体大小，计算时会使用这个值
+                        }
+                        Text {
+                            width: parent.width-15
+                            anchors.left: parent.left
+                            anchors.leftMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            font.pixelSize: parent.dynamicFontSize
+                            text: qsTr("保存路径"+capturePath)
+                            elide: Text.ElideRight
+                        }
+                    }
+                    Button{
+                        width: 80
+                        height: 40
+                        text: "查看地址"
+                        onClicked: {
+                            cameraManager.open_path(cameraManager.currentDirectory()+"/Center_Calibration")
+                        }
+                    }
+                }
                 Rectangle{
-                    width: 620
-                    height: 465
-                    color: "#D9D9D9"
-                    Image {
-                        id:image
-                        anchors.fill: parent
+                    width:400
+                    height: 435
+                    radius: 5
+                    color: "#F5F5F5"
+                    border.width: 1
+                    border.color: "#000000"
+                    Text {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 5
+                        font.pixelSize: 24
+                        text: qsTr("log:")
+                    }
+                    Button{
+                        anchors.right: parent.right
+                        anchors.rightMargin: 5
+                        anchors.top: parent.top
+                        anchors.topMargin: 5
+                        width: 50
+                        height: 24
+                        text: "清空"
+                        onClicked: {
+                            loggerModel.clear()
+                        }
+                    }
+                    ListView{
+                        id:loglistview
+                        anchors.top: parent.top
+                        anchors.topMargin: 30
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: 390
+                        height: 405
+                        clip: true
+                        orientation: ListView.Vertical
+                        boundsBehavior: Flickable.StopAtBounds
+                        snapMode :ListView.NoSnap
+                        model:ListModel{
+                            id:loggerModel
+                        }
+                        delegate: TextEdit {
+                            text: loginfo
+                            font.pixelSize: 12
+                            width: 395
+                            wrapMode: Text.Wrap
+                            color:level===0? "#000000":"red"
+                            readOnly: true
+                            // 可选：去除光标和边框，使其看起来更像 Text
+                            selectByMouse: true
+                            // 显示选中效果：设置选中区域背景颜色和文字颜色
+                            selectionColor: "lightblue"      // 选中区域的背景颜色
+                            selectedTextColor: "black"         // 选中区域中文字的颜色
+                            cursorVisible: true
+                            //background: null
+                        }
+                        spacing: 2
                     }
                 }
             }
@@ -625,155 +848,13 @@ Item {
                 }
                 Rectangle{
                     width: parent.width-20
-                    height: 380
+                    height: 240
                     color: "#D9D9D9"
                     Column{
                         anchors.left: parent.left
                         anchors.leftMargin: 20
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 30
-                        Row{
-                            spacing: 20
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "开启相机"
-                                enabled: !isCamera
-                                onClicked: {
-                                    isCamera= cameraManager.startCamera(3)
-                                }
-                            }
-                            Item {
-                                width: 200
-                                height: 40
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("连接状态:")
-                                    font.pixelSize: 12
-                                }
-                                Rectangle{
-                                    anchors.right: parent.right
-                                    width: 140
-                                    height: 40
-                                    radius: 5
-                                    color: "#F5F5F5"
-                                    border.width: 1
-                                    border.color: "#c9c9c9"
-                                    Text {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 20
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: isCamera?qsTr("已连接"):qsTr("未连接")
-                                        color: isCamera?"green":"red"
-                                    }
-                                }
-                            }
-                        }
-                        Row{
-                            spacing: 20
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "采集图片"
-                                enabled: isCamera
-                                onClicked: {
-                                    if(capturePath===""){
-                                        console.log("请选择保存路径")
-                                        nopath.visible=true
-                                        return
-                                    }
-                                    mask.open()
-                                    captureCount++
-                                    cameraManager.start_camera_capture(capturePath,3,captureCount)
-                                    mask.close()
-                                }
-                            }
-                            Item {
-                                width: 200
-                                height: 40
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("采集次数:")
-                                    font.pixelSize: 12
-                                    color: "#000"
-                                }
-                                Rectangle{
-                                    anchors.right: parent.right
-                                    width: 140
-                                    height: 40
-                                    radius: 5
-                                    color: "#F5F5F5"
-                                    border.width: 1
-                                    border.color: "#c9c9c9"
-                                    Text {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 20
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        color: isCamera?"#000":"#c9c9c9"
-                                        text: captureCount
-                                    }
-                                    FueButton{
-                                        anchors.right: parent.right
-                                        anchors.rightMargin: 10
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        width: 16
-                                        height: 16
-                                        enabled: captureCount>0?true:false
-                                        Image {
-                                            anchors.fill: parent
-                                            source: "qrc:/Image/Clear.svg"
-                                            opacity: captureCount>0?1.0:0.5
-                                        }
-                                        onClicked: {
-                                            cameraManager.clearCaptureCount(capturePath)
-                                            captureCount=0
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Row{
-                            spacing: 20
-                            Rectangle{
-                                width: 290
-                                height: 40
-                                color: "#00000000"
-                                radius: 5
-                                border.width: 1
-                                border.color: "#000000"
-                                property int dynamicFontSize: {
-                                    // 假设初始字号为 10
-                                    var availableWidth = width - 10; // 考虑左右边距
-                                    var scale = availableWidth / textMetrics.width;
-                                    // 限制字号范围，防止缩放过小或过大
-                                    return Math.max(8, Math.min(10, Math.floor(10 * scale)));
-                                }
-                                TextMetrics {
-                                    id: textMetrics
-                                    text: qsTr("保存路径：" + capturePath)
-                                    font.pixelSize: 10 // 初始字体大小，计算时会使用这个值
-                                }
-                                Text {
-                                    width: parent.width-15
-                                    anchors.left: parent.left
-                                    anchors.leftMargin: 10
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    font.pixelSize:parent.dynamicFontSize
-                                    text: qsTr("保存路径："+capturePath)
-                                    elide: Text.ElideRight
-                                }
-                            }
-                            Button{
-                                width: 110
-                                height: 40
-                                text: "查看保存地址"
-                                onClicked: {
-                                    cameraManager.open_path(cameraManager.currentDirectory()+"/Center_Calibration")
-                                }
-                            }
-                        }
                         Row{
                             spacing: 20
                             Button{
@@ -857,7 +938,6 @@ Item {
                                     }
                                 }
                             }
-
                             Button{
                                 width: 200
                                 height: 40
@@ -868,77 +948,14 @@ Item {
                                     mask.close()
                                 }
                             }
-
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "开始计算"
-                                onClicked: {
-                                    cameraManager.openMalLab()
-                                }
-                            }
-
-                        }
-
-                    }
-                    Rectangle{
-                        anchors.right: parent.right
-                        anchors.rightMargin: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                        width:400
-                        height: 350
-                        radius: 5
-                        color: "#F5F5F5"
-                        border.width: 1
-                        border.color: "#000000"
-                        Text {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 5
-                            font.pixelSize: 24
-                            text: qsTr("log:")
                         }
                         Button{
-                            anchors.right: parent.right
-                            anchors.rightMargin: 5
-                            anchors.top: parent.top
-                            anchors.topMargin: 5
-                            width: 50
-                            height: 24
-                            text: "清空"
+                            width: 200
+                            height: 40
+                            text: "开始计算"
                             onClicked: {
-                                loggerModel.clear()
+                                cameraManager.openMalLab()
                             }
-                        }
-                        ListView{
-                            id:loglistview
-                            anchors.top: parent.top
-                            anchors.topMargin: 30
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: 390
-                            height: 405
-                            clip: true
-                            orientation: ListView.Vertical
-                            boundsBehavior: Flickable.StopAtBounds
-                            snapMode :ListView.NoSnap
-                            model:ListModel{
-                                id:loggerModel
-                            }
-                            delegate: TextEdit {
-                                text: loginfo
-                                font.pixelSize: 12
-                                width: 395
-                                wrapMode: Text.Wrap
-                                color:level===0? "#000000":"red"
-                                readOnly: true
-                                // 可选：去除光标和边框，使其看起来更像 Text
-                                selectByMouse: true
-                                // 显示选中效果：设置选中区域背景颜色和文字颜色
-                                selectionColor: "lightblue"      // 选中区域的背景颜色
-                                selectedTextColor: "black"         // 选中区域中文字的颜色
-                                cursorVisible: true
-                                //background: null
-                            }
-                            spacing: 2
                         }
                     }
                 }
@@ -969,5 +986,4 @@ Item {
         }
 
     }
-
 }

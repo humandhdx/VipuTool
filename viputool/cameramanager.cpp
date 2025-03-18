@@ -418,7 +418,7 @@ void cameraManager::capture_left()
 
     tv_left_.tv_sec = 1;
     tv_left_.tv_usec = 0;
-    if (camera_left_->isReadable(&tv_left_)) {
+    if (camera_left_->isReadable(&tv_left_)) {//判断资源是否在 tv_left_ 设定的超时时间内可读。
         memset(buff_left_, 0, 4000 * 3000);
         int rsize = camera_left_->read((char *)buff_left_, 4000 * 3000 - 1);
         if (rsize == -1) {
@@ -441,7 +441,6 @@ void cameraManager::capture_left()
         }
         else {
             failed_count_left_ = 0;
-            restart_failed_left_ = 0;
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
             suc_capture_left_flag_ = true;
             if (camera_left_->getFormat() == V4L2_PIX_FMT_MJPEG) {

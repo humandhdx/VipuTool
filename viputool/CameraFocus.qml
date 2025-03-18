@@ -6,7 +6,8 @@ Item {
     Component.onCompleted: {
     }
     Component.onDestruction: {
-        cameraManager.stopCamera()
+        //cameraManager.stopCamera()
+        cameraManager.stopAllCameras()
         if(urtrobot_right.arm_connect){
             urtrobot_right.robot_drag_activate(false)
         }

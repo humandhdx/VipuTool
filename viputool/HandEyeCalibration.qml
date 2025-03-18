@@ -49,13 +49,13 @@ Item {
             property int captureCount: 0
             property int lowestCount: 29
             Component.onCompleted: {
-                capturePath=cameraManager.currentDirectory()+"/GlobalHandEyeImages"
-                savePath=cameraManager.currentDirectory()
-                cameraManager.clearCaptureCount(capturePath)
+                //capturePath=cameraManager.currentDirectory()+"/GlobalHandEyeImages"
+                //savePath=cameraManager.currentDirectory()
+                //cameraManager.clearCaptureCount(capturePath)
                 handeyeCulate.resetCalibration()
             }
             Component.onDestruction: {
-                cameraManager.stopCamera()
+                cameraManager.stopCamera("GlobalRightCamera")
                 if(urtrobot_right.arm_connect){
                     urtrobot_right.robot_drag_activate(false)
                 }
@@ -87,8 +87,10 @@ Item {
                         text: "开启相机"
                         enabled: !isCamera
                         onClicked: {
-                            isCamera= cameraManager.startCamera(1)
+                            isCamera= cameraManager.startCamera("GlobalRightCamera")
+                            //isCamera= cameraManager.startCamera(1)
                             if(isCamera)console.log("相机连接成功")
+                            else console.log("不存在相机设备")
                         }
                     }
                     Item {
@@ -827,9 +829,8 @@ Item {
                 color: "#D9D9D9"
                 Image {
                     id:image
-                    width: 800
-                    height: 450
-                    anchors.centerIn: parent
+                    anchors.fill: parent
+                    fillMode: Image.PreserveAspectFit
                 }
             }
             Column{
@@ -891,7 +892,7 @@ Item {
                             }
                             mask.open()
                             captureCount++
-                            cameraManager.start_camera_capture(capturePath,1,captureCount)
+                            cameraManager.start_camera_capture(capturePath,3,captureCount)
                             mask.close()
                         }
                     }

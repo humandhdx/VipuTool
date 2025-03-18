@@ -65,7 +65,11 @@ qt_add_executable(${PROJECT_NAME}
     ut_robot_wrapper/camera_calibration/cameracalib_config.h ut_robot_wrapper/camera_calibration/cameracalib_config.cpp
     ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h ut_robot_wrapper/camera_calibration/cameracalibqwrapper.cpp
     unixsignalqhandler.h
-
+    Cameras/basecamera.h
+    Cameras/localcamera.h Cameras/localcamera.cpp
+    Cameras/globalcamera.h Cameras/globalcamera.cpp
+    Cameras/centercamera.h Cameras/centercamera.cpp
+    Cameras/cameracontrol.h Cameras/cameracontrol.cpp
 )
 include_directories(/usr/include)
 include_directories("/usr/include/eigen3")

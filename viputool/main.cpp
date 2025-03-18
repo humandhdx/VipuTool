@@ -16,7 +16,7 @@
 #include "ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.hpp"
 #include "ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h"
 #include "unixsignalqhandler.h"
-
+#include "Cameras/cameracontrol.h"
 // #define TEST_MAIN
 
 #ifdef TEST_MAIN
@@ -66,14 +66,22 @@ int main(int argc, char *argv[])
     ImageProvider *image_provider_gr = new ImageProvider();
     ImageProvider *image_provider_ml = new ImageProvider();
     sshManager *my_ssh_manager=new sshManager();
+    CameraControl *m_cameraControl=new CameraControl();
+    // QObject::connect(
+    //     m_cameraManager, &cameraManager::signalSendLeftImage, image_provider_gl, &ImageProvider::recvEmitImg);
+    // QObject::connect(
+    //     m_cameraManager, &cameraManager::signalSendRightImage, image_provider_gr, &ImageProvider::recvEmitImg);
+    // QObject::connect(
+    //     m_cameraManager, &cameraManager::signalSendMiddleImage, image_provider_ml, &ImageProvider::recvEmitImg);
     QObject::connect(
-        m_cameraManager, &cameraManager::signalSendLeftImage, image_provider_gl, &ImageProvider::recvEmitImg);
+        m_cameraControl, &CameraControl::sendGlobalLeftIamge, image_provider_gl, &ImageProvider::recvEmitImg);
     QObject::connect(
-        m_cameraManager, &cameraManager::signalSendRightImage, image_provider_gr, &ImageProvider::recvEmitImg);
+        m_cameraControl, &CameraControl::sendGlobalRightIamge, image_provider_gr, &ImageProvider::recvEmitImg);
     QObject::connect(
-        m_cameraManager, &cameraManager::signalSendMiddleImage, image_provider_ml, &ImageProvider::recvEmitImg);
+        m_cameraControl, &CameraControl::sendCenterIamge, image_provider_ml, &ImageProvider::recvEmitImg);
     //regester qml
-    engine.rootContext()->setContextProperty("cameraManager", m_cameraManager);
+    //engine.rootContext()->setContextProperty("cameraManager", m_cameraManager);
+    engine.rootContext()->setContextProperty("cameraManager", m_cameraControl);
     engine.rootContext()->setContextProperty("urtrobot_left", m_urtrobot_left);
     engine.rootContext()->setContextProperty("urtrobot_right", m_urtrobot_right);
     engine.rootContext()->setContextProperty("image_provider_gl", image_provider_gl);

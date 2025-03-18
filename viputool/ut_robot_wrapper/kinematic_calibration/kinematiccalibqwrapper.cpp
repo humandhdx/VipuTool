@@ -83,25 +83,27 @@ void KinematicCalibQWrapper::reset_kinematic_calib()
     remove_all_output_files();
 }
 
-void KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index_of_position_record)
+bool KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index_of_position_record)
 {
     if(!m_lst_masked_robot_pose_index.contains(index_of_position_record))
     {
         m_lst_masked_robot_pose_index.append(index_of_position_record);
         emit lst_masked_robot_pose_index_changed();
         emit mask_list_changed();
+        return true;
     }
+    return false;
 }
 
-void KinematicCalibQWrapper::remove_mask_index_for_position_recorder(uint32_t index_of_position_record)
+bool KinematicCalibQWrapper::remove_mask_index_for_position_recorder(uint32_t index_of_position_record)
 {
     if(0 != m_lst_masked_robot_pose_index.removeAll(index_of_position_record))
     {
-        m_lst_masked_robot_pose_index.removeAll(index_of_position_record);
-        m_lst_masked_robot_pose_index.remove(index_of_position_record);
         emit lst_masked_robot_pose_index_changed();
         emit mask_list_changed();
+        return true;
     }
+    return false;
 }
 
 bool KinematicCalibQWrapper::check_calib_data_ready(bool isLeftArm)

@@ -621,7 +621,7 @@ Item {
                     }
                 }
                 Row{
-                    spacing: 50
+                    spacing: 20
                     Button{
                         width: 90
                         height: 40
@@ -630,6 +630,17 @@ Item {
                         onClicked: {
                             mask.open()
                             var result= urtrobot_right.robot_drag_activate(true)
+                            mask.close()
+                        }
+                    }
+                    Button{
+                        width: 90
+                        height: 40
+                        text: "关闭拖拽"
+                        enabled: urtrobot_right.arm_connect
+                        onClicked: {
+                            mask.open()
+                            var result= urtrobot_right.robot_drag_activate(false)
                             mask.close()
                         }
                     }

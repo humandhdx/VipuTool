@@ -92,10 +92,6 @@ private:
     cv::Mat left_image_0_;
     cv::Mat middle_image_0_;
     cv::Mat right_image_0_;
-    CImageTime left_image_available_0_;
-    CImageTime right_image_available_0_;
-    TimePoint left_imgae_available_time_;
-    TimePoint right_imgae_available_time_;
 
     uchar *buff_left_ = nullptr;
     uchar *buff_middle_ = nullptr;
@@ -103,9 +99,6 @@ private:
     std::vector<uchar> *vec_buff_left_ = nullptr;
     std::vector<uchar> *vec_buff_middle_ = nullptr;
     std::vector<uchar> *vec_buff_right_ = nullptr;
-
-    std::unique_ptr<std::thread> thread_monitor_;
-
     timeval tv_left_;
     timeval tv_middle_;
     timeval tv_right_;
@@ -128,17 +121,12 @@ private:
     std::atomic_bool suc_capture_left_flag_ = false;
     std::atomic_bool suc_capture_middle_flag_ = false;
     std::atomic_bool suc_capture_right_flag_ = false;
-    std::atomic_bool monite_flag_ = true;
-    std::atomic_bool update_flag_ = true;
     double capture_period_ = 0.003;
-    double capture_period_right_ = 0.003;
-    double capture_period_update_ = 0.003;
 
     int failed_count_left_ = 0;
     int failed_count_right_ = 0;
     int failed_count_middle_ = 0;
 
-    int restart_failed_left_ = 0;
     int restart_failed_right_ = 0;
     int restart_failed_middle_ = 0;
     QProcess *matlab_process;
