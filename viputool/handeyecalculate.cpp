@@ -132,9 +132,9 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
     // QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
     // QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
     // QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
-    QString pattern_folder=armposefile;
+    QString pattern_folder=patternfolder;
     QString arm_pose_file=armposefile;
-    QString camera_file=armposefile;
+    QString camera_file=camerafile;
     if (!QFile::exists(arm_pose_file)) {
         qWarning()<< "图片保存路径不存在:" << pattern_folder;
         return false;
@@ -147,6 +147,7 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         qWarning()<< "全局相机参数文件不存在:" << camera_file;
         return false;
     }
+    qDebug()<< "开始计算:" << camera_file;
     MonoCameraMat camera_model(camera_file.toStdString());
 
     std::vector<cv::String> image_files;
