@@ -15,12 +15,12 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},
     failed_count_middle_(0),
     failed_count_right_(0)
 {
-    buff_left_ = new uchar[4000 * 3000];
-    buff_middle_=new uchar[1920 * 1080];
-    buff_right_ = new uchar[4000 * 3000];
-    memset(buff_left_, 0, 4000 * 3000);
-    memset(buff_middle_, 0, 1920 * 1080);
-    memset(buff_right_, 0, 4000 * 3000);
+    buff_left_ = new uchar[4000 * 3000*3];
+    buff_middle_=new uchar[1920 * 1080*3];
+    buff_right_ = new uchar[4000 * 3000*3];
+    memset(buff_left_, 0, 4000 * 3000*3);
+    memset(buff_middle_, 0, 1920 * 1080*3);
+    memset(buff_right_, 0, 4000 * 3000*3);
     vec_buff_left_ = new std::vector<uchar>();
     vec_buff_middle_ = new std::vector<uchar>();
     vec_buff_right_ = new std::vector<uchar>();
@@ -419,7 +419,7 @@ void cameraManager::capture_left()
     tv_left_.tv_sec = 1;
     tv_left_.tv_usec = 0;
     if (camera_left_->isReadable(&tv_left_)) {
-        memset(buff_left_, 0, 4000 * 3000);
+        memset(buff_left_, 0, 4000 * 3000*3);
         int rsize = camera_left_->read((char *)buff_left_, 4000 * 3000 - 1);
         if (rsize == -1) {
             ++failed_count_left_;
@@ -503,7 +503,7 @@ void cameraManager::capture_right()
     tv_right_.tv_sec = 1;
     tv_right_.tv_usec = 0;
     if (camera_right_->isReadable(&tv_right_)) {
-        memset(buff_right_, 0, 4000 * 3000);
+        memset(buff_right_, 0, 4000 * 3000*3);
         int rsize = camera_right_->read((char *)buff_right_, 4000 * 3000 - 1);
         if (rsize == -1) {
             ++failed_count_right_;
@@ -588,7 +588,7 @@ void cameraManager::capture_middle()
     tv_middle_.tv_sec = 1;
     tv_middle_.tv_usec = 0;
     if (camera_middle_->isReadable(&tv_middle_)) {
-        memset(buff_middle_, 0, 1920 * 1080);
+        memset(buff_middle_, 0, 1920 * 1080*3);
         int rsize = camera_middle_->read((char *)buff_middle_, 1920 * 1080 - 1);
         if (rsize == -1) {
             ++failed_count_middle_;
