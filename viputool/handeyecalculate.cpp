@@ -129,12 +129,12 @@ bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
 bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile,QString camerafile)
 {
     int min_hand_eye_num = 5;
-    QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
-    QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
-    QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
-    // QString pattern_folder=armposefile;
-    // QString arm_pose_file=armposefile;
-    // QString camera_file=armposefile;
+    // QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
+    // QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
+    // QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
+    QString pattern_folder=armposefile;
+    QString arm_pose_file=armposefile;
+    QString camera_file=armposefile;
     if (!QFile::exists(arm_pose_file)) {
         qWarning()<< "图片保存路径不存在:" << pattern_folder;
         return false;

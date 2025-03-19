@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Qt.labs.platform
+import Qt.labs.folderlistmodel
 import QtQuick.Dialogs
 import VTool 1.0
 Item {

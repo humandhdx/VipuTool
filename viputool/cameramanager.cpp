@@ -114,7 +114,7 @@ bool cameraManager::deleteFisterCaptureImage(QString path)
     fileList = dir.entryInfoList(QDir::Files, QDir::Time | QDir::Reversed);
     if (!fileList.isEmpty()) {
         // 删除最新的文件（按修改日期排序的第一个文件）
-        QFileInfo latestFile = fileList.first();
+        QFileInfo latestFile = fileList.last();
         QString latestFilePath = latestFile.absoluteFilePath();
 
         if (QFile::remove(latestFilePath)) {
@@ -310,7 +310,7 @@ void cameraManager::init_cam()
         else if (strncmp((const char *)cap.card, "FueCamRight", 11) == 0) {
             right_id_ = dev_num_cur;
         }
-        else if (strncmp((const char *)cap.card, "SPCA2100", 8) == 0) {
+        else if (strncmp((const char *)cap.card, "USB 2.0 Camera:", 15) == 0) {
             middle_id_=dev_num_cur;
         }
 
