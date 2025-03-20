@@ -37,6 +37,8 @@ public:
 
     Q_INVOKABLE bool move_To_Joint_Position(QVariantList jointpos);
 
+    Q_INVOKABLE bool move_To_Joint_Position_Degree(QVariantList jointpos);
+
     Q_PROPERTY( bool arm_connect READ arm_connect WRITE setArm_connect NOTIFY arm_connectChanged FINAL)
 
     Q_PROPERTY( bool axis_enable_1 READ axis_enabled_1 NOTIFY axis_enable_1_Changed FINAL)

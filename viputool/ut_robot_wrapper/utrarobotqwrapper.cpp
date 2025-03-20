@@ -469,6 +469,50 @@ bool UtraRobot_QWrapper::move_To_Joint_Position(QVariantList jointpos)
     }
 }
 
+bool UtraRobot_QWrapper::move_To_Joint_Position_Degree(QVariantList jointpos)
+{
+    QMutexTryLocker lck{mutext};
+    if(!lck.isLocked())
+    {
+        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+        return false;
+    }
+    UtRobotConfig::JointPos target_jpos;
+    int jp_index=0;
+    QString joint_pos_str = "{";
+    for(auto single_joint : jointpos)
+    {
+        target_jpos[jp_index] = single_joint.toFloat() * M_PI / 180.0;
+        joint_pos_str += QString::number(single_joint.toFloat()) + ",";
+        jp_index++;
+    }
+    joint_pos_str += "}";
+    if(7 != jp_index)
+    {
+        qWarning() << "机械臂肘关节运动，给予的肘关节数量不正确，应该长度为[7]";
+        return false;
+    }
+
+    QEventLoop spinner;
+    bool executionResult = false;
+    std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, &target_jpos, this](){
+        executionResult = this->RobotCommand_JointPtp(target_jpos);
+        spinner.exit();
+        return executionResult;
+    });
+    spinner.exec();
+    if(executionResult)
+    {
+        qDebug() << "Robot Arm move to given joint position" << joint_pos_str;
+        return true;
+    }
+    else
+    {
+        qWarning() << "Robot Arm failed to move to given joint position" << joint_pos_str;
+        return false;
+    }
+}
+
 QVariantList UtraRobot_QWrapper::convert_JPos_To_VariantList(UtRobotConfig::JointPos &Jpos)
 {
     QVariantList list;
