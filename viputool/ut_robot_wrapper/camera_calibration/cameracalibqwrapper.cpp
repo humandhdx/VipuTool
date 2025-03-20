@@ -359,7 +359,7 @@ void CameraCalibQWrapper::set_joint_pos_index_global_right_DuelEye(int newJoint_
         {
             list_joint_pos.append(singleJointPos);
         }
-        set_current_joint_pos_global_right_RightEye(list_joint_pos);
+        set_current_joint_pos_global_right_DuelEye(list_joint_pos);
     }
     emit joint_pos_index_global_right_DuelEye_Changed();
 }
