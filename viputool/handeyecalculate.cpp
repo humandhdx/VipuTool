@@ -80,18 +80,6 @@ bool handeyecalculate::resetCalibration()
 
 bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
 {
-    if(type==0){
-        if(currentGlobalPoseMatrix.empty()){
-            qDebug()<<"请先进行全局相机手眼标定后再保存";
-            return false;
-        }
-    }
-    else if(type==1){
-        if(currentCenterPoseMatrix.empty()){
-            qDebug()<<"currentCenterPoseMatrix.empty()";
-            return false;
-        }
-    }
     json jsonTemplate = {
         {"version", "0.0.0.0"},
         {"update_date", ""},

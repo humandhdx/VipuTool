@@ -49,6 +49,7 @@ Item {
             property double arm7Jpos: 0
             property int captureCount: 0
             property int lowestCount: 29
+            property bool isCaliSucc: false
             Component.onCompleted: {
                 capturePath=cameraManager.currentDirectory()+"/GlobalHandEyeImages"
                 savePath=cameraManager.currentDirectory()
@@ -387,6 +388,7 @@ Item {
                                     mask.open()
                                     var result= handeyeCulate.startCalibration(capturePath,armParamePath,cameraParamePath)
                                     mask.close()
+                                    isCaliSucc=result
                                 }
                             }
                         }
@@ -475,6 +477,10 @@ Item {
                                 enabled: true
                                 text: "保存手眼计算"
                                 onClicked: {
+                                    if(!isCaliSucc){
+                                        console.log("请先完成手眼标定计算")
+                                        return
+                                    }
                                     var result= handeyeCulate.saveCalibrationToFile(savePath,0)
                                 }
                             }
@@ -809,6 +815,7 @@ Item {
             property double arm7Jpos: 0
             property int captureCount: 0
             property int lowestCount: 29
+            property bool isCaliSucc: false
             Component.onCompleted: {
                 capturePath=cameraManager.currentDirectory()+"/CenterHandEyeImages"
                 savePath=cameraManager.currentDirectory()
@@ -1149,6 +1156,7 @@ Item {
                                     mask.open()
                                     var result= handeyeCulate.startCalibration(capturePath,armParamePath,cameraParamePath)
                                     mask.close()
+                                    isCaliSucc=result
                                 }
                             }
                         }
@@ -1237,7 +1245,12 @@ Item {
                                 enabled: true
                                 text: "保存手眼计算"
                                 onClicked: {
+                                    if(!isCaliSucc){
+                                        console.log("请先完成手眼标定计算")
+                                        return
+                                    }
                                     var result= handeyeCulate.saveCalibrationToFile(savePath,1)
+                                    isCaliSucc=false
                                 }
                             }
                         }

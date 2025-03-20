@@ -404,7 +404,7 @@ Item {
                                         height: 40
                                         text: "+"
                                         onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_LeftEye===cameracalibqwrapper.joint_pos_total_num_global_right_LeftEye)
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_LeftEye===(cameracalibqwrapper.joint_pos_total_num_global_right_LeftEye-1))
                                             {
                                                 return
                                             }
@@ -498,7 +498,7 @@ Item {
                                         height: 40
                                         text: "+"
                                         onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===cameracalibqwrapper.joint_pos_total_num_global_right_RightEye)
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===(cameracalibqwrapper.joint_pos_total_num_global_right_RightEye-1))
                                             {
                                                 return
                                             }
@@ -565,7 +565,7 @@ Item {
                                         height: 40
                                         text: "+"
                                         onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===cameracalibqwrapper.joint_pos_total_num_global_right_DuelEye)
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===(cameracalibqwrapper.joint_pos_total_num_global_right_DuelEye-1))
                                             {
                                                 return
                                             }
@@ -956,7 +956,7 @@ Item {
                                     height: 40
                                     text: "+"
                                     onClicked: {
-                                        if(cameracalibqwrapper.joint_pos_index_following_right===cameracalibqwrapper.joint_pos_total_num_following_right)
+                                        if(cameracalibqwrapper.joint_pos_index_following_right===(cameracalibqwrapper.joint_pos_total_num_following_right-1))
                                         {
                                             return
                                         }
@@ -971,7 +971,7 @@ Item {
                                 text: "机械臂运动"
                                 onClicked: {
                                     mask.open()
-                                    var reslut=urtrobot_right.move_To_Joint_Position(cameracalibqwrapper.current_joint_pos_following_right)
+                                    var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_following_right)
                                     mask.close()
                                 }
                             }
