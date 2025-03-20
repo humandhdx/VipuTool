@@ -15,10 +15,14 @@ CameraCalibQWrapper::CameraCalibQWrapper(QObject *parent)
 
 void CameraCalibQWrapper::calibration_resource_load()
 {
-    set_joint_pos_index_global_right(0);
+    set_joint_pos_index_global_right_LeftEye(0);
+    set_joint_pos_index_global_right_RightEye(0);
+    set_joint_pos_index_global_right_DuelEye(0);
     set_joint_pos_index_following_right(0);
     set_joint_pos_index_local_left(0);
-    set_joint_pos_total_num_global_right(0);
+    set_joint_pos_total_num_global_right_LeftEye(0);
+    set_joint_pos_total_num_global_right_RightEye(0);
+    set_joint_pos_total_num_global_right_DuelEye(0);
     set_joint_pos_total_num_following_right(0);
     set_joint_pos_total_num_local_left(0);
     QVariantList zero_jointPos;
@@ -29,12 +33,18 @@ void CameraCalibQWrapper::calibration_resource_load()
     zero_jointPos.append(QVariant::fromValue((double)1.0));
     zero_jointPos.append(QVariant::fromValue((double)1.0));
     zero_jointPos.append(QVariant::fromValue((double)1.0));
-    set_current_joint_pos_global_right(zero_jointPos);
+    set_current_joint_pos_global_right_LeftEye(zero_jointPos);
+    set_current_joint_pos_global_right_RightEye(zero_jointPos);
+    set_current_joint_pos_global_right_DuelEye(zero_jointPos);
     set_current_joint_pos_following_right(zero_jointPos);
     set_current_joint_pos_local_left(zero_jointPos);
 
-    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose,
-                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_leftEye_arm_joint_pose,
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_LEFT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose,
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_RIGHT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+    QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_duelEye_arm_joint_pose,
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_DUEL, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose,
                                                                        std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::FOLLOWING_CAMERA_RIGHT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_following_right_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose,
@@ -44,13 +54,28 @@ void CameraCalibQWrapper::calibration_resource_load()
 void CameraCalibQWrapper::calibration_resource_unload()
 {
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_leftEye_arm_joint_pose);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose);
+    QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_duelEye_arm_joint_pose);
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose);
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose);
 }
 
-bool CameraCalibQWrapper::updata_Joint_Pos_Global_Right(QString source_file_path)
+bool CameraCalibQWrapper::updata_Joint_Pos_Global_Right_LeftEye(QString source_file_path)
 {
-    QString target_filepath =  QStr_ABS_PATH(CONFIG_GLOBAL_CAMERA_right_arm_joint_pose);
+    QString target_filepath =  QStr_ABS_PATH(CONFIG_GLOBAL_CAMERA_right_leftEye_arm_joint_pose);
+    return copy_replace_file(source_file_path, target_filepath);
+}
+
+bool CameraCalibQWrapper::updata_Joint_Pos_Global_Right_RightEye(QString source_file_path)
+{
+    QString target_filepath =  QStr_ABS_PATH(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose);
+    return copy_replace_file(source_file_path, target_filepath);
+}
+
+bool CameraCalibQWrapper::updata_Joint_Pos_Global_Right_DuelEye(QString source_file_path)
+{
+    QString target_filepath =  QStr_ABS_PATH(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose);
     return copy_replace_file(source_file_path, target_filepath);
 }
 
@@ -64,52 +89,6 @@ bool CameraCalibQWrapper::updata_Joint_Pos_Local_Left(QString source_file_path)
 {
     QString target_filepath =  QStr_ABS_PATH(CONFIG_LOCAL_CAMERA_left_arm_joint_pose);
     return copy_replace_file(source_file_path, target_filepath);
-}
-
-int CameraCalibQWrapper::joint_pos_index_global_right() const
-{
-    return m_joint_pos_index_global_right;
-}
-
-void CameraCalibQWrapper::set_joint_pos_index_global_right(int newJoint_pos_index_global_right)
-{
-    m_joint_pos_index_global_right = newJoint_pos_index_global_right;
-    if(m_joint_pos_index_global_right < vector2d_jpos_list_global_right_.size())
-    {
-        QVariantList list_joint_pos;
-        for(auto singleJointPos: vector2d_jpos_list_global_right_[m_joint_pos_index_global_right])
-        {
-            list_joint_pos.append(singleJointPos);
-        }
-        set_current_joint_pos_global_right(list_joint_pos);
-    }
-    emit joint_pos_index_global_right_Changed();
-}
-
-int CameraCalibQWrapper::joint_pos_total_num_global_right() const
-{
-    return m_joint_pos_total_num_global_right;
-}
-
-void CameraCalibQWrapper::set_joint_pos_total_num_global_right(int newJoint_pos_total_num_global_right)
-{
-    if (m_joint_pos_total_num_global_right == newJoint_pos_total_num_global_right)
-        return;
-    m_joint_pos_total_num_global_right = newJoint_pos_total_num_global_right;
-    emit joint_pos_total_num_global_right_Changed();
-}
-
-QVariantList CameraCalibQWrapper::get_current_joint_pos_global_right() const
-{
-    return m_current_joint_pos_global_right;
-}
-
-void CameraCalibQWrapper::set_current_joint_pos_global_right(const QVariantList &newCurrent_joint_pos_global_right)
-{
-    if (m_current_joint_pos_global_right == newCurrent_joint_pos_global_right)
-        return;
-    m_current_joint_pos_global_right = newCurrent_joint_pos_global_right;
-    emit current_joint_pos_global_right_changed();
 }
 
 int CameraCalibQWrapper::joint_pos_index_following_right() const
@@ -238,10 +217,6 @@ void CameraCalibQWrapper::read_jpos_from_file(CameraCalib_Type type, const std::
         {
             qDebug() << __FUNCTION__  << "- file" << QString::fromStdString(file_path) << "finish parse,\r\nget rows:" << vector2d.size();
             switch (type) {
-            case GLOBAL_CAMERA_RIGHT_ARM:
-                set_joint_pos_index_global_right(0);
-                set_joint_pos_total_num_global_right(vector2d.size());
-                break;
             case FOLLOWING_CAMERA_RIGHT_ARM:
                 set_joint_pos_index_following_right(0);
                 set_joint_pos_total_num_following_right(vector2d.size());
@@ -249,6 +224,18 @@ void CameraCalibQWrapper::read_jpos_from_file(CameraCalib_Type type, const std::
             case LOCAL_CAMERA_LEFT_ARM:
                 set_joint_pos_index_local_left(0);
                 set_joint_pos_total_num_local_left(vector2d.size());
+                break;
+            case GLOBAL_CAMERA_RIGHT_ARM_LEFT:
+                set_joint_pos_index_global_right_LeftEye(0);
+                set_joint_pos_total_num_global_right_LeftEye(vector2d.size());
+                break;
+            case GLOBAL_CAMERA_RIGHT_ARM_RIGHT:
+                set_joint_pos_index_global_right_RightEye(0);
+                set_joint_pos_total_num_global_right_RightEye(vector2d.size());
+                break;
+            case GLOBAL_CAMERA_RIGHT_ARM_DUEL:
+                set_joint_pos_index_global_right_DuelEye(0);
+                set_joint_pos_total_num_global_right_DuelEye(vector2d.size());
                 break;
             default :
                 break;
@@ -263,4 +250,142 @@ void CameraCalibQWrapper::read_jpos_from_file(CameraCalib_Type type, const std::
     }
 
 
+}
+
+int CameraCalibQWrapper::joint_pos_index_global_right_LeftEye() const
+{
+    return m_joint_pos_index_global_right_LeftEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_index_global_right_LeftEye(int newJoint_pos_index_global_right_LeftEye)
+{
+    m_joint_pos_index_global_right_LeftEye = newJoint_pos_index_global_right_LeftEye;
+    if(m_joint_pos_index_global_right_LeftEye < vector2d_jpos_list_global_right_LeftEye_.size())
+    {
+        QVariantList list_joint_pos;
+        for(auto singleJointPos: vector2d_jpos_list_global_right_LeftEye_[m_joint_pos_index_global_right_LeftEye])
+        {
+            list_joint_pos.append(singleJointPos);
+        }
+        set_current_joint_pos_global_right_LeftEye(list_joint_pos);
+    }
+    emit joint_pos_index_global_right_LeftEye_Changed();
+}
+
+int CameraCalibQWrapper::joint_pos_total_num_global_right_LeftEye() const
+{
+    return m_joint_pos_total_num_global_right_LeftEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_total_num_global_right_LeftEye(int newJoint_pos_total_num_global_right_LeftEye)
+{
+    if (m_joint_pos_total_num_global_right_LeftEye == newJoint_pos_total_num_global_right_LeftEye)
+        return;
+    m_joint_pos_total_num_global_right_LeftEye = newJoint_pos_total_num_global_right_LeftEye;
+    emit joint_pos_total_num_global_right_LeftEye_Changed();
+}
+
+QVariantList CameraCalibQWrapper::get_current_joint_pos_global_right_LeftEye() const
+{
+    return m_current_joint_pos_global_right_LeftEye;
+}
+
+void CameraCalibQWrapper::set_current_joint_pos_global_right_LeftEye(const QVariantList &newCurrent_joint_pos_global_right_LeftEye)
+{
+    if (m_current_joint_pos_global_right_LeftEye == newCurrent_joint_pos_global_right_LeftEye)
+        return;
+    m_current_joint_pos_global_right_LeftEye = newCurrent_joint_pos_global_right_LeftEye;
+    emit current_joint_pos_global_right_LeftEye_changed();
+}
+
+int CameraCalibQWrapper::joint_pos_index_global_right_RightEye() const
+{
+    return m_joint_pos_index_global_right_RightEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_index_global_right_RightEye(int newJoint_pos_index_global_right_RightEye)
+{
+    m_joint_pos_index_global_right_RightEye = newJoint_pos_index_global_right_RightEye;
+    if(m_joint_pos_index_global_right_RightEye < vector2d_jpos_list_global_right_RightEye_.size())
+    {
+        QVariantList list_joint_pos;
+        for(auto singleJointPos: vector2d_jpos_list_global_right_RightEye_[m_joint_pos_index_global_right_RightEye])
+        {
+            list_joint_pos.append(singleJointPos);
+        }
+        set_current_joint_pos_global_right_RightEye(list_joint_pos);
+    }
+    emit joint_pos_index_global_right_RightEye_Changed();
+}
+
+int CameraCalibQWrapper::joint_pos_total_num_global_right_RightEye() const
+{
+    return m_joint_pos_total_num_global_right_RightEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_total_num_global_right_RightEye(int newJoint_pos_total_num_global_right_RightEye)
+{
+    if (m_joint_pos_total_num_global_right_RightEye == newJoint_pos_total_num_global_right_RightEye)
+        return;
+    m_joint_pos_total_num_global_right_RightEye = newJoint_pos_total_num_global_right_RightEye;
+    emit joint_pos_total_num_global_right_RightEye_Changed();
+}
+
+QVariantList CameraCalibQWrapper::get_current_joint_pos_global_right_RightEye() const
+{
+    return m_current_joint_pos_global_right_RightEye;
+}
+
+void CameraCalibQWrapper::set_current_joint_pos_global_right_RightEye(const QVariantList &newCurrent_joint_pos_global_right_RightEye)
+{
+    if (m_current_joint_pos_global_right_RightEye == newCurrent_joint_pos_global_right_RightEye)
+        return;
+    m_current_joint_pos_global_right_RightEye = newCurrent_joint_pos_global_right_RightEye;
+    emit current_joint_pos_global_right_RightEye_changed();
+}
+
+int CameraCalibQWrapper::joint_pos_index_global_right_DuelEye() const
+{
+    return m_joint_pos_index_global_right_DuelEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_index_global_right_DuelEye(int newJoint_pos_index_global_right_DuelEye)
+{
+    m_joint_pos_index_global_right_DuelEye = newJoint_pos_index_global_right_DuelEye;
+    if(m_joint_pos_index_global_right_DuelEye < vector2d_jpos_list_global_right_DuelEye_.size())
+    {
+        QVariantList list_joint_pos;
+        for(auto singleJointPos: vector2d_jpos_list_global_right_DuelEye_[m_joint_pos_index_global_right_DuelEye])
+        {
+            list_joint_pos.append(singleJointPos);
+        }
+        set_current_joint_pos_global_right_RightEye(list_joint_pos);
+    }
+    emit joint_pos_index_global_right_DuelEye_Changed();
+}
+
+int CameraCalibQWrapper::joint_pos_total_num_global_right_DuelEye() const
+{
+    return m_joint_pos_total_num_global_right_DuelEye;
+}
+
+void CameraCalibQWrapper::set_joint_pos_total_num_global_right_DuelEye(int newJoint_pos_total_num_global_right_DuelEye)
+{
+    if (m_joint_pos_total_num_global_right_DuelEye == newJoint_pos_total_num_global_right_DuelEye)
+        return;
+    m_joint_pos_total_num_global_right_DuelEye = newJoint_pos_total_num_global_right_DuelEye;
+    emit joint_pos_total_num_global_right_DuelEye_Changed();
+}
+
+QVariantList CameraCalibQWrapper::get_current_joint_pos_global_right_DuelEye() const
+{
+    return m_current_joint_pos_global_right_DuelEye;
+}
+
+void CameraCalibQWrapper::set_current_joint_pos_global_right_DuelEye(const QVariantList &newCurrent_joint_pos_global_right_DuelEye)
+{
+    if (m_current_joint_pos_global_right_DuelEye == newCurrent_joint_pos_global_right_DuelEye)
+        return;
+    m_current_joint_pos_global_right_DuelEye = newCurrent_joint_pos_global_right_DuelEye;
+    emit current_joint_pos_global_right_DuelEye_changed();
 }

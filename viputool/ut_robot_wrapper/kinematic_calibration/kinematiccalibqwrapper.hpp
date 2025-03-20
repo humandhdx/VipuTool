@@ -19,7 +19,7 @@ public:
     /* remove the output file and reset mask index list */
     Q_INVOKABLE void reset_kinematic_calib();//重新开始
     Q_INVOKABLE void add_mask_index_for_position_recorder(uint32_t index_of_position_record);//标识错误点位
-    Q_INVOKABLE void remove_mask_index_for_position_recorder(uint32_t index_of_position_record);//标识错误点位
+    Q_INVOKABLE void remove_mask_index_for_position_recorder(uint32_t index_of_position_record);//取消标识错误点位
 
     Q_INVOKABLE bool check_calib_data_ready(bool isLeftArm);
 
