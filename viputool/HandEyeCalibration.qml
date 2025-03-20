@@ -88,7 +88,7 @@ Item {
                         text: "开启相机"
                         enabled: !isCamera
                         onClicked: {
-                            isCamera= cameraManager.startCamera(1)
+                            isCamera= cameraManager.startCamera(0)
                             if(isCamera)console.log("相机连接成功")
                         }
                     }
@@ -133,7 +133,7 @@ Item {
                             }
                             mask.open()
                             captureCount++
-                            cameraManager.start_camera_capture(capturePath,1,captureCount)
+                            cameraManager.start_camera_capture(capturePath,0,captureCount)
                             mask.close()
                         }
                     }
@@ -193,6 +193,7 @@ Item {
                                     }
                                     onClicked: {
                                        var result=cameraManager.clearCaptureCount(capturePath)
+                                       handeyeCulate.resetCalibration()
                                        if(result)captureCount=0
                                     }
                                 }
@@ -462,6 +463,7 @@ Item {
                                             opacity: handeyeCulate.arm_pose_count>0?1.0:0.5
                                         }
                                         onClicked: {
+                                            var result=cameraManager.clearCaptureCount(capturePath)
                                             handeyeCulate.resetCalibration()
                                         }
                                     }
@@ -729,6 +731,7 @@ Item {
                         console.log("你选择的图片保存路径为: " + localFolder)
                         capturePath=localFolder
                         cameraManager.clearCaptureCount(capturePath)
+                        handeyeCulate.resetCalibration()
                         captureCount=0
                         isCamera=false
                     }
@@ -773,10 +776,10 @@ Item {
                 }
             }
             Connections{
-                target: image_provider_gr
+                target: image_provider_gl
                 function onImgChanged (){
                     image.source=""
-                    image.source="image://GrImg/"
+                    image.source="image://GlImg/"
                 }
             }
             Connections{
@@ -892,7 +895,7 @@ Item {
                             }
                             mask.open()
                             captureCount++
-                            cameraManager.start_camera_capture(capturePath,1,captureCount)
+                            cameraManager.start_camera_capture(capturePath,3,captureCount)
                             mask.close()
                         }
                     }
@@ -952,6 +955,7 @@ Item {
                                     }
                                     onClicked: {
                                        var result=cameraManager.clearCaptureCount(capturePath)
+                                        handeyeCulate.resetCalibration()
                                        if(result)captureCount=0
                                     }
                                 }
@@ -1221,6 +1225,7 @@ Item {
                                             opacity: handeyeCulate.arm_pose_count>0?1.0:0.5
                                         }
                                         onClicked: {
+                                            var result=cameraManager.clearCaptureCount(capturePath)
                                             handeyeCulate.resetCalibration()
                                         }
                                     }
@@ -1488,6 +1493,7 @@ Item {
                         console.log("你选择的图片保存路径为: " + localFolder)
                         capturePath=localFolder
                         cameraManager.clearCaptureCount(capturePath)
+                        handeyeCulate.resetCalibration()
                         captureCount=0
                         isCamera=false
                     }
@@ -1532,7 +1538,7 @@ Item {
                 }
             }
             Connections{
-                target: image_provider_gr
+                target: image_provider_ml
                 function onImgChanged (){
                     image.source=""
                     image.source="image://MlImg/"

@@ -283,7 +283,7 @@ Item {
                                     }
                                     mask.open()
                                     right_captureCount++
-                                    cameraManager.start_camera_capture(right_capturePath,0,right_captureCount)
+                                    cameraManager.start_camera_capture(right_capturePath,1,right_captureCount)
                                     mask.close()
                                 }
                             }
@@ -371,6 +371,58 @@ Item {
                                     cameraManager.open_path(cameraManager.currentDirectory()+"/Global_Calibration")
                                 }
                             }
+                            Row{
+                                spacing: 20
+                                Rectangle{
+                                    width: 200
+                                    height: 40
+                                    radius: 5
+                                    color: "#fff"
+                                    Button{
+                                        anchors.fill: parent
+                                        enabled: false
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: qsTr("左目坐标"+cameracalibqwrapper.joint_pos_index_global_right_LeftEye)
+                                    }
+                                    Button{
+                                        anchors.left: parent.left
+                                        width: 50
+                                        height: 40
+                                        text: "-"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_LeftEye===0){
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_LeftEye--
+                                        }
+                                    }
+                                    Button{
+                                        anchors.right: parent.right
+                                        width: 50
+                                        height: 40
+                                        text: "+"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_LeftEye===cameracalibqwrapper.joint_pos_total_num_global_right_LeftEye)
+                                            {
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_LeftEye++
+                                        }
+                                    }
+                                }
+                                Button{
+                                    width: 130
+                                    height: 40
+                                    text: "机械臂运动"
+                                    onClicked: {
+                                        mask.open()
+                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_LeftEye)
+                                        mask.close()
+                                    }
+                                }
+                            }
                         }
                         Row{
                             spacing: 20
@@ -413,71 +465,126 @@ Item {
                                     }
                                 }
                             }
+                            Row{
+                                spacing: 20
+                                Rectangle{
+                                    width: 200
+                                    height: 40
+                                    radius: 5
+                                    color: "#fff"
+                                    Button{
+                                        anchors.fill: parent
+                                        enabled: false
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: qsTr("右目坐标"+cameracalibqwrapper.joint_pos_index_global_right_RightEye)
+                                    }
+                                    Button{
+                                        anchors.left: parent.left
+                                        width: 50
+                                        height: 40
+                                        text: "-"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===0){
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_RightEye--
+                                        }
+                                    }
+                                    Button{
+                                        anchors.right: parent.right
+                                        width: 50
+                                        height: 40
+                                        text: "+"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===cameracalibqwrapper.joint_pos_total_num_global_right_RightEye)
+                                            {
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_RightEye++
+                                        }
+                                    }
+                                }
+                                Button{
+                                    width: 130
+                                    height: 40
+                                    text: "机械臂运动"
+                                    onClicked: {
+                                        mask.open()
+                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_RightEye)
+                                        mask.close()
+                                    }
+                                }
+                            }
                         }
                         Row{
                             spacing: 20
-                            Rectangle{
-                                width: 200
+                            Item {
+                                width: 420
                                 height: 40
-                                radius: 5
-                                color: "#fff"
                                 Button{
-                                    anchors.fill: parent
-                                    enabled: false
-                                }
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: qsTr(""+cameracalibqwrapper.joint_pos_index_global_right)
-                                }
-                                Button{
-                                    anchors.left: parent.left
-                                    width: 50
+                                    width: 200
                                     height: 40
-                                    text: "-"
+                                    text: "开始计算"
                                     onClicked: {
-                                        if(cameracalibqwrapper.joint_pos_index_global_right===0){
-                                            return
-                                        }
-                                        cameracalibqwrapper.joint_pos_index_global_right--
-                                    }
-                                }
-                                Button{
-                                    anchors.right: parent.right
-                                    width: 50
-                                    height: 40
-                                    text: "+"
-                                    onClicked: {
-                                        if(cameracalibqwrapper.joint_pos_index_global_right===cameracalibqwrapper.joint_pos_total_num_global_right)
-                                        {
-                                            return
-                                        }
-                                        cameracalibqwrapper.joint_pos_index_global_right++
+                                        cameraManager.openMalLab()
                                     }
                                 }
                             }
-
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "机械臂运动"
-                                onClicked: {
-                                    mask.open()
-                                    var reslut=urtrobot_right.move_To_Joint_Position(cameracalibqwrapper.current_joint_pos_global_right)
-                                    mask.close()
+                            Row{
+                                spacing: 20
+                                Rectangle{
+                                    width: 200
+                                    height: 40
+                                    radius: 5
+                                    color: "#fff"
+                                    Button{
+                                        anchors.fill: parent
+                                        enabled: false
+                                    }
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: qsTr("双目坐标"+cameracalibqwrapper.joint_pos_index_global_right_DuelEye)
+                                    }
+                                    Button{
+                                        anchors.left: parent.left
+                                        width: 50
+                                        height: 40
+                                        text: "-"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===0){
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_DuelEye--
+                                        }
+                                    }
+                                    Button{
+                                        anchors.right: parent.right
+                                        width: 50
+                                        height: 40
+                                        text: "+"
+                                        onClicked: {
+                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===cameracalibqwrapper.joint_pos_total_num_global_right_DuelEye)
+                                            {
+                                                return
+                                            }
+                                            cameracalibqwrapper.joint_pos_index_global_right_DuelEye++
+                                        }
+                                    }
+                                }
+                                Button{
+                                    width: 130
+                                    height: 40
+                                    text: "机械臂运动"
+                                    onClicked: {
+                                        mask.open()
+                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_DuelEye)
+                                        mask.close()
+                                    }
                                 }
                             }
-
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "开始计算"
-                                onClicked: {
-                                    cameraManager.openMalLab()
-                                }
-                            }
-
                         }
-
                     }
                     Rectangle{
                         anchors.right: parent.right

@@ -80,13 +80,17 @@ bool handeyecalculate::resetCalibration()
 
 bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
 {
-    if(type==0&&currentGlobalPoseMatrix.empty()){
-        qDebug()<<"请先进行全局相机手眼标定后再保存";
-        return false;
+    if(type==0){
+        if(currentGlobalPoseMatrix.empty()){
+            qDebug()<<"请先进行全局相机手眼标定后再保存";
+            return false;
+        }
     }
-    if(type==1&&currentCenterPoseMatrix.empty()){
-        qDebug()<<"请先进行随动相机手眼标定后再保存";
-        return false;
+    else if(type==1){
+        if(currentCenterPoseMatrix.empty()){
+            qDebug()<<"currentCenterPoseMatrix.empty()";
+            return false;
+        }
     }
     json jsonTemplate = {
         {"version", "0.0.0.0"},
@@ -107,10 +111,10 @@ bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
 
     // 填充JSON数据
     if(type==0){
-       data["eye_in_hand_cali"]["global_camera_pose_matrix_mm"] = currentGlobalPoseMatrix;
+        data["eye_in_hand_cali"]["global_camera_pose_matrix_mm"] = currentGlobalPoseMatrix;
     }
     else{
-       data["eye_in_hand_cali"]["center_camera_pose_matrix_mm"] = currentCenterPoseMatrix;
+        data["eye_in_hand_cali"]["center_camera_pose_matrix_mm"] = currentCenterPoseMatrix;
     }
 
     // 将JSON对象保存到指定位置的文件中
@@ -128,10 +132,10 @@ bool handeyecalculate::saveCalibrationToFile(QString savepath,int type)
 
 bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile,QString camerafile)
 {
-    int min_hand_eye_num = 5;
-    // QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
-    // QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
-    // QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
+    int min_hand_eye_num = 30;
+        // QString pattern_folder="/home/vipu/VipuTool/viputool/VipuTool/viputool/HandEyeImages";
+        // QString arm_pose_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/arm_pose.txt";
+        // QString camera_file="/home/vipu/VipuTool/viputool/VipuTool/viputool/cali_mat.yaml";
     QString pattern_folder=patternfolder;
     QString arm_pose_file=armposefile;
     QString camera_file=camerafile;
@@ -147,11 +151,12 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         qWarning()<< "全局相机参数文件不存在:" << camera_file;
         return false;
     }
-    qDebug()<< "开始计算:" << camera_file;
+    qDebug()<< "开始计算1:" << patternfolder<<arm_pose_file<<camera_file;
     MonoCameraMat camera_model(camera_file.toStdString());
-
+    qDebug()<< "开始计算2:" ;
     std::vector<cv::String> image_files;
     cv::glob(pattern_folder.toStdString(), image_files);
+    qDebug()<< "开始计算3:" ;
 
     float cb_length = 2.0;
     cv::Size pattern_size = cv::Size(11 ,8);
@@ -163,13 +168,13 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         cv::Point3f pt(cb_length * row, cb_length * col, 0); // swap x and y cororidinate
         world_points.push_back(pt);
     }
-
+    qDebug()<< "开始计算4:" ;
     std::vector<std::vector<double>> arm_pose = readArmPose(arm_pose_file.toStdString());
     qDebug()<< "获取机械臂姿态数量: "<< arm_pose.size();
     //std::cout << "pattern size: " << arm_pose.size() << std::endl;
     if(arm_pose.size() != image_files.size()){
         qDebug() << "图片数量和机械臂姿态数量不匹配手眼标定失败!";
-        return 0;
+        return false;
     }
 
     std::vector<CaliFrameInfo> frame_list;
@@ -219,7 +224,7 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         T.rotate(q);
         T.pretranslate(Eigen::Vector3d(pose[0], pose[1], pose[2]));
         currentGlobalPoseMatrix.clear();
-        currentGlobalPoseMatrix={
+        currentCenterPoseMatrix={
             T(0,0),T(0,1),T(0,2),T(0,3),
             T(1,0),T(1,1),T(1,2),T(1,3),
             T(2,0),T(2,1),T(2,2),T(2,3),

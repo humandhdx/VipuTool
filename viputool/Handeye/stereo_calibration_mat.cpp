@@ -72,8 +72,8 @@ cv::Mat StereoCalibrationMat::remap_right(cv::Mat img_src) {
 MonoCameraMat::MonoCameraMat(const std::string yamlFile) {
     YAML::Node cfg =  YAML::LoadFile(yamlFile);
 
-    std::vector<double> m_vec = cfg["M"].as<std::vector<double>>();
-    std::vector<double> d_vec = cfg["d"].as<std::vector<double>>();
+    std::vector<double> m_vec = cfg["M1"].as<std::vector<double>>();
+    std::vector<double> d_vec = cfg["d1"].as<std::vector<double>>();
     
     M = cv::Mat(3,3,CV_64F);
     for (int row=0; row<3; row++) {

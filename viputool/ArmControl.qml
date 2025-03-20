@@ -640,13 +640,14 @@ Item {
     }
     Connections{
         target: urtrobot_right
-        function onUpdate_Tcp_Cartesian_Pos (current_Jpos){
+        function onUpdate_Robot_Joint_Pos (current_Jpos){
             left_arm1Jpos=current_Jpos[0]
             left_arm2Jpos=current_Jpos[1]
             left_arm3Jpos=current_Jpos[2]
             left_arm4Jpos=current_Jpos[3]
             left_arm5Jpos=current_Jpos[4]
             left_arm6Jpos=current_Jpos[5]
+            left_arm7Jpos=current_Jpos[6]
         }
     }
     Connections{
