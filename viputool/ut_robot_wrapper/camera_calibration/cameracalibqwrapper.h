@@ -145,8 +145,7 @@ private:
     void read_jpos_from_file(CameraCalib_Type type, const std::string& file_path , std::vector<std::vector<double>>& vector2d);
 
     PoseFileParser parser_;
-    //joint pose{radian} list => vector [7][n]
-    std::vector<std::vector<double>> vector2d_jpos_list_global_right_;
+    //joint pose{degree} list => vector [7][n]
     std::vector<std::vector<double>> vector2d_jpos_list_global_right_LeftEye_;
     std::vector<std::vector<double>> vector2d_jpos_list_global_right_RightEye_;
     std::vector<std::vector<double>> vector2d_jpos_list_global_right_DuelEye_;

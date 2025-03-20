@@ -459,12 +459,12 @@ bool UtraRobot_QWrapper::move_To_Joint_Position(QVariantList jointpos)
     spinner.exec();
     if(executionResult)
     {
-        qDebug() << "Robot Arm move to given joint position" << joint_pos_str;
+        qDebug() << "Robot Arm move to given joint position of radian:" << joint_pos_str;
         return true;
     }
     else
     {
-        qWarning() << "Robot Arm failed to move to given joint position" << joint_pos_str;
+        qWarning() << "Robot Arm failed to move to given joint position of radian:" << joint_pos_str;
         return false;
     }
 }
@@ -480,8 +480,10 @@ bool UtraRobot_QWrapper::move_To_Joint_Position_Degree(QVariantList jointpos)
     UtRobotConfig::JointPos target_jpos;
     int jp_index=0;
     QString joint_pos_str = "{";
+    int cnt = 1;
     for(auto single_joint : jointpos)
     {
+        qDebug() << "Original Pos " << (cnt++) << " is" << single_joint;
         target_jpos[jp_index] = single_joint.toFloat() * M_PI / 180.0;
         joint_pos_str += QString::number(single_joint.toFloat()) + ",";
         jp_index++;
@@ -503,12 +505,12 @@ bool UtraRobot_QWrapper::move_To_Joint_Position_Degree(QVariantList jointpos)
     spinner.exec();
     if(executionResult)
     {
-        qDebug() << "Robot Arm move to given joint position" << joint_pos_str;
+        qDebug() << "Robot Arm move to given joint position of dgree:" << joint_pos_str;
         return true;
     }
     else
     {
-        qWarning() << "Robot Arm failed to move to given joint position" << joint_pos_str;
+        qWarning() << "Robot Arm failed to move to given joint position of dgree:" << joint_pos_str;
         return false;
     }
 }

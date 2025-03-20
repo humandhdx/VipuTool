@@ -40,11 +40,11 @@ void CameraCalibQWrapper::calibration_resource_load()
     set_current_joint_pos_local_left(zero_jointPos);
 
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_leftEye_arm_joint_pose,
-                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_LEFT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_LEFT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_LeftEye_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose,
-                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_RIGHT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_RIGHT, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_RightEye_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_duelEye_arm_joint_pose,
-                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_DUEL, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_)));
+                                                                       std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::GLOBAL_CAMERA_RIGHT_ARM_DUEL, std::placeholders::_1, std::ref(vector2d_jpos_list_global_right_DuelEye_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_FOLLOWING_CAMERA_right_arm_joint_pose,
                                                                        std::bind(&CameraCalibQWrapper::read_jpos_from_file, this, CameraCalib_Type::FOLLOWING_CAMERA_RIGHT_ARM, std::placeholders::_1, std::ref(vector2d_jpos_list_following_right_)));
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_LOCAL_CAMERA_left_arm_joint_pose,
