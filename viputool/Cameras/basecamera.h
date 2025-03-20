@@ -86,7 +86,7 @@ protected:
             return;
         }
 
-        memset(buff_, 0, width_ * height_);
+        memset(buff_, 0, width_ * height_*3);
         int rsize = camera_->read(reinterpret_cast<char*>(buff_), width_ * height_ - 1);
         handleFrameData(rsize);
     }
@@ -132,7 +132,7 @@ protected:
 
     void allocateBuffers() {
         releaseBuffers();
-        buff_ = new uchar[width_ * height_];
+        buff_ = new uchar[width_ * height_*3];
         vec_buff_ = new std::vector<uchar>();
         vec_buff_->reserve(width_ * height_);
     }
