@@ -97,11 +97,11 @@ Window {
                     anchors.fill: parent
                     onClicked: {
                         mask.open()
+                        loader.source=pageurl
+                        typelist.currentIndex=index
                         urtrobot_left.spin_until_all_action_finished()
                         urtrobot_right.spin_until_all_action_finished()
                         mask.close()
-                        typelist.currentIndex=index
-                        loader.source=pageurl
                     }
                 }
             }

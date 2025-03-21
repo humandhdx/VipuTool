@@ -52,7 +52,6 @@ bool UtraRobot_QWrapper::robot_connect()
 
 bool UtraRobot_QWrapper::robot_drag_activate(bool on)
 {
-    qWarning() << __FUNCTION__ << "before try lock";
     QMutexTryLocker lck{mutext};
     if(!lck.isLocked())
     {
@@ -83,12 +82,8 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
     }
     else
     {
-        qWarning() << __FUNCTION__ << " begin hold";
         fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
             executionResult = this->RobotCommand_Hold();
-            qWarning() << QString::fromStdString(config_.ip) << "Hold begin sleep";
-            sleep(5);
-            qWarning() << QString::fromStdString(config_.ip) << "Hold finish sleep";
             spinner.exit();
             return executionResult;
         });
@@ -110,10 +105,7 @@ void UtraRobot_QWrapper::spin_until_all_action_finished()
 {
     QEventLoop spinner;
     std::future<void> fut = std::async(std::launch::async, [&spinner, this](){
-        qDebug() << QString::fromStdString(config_.ip) << "spin_until_all_action_begin";
         this->mutext.lock();
-        qDebug() << QString::fromStdString(config_.ip) << "spin_until_all_action_finished";
-        // QMutexLocker<QMutex> lck{this->mutext};
         this->mutext.unlock();
         spinner.exit();
         return ;
