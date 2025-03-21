@@ -45,15 +45,20 @@ Item {
             property string capturePath: ""
             property string left_capturePath: ""
             property string right_capturePath: ""
+            property string binocular_left_capturePath: ""
+            property string binocular_right_capturePath: ""
             property bool isCamera: false
             property int captureCount: 0
             property int left_captureCount: 0
             property int right_captureCount: 0
             Component.onCompleted: {
                 capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Binocular"
+                binocular_left_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Binocular/Left"
+                binocular_right_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Binocular/Right"
                 left_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Left"
                 right_capturePath=cameraManager.currentDirectory()+"/Global_Calibration/Right"
-                cameraManager.clearCaptureCount(capturePath)
+                cameraManager.clearCaptureCount(binocular_left_capturePath)
+                cameraManager.clearCaptureCount(binocular_right_capturePath)
                 cameraManager.clearCaptureCount(left_capturePath)
                 cameraManager.clearCaptureCount(right_capturePath)
                 cameracalibqwrapper.calibration_resource_load()
@@ -216,14 +221,10 @@ Item {
                                 text: "采集双目图片"
                                 enabled: isCamera
                                 onClicked: {
-                                    if(capturePath===""){
-                                        console.log("请选择保存路径")
-                                        nopath.visible=true
-                                        return
-                                    }
                                     mask.open()
                                     captureCount++
-                                    cameraManager.start_camera_capture(capturePath,2,captureCount)
+                                    cameraManager.start_camera_capture(binocular_left_capturePath,0,captureCount)
+                                    cameraManager.start_camera_capture(binocular_right_capturePath,1,captureCount)
                                     mask.close()
                                 }
                             }
@@ -265,7 +266,8 @@ Item {
                                             opacity: captureCount>0?1.0:0.5
                                         }
                                         onClicked: {
-                                            cameraManager.clearCaptureCount(capturePath)
+                                            cameraManager.clearCaptureCount(binocular_left_capturePath)
+                                            cameraManager.clearCaptureCount(binocular_right_capturePath)
                                             captureCount=0
                                         }
                                     }
@@ -350,7 +352,7 @@ Item {
                                 }
                                 TextMetrics {
                                     id: textMetrics
-                                    text: qsTr("保存路径：" + capturePath)
+                                    text: qsTr("保存路径：" +  capturePath)
                                     font.pixelSize: 10 // 初始字体大小，计算时会使用这个值
                                 }
                                 Text {

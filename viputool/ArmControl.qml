@@ -573,73 +573,155 @@ Item {
             width: parent.width-20
             height: 240
             color: "#D9D9D9"
-            Column{
-                anchors.left: parent.left
-                anchors.leftMargin: 20
+            Row{
+                anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 30
-                Row{
-                    spacing: 50
-                    Button{
-                        width: 200
-                        height: 40
-                        text: "连接机械臂"
-                        enabled: !urtrobot_right.arm_connect
-                        onClicked: {
-                            mask.open()
-                            var result= urtrobot_right.robot_connect()
-                            if(result) console.log("机械臂成功连接")
-                            else console.error("机械臂连接失败")
-                            mask.close()
-                        }
-                    }
-                    Item {
-                        width: 200
-                        height: 40
-                        Text {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("连接状态:")
-                            font.pixelSize: 12
-                        }
-                        Rectangle{
-                            anchors.right: parent.right
-                            width: 140
+                spacing: 200
+                Column{
+                    spacing: 30
+                    Row{
+                        spacing: 50
+                        Button{
+                            width: 200
                             height: 40
-                            radius: 5
-                            color: "#F5F5F5"
-                            border.width: 1
-                            border.color: "#c9c9c9"
+                            text: "连接左机械臂"
+                            enabled: !urtrobot_left.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_left.robot_connect()
+                                if(result) console.log("机械臂成功连接")
+                                else console.error("机械臂连接失败")
+                                mask.close()
+                            }
+                        }
+                        Item {
+                            width: 200
+                            height: 40
                             Text {
                                 anchors.left: parent.left
-                                anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: urtrobot_right.arm_connect?qsTr("已连接"):qsTr("未连接")
-                                color: urtrobot_right.arm_connect?"green":"red"
+                                text: qsTr("连接状态:")
+                                font.pixelSize: 12
+                            }
+                            Rectangle{
+                                anchors.right: parent.right
+                                width: 140
+                                height: 40
+                                radius: 5
+                                color: "#F5F5F5"
+                                border.width: 1
+                                border.color: "#c9c9c9"
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 20
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: urtrobot_left.arm_connect?qsTr("已连接"):qsTr("未连接")
+                                    color: urtrobot_left.arm_connect?"green":"red"
+                                }
+                            }
+                        }
+                    }
+                    Row{
+                        spacing: 20
+                        Button{
+                            width: 90
+                            height: 40
+                            text: "自由拖拽"
+                            enabled: urtrobot_left.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_left.robot_drag_activate(true)
+                                mask.close()
+                            }
+                        }
+                        Button{
+                            width: 90
+                            height: 40
+                            text: "关闭拖拽"
+                            enabled: urtrobot_left.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_left.robot_drag_activate(true)
+                                mask.close()
                             }
                         }
                     }
                 }
-                Row{
-                    spacing: 50
-                    Button{
-                        width: 90
-                        height: 40
-                        text: "自由拖拽"
-                        enabled: urtrobot_right.arm_connect
-                        onClicked: {
-                            mask.open()
-                            var result= urtrobot_right.robot_drag_activate(true)
-                            mask.close()
+                Column{
+                    spacing: 30
+                    Row{
+                        spacing: 50
+                        Button{
+                            width: 200
+                            height: 40
+                            text: "连接右机械臂"
+                            enabled: !urtrobot_right.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_right.robot_connect()
+                                if(result) console.log("机械臂成功连接")
+                                else console.error("机械臂连接失败")
+                                mask.close()
+                            }
+                        }
+                        Item {
+                            width: 200
+                            height: 40
+                            Text {
+                                anchors.left: parent.left
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: qsTr("连接状态:")
+                                font.pixelSize: 12
+                            }
+                            Rectangle{
+                                anchors.right: parent.right
+                                width: 140
+                                height: 40
+                                radius: 5
+                                color: "#F5F5F5"
+                                border.width: 1
+                                border.color: "#c9c9c9"
+                                Text {
+                                    anchors.left: parent.left
+                                    anchors.leftMargin: 20
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: urtrobot_right.arm_connect?qsTr("已连接"):qsTr("未连接")
+                                    color: urtrobot_right.arm_connect?"green":"red"
+                                }
+                            }
+                        }
+                    }
+                    Row{
+                        spacing: 20
+                        Button{
+                            width: 90
+                            height: 40
+                            text: "自由拖拽"
+                            enabled: urtrobot_right.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_right.robot_drag_activate(true)
+                                mask.close()
+                            }
+                        }
+                        Button{
+                            width: 90
+                            height: 40
+                            text: "关闭拖拽"
+                            enabled: urtrobot_right.arm_connect
+                            onClicked: {
+                                mask.open()
+                                var result= urtrobot_right.robot_drag_activate(true)
+                                mask.close()
+                            }
                         }
                     }
                 }
             }
-
         }
     }
     Connections{
-        target: urtrobot_right
+        target: urtrobot_left
         function onUpdate_Robot_Joint_Pos (current_Jpos){
             left_arm1Jpos=current_Jpos[0]
             left_arm2Jpos=current_Jpos[1]
@@ -648,6 +730,18 @@ Item {
             left_arm5Jpos=current_Jpos[4]
             left_arm6Jpos=current_Jpos[5]
             left_arm7Jpos=current_Jpos[6]
+        }
+    }
+    Connections{
+        target: urtrobot_right
+        function onUpdate_Robot_Joint_Pos (current_Jpos){
+            right_arm1Jpos=current_Jpos[0]
+            right_arm2Jpos=current_Jpos[1]
+            right_arm3Jpos=current_Jpos[2]
+            right_arm4Jpos=current_Jpos[3]
+            right_arm5Jpos=current_Jpos[4]
+            right_arm6Jpos=current_Jpos[5]
+            right_arm7Jpos=current_Jpos[6]
         }
     }
     Connections{

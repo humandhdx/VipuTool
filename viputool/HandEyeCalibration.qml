@@ -126,7 +126,7 @@ Item {
                         width: 200
                         height: 40
                         text: "采集图片"
-                        enabled: isCamera&&captureCount<=handeyeCulate.arm_pose_count?true:false
+                        enabled: isCamera&&captureCount<handeyeCulate.arm_pose_count?true:false
                         onClicked: {
                             if(capturePath===""){
                                 console.log("请选择保存路径")
