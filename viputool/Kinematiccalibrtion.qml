@@ -639,7 +639,7 @@ Item {
             }
             Connections{
                 target: urtrobot_right
-                function onUpdate_Tcp_Cartesian_Pos (current_Jpos){
+                function onUpdate_Robot_Joint_Pos (current_Jpos){
                     if(isLeft){
                         return
                     }
@@ -649,11 +649,12 @@ Item {
                     arm4Jpos=current_Jpos[3]
                     arm5Jpos=current_Jpos[4]
                     arm6Jpos=current_Jpos[5]
+                    arm7Jpos=current_Jpos[6]
                 }
             }
             Connections{
                 target: urtrobot_left
-                function onUpdate_Tcp_Cartesian_Pos (current_Jpos){
+                function onUpdate_Robot_Joint_Pos (current_Jpos){
                     if(!isLeft){
                         return
                     }
@@ -663,6 +664,7 @@ Item {
                     arm4Jpos=current_Jpos[3]
                     arm5Jpos=current_Jpos[4]
                     arm6Jpos=current_Jpos[5]
+                    arm7Jpos=current_Jpos[6]
                 }
             }
         }
