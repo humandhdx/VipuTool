@@ -44,7 +44,7 @@ Item {
                 kinematiccalibqwrapper.calibration_resource_load(true)
             }
             Component.onDestruction: {
-                kinematiccalibqwrapper.calibration_resource_unload(true)
+                kinematiccalibqwrapper.calibration_resource_unload(isLeft)
                 if(urtrobot_left.arm_connect){
                     urtrobot_left.robot_drag_activate(false)
                 }
