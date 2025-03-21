@@ -467,6 +467,7 @@ Item {
                                         onClicked: {
                                             var result=cameraManager.clearCaptureCount(capturePath)
                                             handeyeCulate.resetCalibration()
+                                            captureCount=0
                                         }
                                     }
                                 }
@@ -1235,6 +1236,7 @@ Item {
                                         onClicked: {
                                             var result=cameraManager.clearCaptureCount(capturePath)
                                             handeyeCulate.resetCalibration()
+                                            captureCount=0
                                         }
                                     }
                                 }

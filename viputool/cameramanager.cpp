@@ -24,9 +24,9 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},
     vec_buff_left_ = new std::vector<uchar>();
     vec_buff_middle_ = new std::vector<uchar>();
     vec_buff_right_ = new std::vector<uchar>();
-    vec_buff_left_->reserve(4000 * 3000);
-    vec_buff_middle_->reserve(1920*1080);
-    vec_buff_right_->reserve(4000 * 3000);
+    vec_buff_left_->reserve(4000 * 3000*3);
+    vec_buff_middle_->reserve(1920*1080*3);
+    vec_buff_right_->reserve(4000 * 3000*3);
     matlab_process=new QProcess(this);
 }
 

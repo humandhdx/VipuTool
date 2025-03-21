@@ -212,6 +212,13 @@ bool handeyecalculate::runCalibration( QString patternfolder,QString armposefile
         T.rotate(q);
         T.pretranslate(Eigen::Vector3d(pose[0], pose[1], pose[2]));
         currentGlobalPoseMatrix.clear();
+        currentCenterPoseMatrix.clear();
+        currentGlobalPoseMatrix={
+            T(0,0),T(0,1),T(0,2),T(0,3),
+            T(1,0),T(1,1),T(1,2),T(1,3),
+            T(2,0),T(2,1),T(2,2),T(2,3),
+            0.0,0.0,0.0,1.0
+        };
         currentCenterPoseMatrix={
             T(0,0),T(0,1),T(0,2),T(0,3),
             T(1,0),T(1,1),T(1,2),T(1,3),

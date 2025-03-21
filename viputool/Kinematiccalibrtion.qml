@@ -408,7 +408,7 @@ Item {
                                                    : kinematiccalibqwrapper.joint_pos_total_num_right
 
                                     // 执行关节移动
-                                    var result = robot.move_To_Joint_Position(targetPose)
+                                    var result = robot.move_To_Joint_Position_Degree(targetPose)
 
                                     // 处理结果
                                     if (result) {
