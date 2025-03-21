@@ -19,6 +19,8 @@ public:
 
     Q_INVOKABLE bool robot_drag_activate(bool on);
 
+    Q_INVOKABLE void spin_until_all_action_finished();
+
     Q_INVOKABLE bool test_graivty_and_spin();
     Q_INVOKABLE bool test_accuracy_and_spin();
     Q_INVOKABLE bool test_workspace_and_spin();
