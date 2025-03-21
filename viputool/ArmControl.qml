@@ -259,7 +259,7 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: 20
                         anchors.verticalCenter: parent.verticalCenter
-                        text: left_arm5Jpos.toFixed(1)
+                        text: left_arm7Jpos.toFixed(1)
                     }
                 }
             }
@@ -489,7 +489,7 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: 20
                         anchors.verticalCenter: parent.verticalCenter
-                        text: right_arm5Jpos.toFixed(1)
+                        text: right_arm7Jpos.toFixed(1)
                     }
                 }
             }
