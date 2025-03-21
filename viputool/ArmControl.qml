@@ -641,7 +641,7 @@ Item {
                             enabled: urtrobot_left.arm_connect
                             onClicked: {
                                 mask.open()
-                                var result= urtrobot_left.robot_drag_activate(true)
+                                var result= urtrobot_left.robot_drag_activate(false)
                                 mask.close()
                             }
                         }
@@ -711,7 +711,7 @@ Item {
                             enabled: urtrobot_right.arm_connect
                             onClicked: {
                                 mask.open()
-                                var result= urtrobot_right.robot_drag_activate(true)
+                                var result= urtrobot_right.robot_drag_activate(false)
                                 mask.close()
                             }
                         }

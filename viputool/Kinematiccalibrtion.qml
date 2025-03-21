@@ -264,7 +264,7 @@ Item {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 20
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: arm5Jpos.toFixed(1)
+                                text: arm7Jpos.toFixed(1)
                             }
                         }
                     }
