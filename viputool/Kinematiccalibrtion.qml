@@ -553,7 +553,7 @@ Item {
                                         anchors.left: parent.left
                                         anchors.leftMargin: 20
                                         anchors.verticalCenter: parent.verticalCenter
-                                        text: kinematiccalibqwrapper.joint_pos_total_num_left
+                                        text: isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right
                                     }
                                 }
                             }
