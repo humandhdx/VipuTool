@@ -3,6 +3,7 @@
 #include "ut_robot_wrapper/camera_calibration/cameracalib_config.h"
 #include <fstream>
 #include "utils/ReadAndWriteFile.hpp"
+#include <QMutexLocker>
 
 using namespace CameraCalib_Config::FileRelativePath;
 
@@ -64,6 +65,8 @@ void CameraCalibQWrapper::calibration_resource_load()
 
 void CameraCalibQWrapper::calibration_resource_unload()
 {
+    QMutexLocker lck{&mutex};
+    qDebug() << __FUNCTION__;
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_leftEye_arm_joint_pose);
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_rightEye_arm_joint_pose);
     QFileSystemMonitor::instance()->Deregister_Callback_On_File_Modified(CONFIG_GLOBAL_CAMERA_right_duelEye_arm_joint_pose);

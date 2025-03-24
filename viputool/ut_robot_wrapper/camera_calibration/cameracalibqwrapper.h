@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include "utils/qfilesystemmonitor.hpp"
+#include <QMutex>
 // #include "ut_robot_wrapper/kinematic_calibration/kinematiccalib_config.hpp"
 #include "ut_robot_wrapper/kinematic_calibration/posefileparser.hpp"
 
@@ -185,7 +186,7 @@ private:
 private:
     bool copy_replace_file(QString &path_sourceFile, QString &path_targetFile);
     void read_jpos_from_file(CameraCalib_Type type, const std::string& file_path , std::vector<std::vector<double>>& vector2d);
-
+    QMutex mutex;
     PoseFileParser parser_;
     //joint pose{degree} list => vector [7][n]
     std::vector<std::vector<double>> vector2d_jpos_list_global_right_LeftEye_;
