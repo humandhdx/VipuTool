@@ -400,12 +400,12 @@ Item {
                                 onClicked: {
                                     mask.open()
                                     var targetPose = isLeft
-                                                     ? kinematiccalibqwrapper.calib_target_joint_pose_left
-                                                     : kinematiccalibqwrapper.calib_target_joint_pose_right
+                                            ? kinematiccalibqwrapper.calib_target_joint_pose_left
+                                            : kinematiccalibqwrapper.calib_target_joint_pose_right
 
                                     var totalNum = isLeft
-                                                   ? kinematiccalibqwrapper.joint_pos_total_num_left
-                                                   : kinematiccalibqwrapper.joint_pos_total_num_right
+                                            ? kinematiccalibqwrapper.joint_pos_total_num_left
+                                            : kinematiccalibqwrapper.joint_pos_total_num_right
 
                                     // 执行关节移动
                                     var result = robot.move_To_Joint_Position(targetPose)
@@ -692,7 +692,7 @@ Item {
                 anchors.top: parent.top
                 anchors.topMargin: 10
                 font.pixelSize: 24
-                text:isLeft? qsTr("输入左机械臂SN码"):qsTr("输入右机械臂SN码")
+                text:isLeft? qsTr("输入左机械臂15位SN码"):qsTr("输入右机械臂15位SN码")
             }
             TextField{
                 id:sninput
@@ -713,10 +713,14 @@ Item {
                     height: 40
                     text: "确定"
                     onClicked: {
-                      input_cn_popup.snNub=isLeft?"CL"+sninput.text:"CR"+sninput.text
-                      console.log(input_cn_popup.snNub)
-                      pageLoader.sourceComponent=arm_cali
-                      input_cn_popup.close()
+                        if(sninput.text.length!=15)
+                        {
+                            return
+                        }
+                        input_cn_popup.snNub=isLeft?"CL"+sninput.text:"CR"+sninput.text
+                        console.log(input_cn_popup.snNub)
+                        pageLoader.sourceComponent=arm_cali
+                        input_cn_popup.close()
                     }
                 }
                 Button{
@@ -724,7 +728,7 @@ Item {
                     height: 40
                     text: "取消"
                     onClicked: {
-                      input_cn_popup.close()
+                        input_cn_popup.close()
                     }
                 }
             }
