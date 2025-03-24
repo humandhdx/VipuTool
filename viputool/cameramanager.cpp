@@ -1357,6 +1357,8 @@ bool cameraManager::startCamera(const int l_r)
     case 2:
         return  start_left_capture()&&start_right_capture();
     case 3:
+        return  start_middle_capture();
+    case 4:
         return  start_local_left_capture()&&start_local_right_capture();
     default:
         return false;

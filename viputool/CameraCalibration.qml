@@ -768,7 +768,7 @@ Item {
                                 text: "开启相机"
                                 enabled: !isCamera
                                 onClicked: {
-                                    isCamera= cameraManager.startCamera(3)
+                                    isCamera= cameraManager.startCamera(4)
                                 }
                             }
                             Item {
