@@ -18,6 +18,9 @@ Item {
     Component.onCompleted: {
     }
     Component.onDestruction: {
+        if(urtrobot_left.arm_connect){
+            urtrobot_left.robot_drag_activate(false)
+        }
         if(urtrobot_right.arm_connect){
             urtrobot_right.robot_drag_activate(false)
         }
