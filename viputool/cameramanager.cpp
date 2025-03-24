@@ -32,7 +32,11 @@ cameraManager::cameraManager(QObject *parent): QObject{parent},
 
 cameraManager::~cameraManager()
 {
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
     stopCamera();
+    qWarning() << __FUNCTION__ << " - 1!";
+    QThread::sleep(2);
     if (buff_left_) {
         delete[] buff_left_;
         buff_left_ = nullptr;
@@ -69,6 +73,8 @@ cameraManager::~cameraManager()
         delete matlab_process;
         matlab_process=nullptr;
     }
+    qWarning() << __FUNCTION__ << " - finished!!!";
+    QThread::sleep(2);
 }
 
 void cameraManager::stopCamera()

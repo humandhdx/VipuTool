@@ -14,9 +14,11 @@ QFileSystemMonitor *QFileSystemMonitor::instance()
     return &instance;
 }
 
+#include <QThread>
 QFileSystemMonitor::~QFileSystemMonitor()
 {
-
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
 }
 
 bool QFileSystemMonitor::Register_Callback_On_File_Modified(const std::string &filePath_relative, CALLBACK_ON_FILE_CHANGED cb)

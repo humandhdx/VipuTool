@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
         thread_robot_hold_right.join();
         const char msg_end[] = "Robot Stoped\n";
         write(STDOUT_FILENO, msg_end, sizeof(msg_end) - 1);
+        sleep(2);
     });
     //video
     ImageProvider *image_provider_gl = new ImageProvider();
