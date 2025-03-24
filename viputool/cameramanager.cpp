@@ -486,7 +486,7 @@ bool cameraManager::start_local_right_capture()
             qWarning()<<"不存在相机设备请检查相机设备";
             return false;
         }
-        restart_right_cam();
+        restart_local_right_cam();
         //std::this_thread::sleep_for(50ms);
         QThread::sleep(0.1);
     }
