@@ -7,9 +7,11 @@ ImageProvider::ImageProvider() :QQuickImageProvider(QQuickImageProvider::Image)
 {
 
 }
-
+#include <QThread>
 ImageProvider::~ImageProvider()
 {
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
 }
 
 QImage ImageProvider::requestImage([[maybe_unused]]const QString &id, [[maybe_unused]]QSize *size, [[maybe_unused]]const QSize &requestedSize)

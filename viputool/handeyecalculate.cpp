@@ -9,7 +9,8 @@ handeyecalculate::handeyecalculate(QObject *parent):QObject{parent}
 
 handeyecalculate::~handeyecalculate()
 {
-
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
 }
 
 bool handeyecalculate::startCalibration(QString patternfolder,QString armposefile,QString camerafile)

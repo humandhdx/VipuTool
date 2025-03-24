@@ -26,6 +26,8 @@ public:
 
     explicit CameraCalibQWrapper(QObject *parent = nullptr);
 
+    ~CameraCalibQWrapper();
+
     Q_INVOKABLE void calibration_resource_load();
     Q_INVOKABLE void calibration_resource_unload();
 

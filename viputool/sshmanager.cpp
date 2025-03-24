@@ -8,6 +8,8 @@ sshManager::sshManager(QObject *parent)
 
 sshManager::~sshManager()
 {
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
     cleanup();
 }
 

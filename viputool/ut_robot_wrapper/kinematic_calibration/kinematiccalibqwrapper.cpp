@@ -20,6 +20,14 @@ KinematicCalibQWrapper::KinematicCalibQWrapper(QObject *parent)
 {
 }
 
+#include <thread>
+KinematicCalibQWrapper::~KinematicCalibQWrapper()
+{
+    printf("%s - \r\n", __FUNCTION__);
+    fflush(nullptr);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
 void KinematicCalibQWrapper::calibration_resource_load(bool isLeftArm)
 {
     QFileSystemMonitor::instance()->Register_Callback_On_File_Modified(CONFIG_PREV_LASER_DATA_right_base_in_laser,

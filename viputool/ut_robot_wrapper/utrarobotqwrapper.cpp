@@ -24,6 +24,12 @@ UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig& config, QObjec
 
     // connect(this, &UtraRobot_QWrapper::robot_Warning_MDH_OFFSET_NOT_ZERO, this, &UtraRobot_QWrapper::ZeroOut_MDH_offset);
 }
+#include <QThread>
+UtraRobot_QWrapper::~UtraRobot_QWrapper()
+{
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
+}
 
 bool UtraRobot_QWrapper::robot_connect()
 {

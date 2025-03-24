@@ -13,6 +13,8 @@ class KinematicCalibQWrapper : public QObject, KinematicCalibrator
 public:
     explicit KinematicCalibQWrapper(QObject *parent = nullptr);
 
+    ~KinematicCalibQWrapper();
+
     Q_INVOKABLE void calibration_resource_load(bool isLeftArm);
     Q_INVOKABLE void calibration_resource_unload(bool isLeftArm);
 

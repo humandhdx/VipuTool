@@ -24,6 +24,9 @@ UtraRobot::UtraRobot(UtRobotConfig::TestConfig& config):config_{config} {
 
 UtraRobot::~UtraRobot()
 {
+    printf("%s - \r\n", __FUNCTION__);
+    fflush(nullptr);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     this->thread_flag = false;
     this->thd_refresh_robot_status_.join();
     if (utra_report_ != nullptr) {

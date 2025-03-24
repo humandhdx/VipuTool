@@ -15,10 +15,12 @@ FileDialogWrap::FileDialogWrap(QObject *parent)
             dialog->reject();
         }, Qt::QueuedConnection);
 }
-
+#include <QThread>
 FileDialogWrap::~FileDialogWrap()
 {
     dialog->deleteLater();
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
 }
 
 int FileDialogWrap::getMode() const

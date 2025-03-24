@@ -13,6 +13,13 @@ CameraCalibQWrapper::CameraCalibQWrapper(QObject *parent)
 {
 }
 
+#include <QThread>
+CameraCalibQWrapper::~CameraCalibQWrapper()
+{
+    qWarning() << __FUNCTION__ << " - 0!";
+    QThread::sleep(2);
+}
+
 void CameraCalibQWrapper::calibration_resource_load()
 {
     set_joint_pos_index_global_right_LeftEye(0);

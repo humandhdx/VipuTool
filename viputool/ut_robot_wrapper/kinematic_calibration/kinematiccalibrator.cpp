@@ -20,8 +20,13 @@ KinematicCalibrator::KinematicCalibrator()
     convert_MdhModel_to_matrix(UtRobotConfig::TestConfig_RobotLeft.mdh_model_origin, calib_info_left_.mdh_origin);
     convert_MdhModel_to_matrix(UtRobotConfig::TestConfig_RobotRight.mdh_model_origin, calib_info_right_.mdh_origin);
 }
-
-KinematicCalibrator::~KinematicCalibrator() {}
+#include <thread>
+KinematicCalibrator::~KinematicCalibrator()
+{
+    printf("%s - \r\n", __FUNCTION__);
+    fflush(nullptr);
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+}
 
 bool KinematicCalibrator::calibration_and_output(bool isLeftArm, std::string& failed_info)
 {
