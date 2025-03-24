@@ -823,7 +823,6 @@ void cameraManager::capture_local_right()
                              local_right_image_0_.rows,
                              static_cast<int>(local_right_image_0_.step),
                              QImage::Format_BGR888);
-                qDebug() << "发送local右图";
                 emit signalSendLocalRightImage(image);
             }
             else {
