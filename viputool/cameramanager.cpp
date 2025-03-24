@@ -2,31 +2,52 @@
 #include <QThread>
 #include <QEventLoop>
 #include <QDesktopServices>
-
+#include <libusb-1.0/libusb.h>
+#include <libudev.h>
 
 cameraManager::cameraManager(QObject *parent): QObject{parent},
     left_id_(-1),
     right_id_(-1),
     middle_id_(-1),
+    local_left_id_(-1),
+    local_right_id_(-1),
+
     capture_left_flag_(false),
-    capture_middle_flag_(false),
     capture_right_flag_(false),
+    capture_local_left_flag_(false),
+    capture_local_right_flag_(false),
+    capture_middle_flag_(false),
+
     failed_count_left_(0),
-    failed_count_middle_(0),
-    failed_count_right_(0)
+    failed_count_right_(0),
+    failed_count_local_left_(0),
+    failed_count_local_right_(0),
+    failed_count_middle_(0)
 {
     buff_left_ = new uchar[4000 * 3000*3];
-    buff_middle_=new uchar[1920 * 1080*3];
     buff_right_ = new uchar[4000 * 3000*3];
+    buff_local_left_ = new uchar[998 * 998*3];
+    buff_local_right_ = new uchar[998 * 998*3];
+    buff_middle_=new uchar[1920 * 1080*3];
+
     memset(buff_left_, 0, 4000 * 3000*3);
-    memset(buff_middle_, 0, 1920 * 1080*3);
     memset(buff_right_, 0, 4000 * 3000*3);
+    memset(buff_local_left_, 0, 998 * 998*3);
+    memset(buff_local_right_, 0, 998 * 998*3);
+    memset(buff_middle_, 0, 1920 * 1080*3);
+
     vec_buff_left_ = new std::vector<uchar>();
-    vec_buff_middle_ = new std::vector<uchar>();
     vec_buff_right_ = new std::vector<uchar>();
+    vec_buff_local_left_ = new std::vector<uchar>();
+    vec_buff_local_right_ = new std::vector<uchar>();
+    vec_buff_middle_ = new std::vector<uchar>();
+
     vec_buff_left_->reserve(4000 * 3000*3);
-    vec_buff_middle_->reserve(1920*1080*3);
     vec_buff_right_->reserve(4000 * 3000*3);
+    vec_buff_local_left_->reserve(998 * 998*3);
+    vec_buff_local_right_->reserve(998 * 998*3);
+    vec_buff_middle_->reserve(1920*1080*3);
+
     matlab_process=new QProcess(this);
 }
 
@@ -37,13 +58,21 @@ cameraManager::~cameraManager()
         delete[] buff_left_;
         buff_left_ = nullptr;
     }
-    if (buff_middle_) {
-        delete[] buff_middle_;
-        buff_middle_ = nullptr;
-    }
     if (buff_right_) {
         delete[] buff_right_;
         buff_right_ = nullptr;
+    }
+    if (buff_local_left_) {
+        delete[] buff_local_left_;
+        buff_local_left_ = nullptr;
+    }
+    if (buff_local_right_) {
+        delete[] buff_local_right_;
+        buff_local_right_ = nullptr;
+    }
+    if (buff_middle_) {
+        delete[] buff_middle_;
+        buff_middle_ = nullptr;
     }
 
     if (vec_buff_left_) {
@@ -51,17 +80,27 @@ cameraManager::~cameraManager()
         delete vec_buff_left_;
         vec_buff_left_ = nullptr;
     }
+    if (vec_buff_right_) {
+        vec_buff_right_->clear();
+        delete vec_buff_right_;
+        vec_buff_right_ = nullptr;
+    }
+    if (vec_buff_local_left_) {
+        vec_buff_local_left_->clear();
+        delete vec_buff_local_left_;
+        vec_buff_local_left_ = nullptr;
+    }
+    if (vec_buff_local_right_) {
+        vec_buff_local_right_->clear();
+        delete vec_buff_local_right_;
+        vec_buff_local_right_ = nullptr;
+    }
     if (vec_buff_middle_) {
         vec_buff_middle_->clear();
         delete vec_buff_middle_;
         vec_buff_middle_ = nullptr;
     }
 
-    if (vec_buff_right_) {
-        vec_buff_right_->clear();
-        delete vec_buff_right_;
-        vec_buff_right_ = nullptr;
-    }
     if(matlab_process){
         if (matlab_process->state() != QProcess::NotRunning) {
             matlab_process->kill();  // 强制终止进程
@@ -81,6 +120,9 @@ void cameraManager::stopCamera()
     shutdown_leftcapture();
     shutdown_rightcapture();
     shutdown_middlecapture();
+    shutdown_localleftcapture();
+    shutdown_localrightcapture();
+
 }
 
 bool cameraManager::start_camera_capture(const QString &path, int type, int count)
@@ -165,24 +207,30 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
         }
         return saveImage(path, middle_image_0_, "Middle_Image", count);
     case 4:
-        if (middle_image_0_.empty()) {
+        if (local_left_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, middle_image_0_, "Middle_Image", count);
+        return saveImage(path, local_left_image_0_, "Local_Left_Image", count);
     case 5:
-        if (middle_image_0_.empty()) {
+        if (local_right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
-        return saveImage(path, middle_image_0_, "Middle_Image", count);
-
+        return saveImage(path, local_right_image_0_, "Local_Right_Image", count);
+    case 6:
+        if (local_left_image_0_.empty() || local_right_image_0_.empty()) {
+            qDebug() << "保存图像失败";
+            return false;
+        }
+        left_saved = saveImage(path, local_left_image_0_, "Local_Left_Image", count);
+        right_saved = saveImage(path, local_right_image_0_, "Local_Right_Image", count);
+        return left_saved && right_saved;
     default:
         qDebug() << "未知的校准类型";
         return false;
     }
 }
-
 
 bool cameraManager::clearCaptureCount(QString path)
 {
@@ -262,6 +310,9 @@ void cameraManager::init_cam()
     left_id_ = -1;
     right_id_ = -1;
     middle_id_=-1;
+    local_left_id_=-1;
+    local_right_id_=-1;
+    std::vector<int> spca_cameras;
     //读取当前系统所有设备
     std::vector<std::string> devs{};
     {  //read carmera devs
@@ -313,8 +364,31 @@ void cameraManager::init_cam()
         else if (strncmp((const char *)cap.card, "USB 2.0 Camera:", 15) == 0) {
             middle_id_=dev_num_cur;
         }
-
+        // 先收集所有SPCA2100相机
+        if (strncmp((const char *)cap.card, "SPCA2100", 8) == 0) {
+            qDebug()<<"SPCA2100"<<dev_num_cur;
+            spca_cameras.push_back(dev_num_cur);
+        }
         close(vfd);
+    }
+    // 在所有设备扫描完成后再处理
+    if (spca_cameras.size() == 2) {
+        auto temp_local_left_id = spca_cameras[0];
+        auto temp_local_right_id = spca_cameras[1];
+        auto swap_local = set_binocular_device_id(temp_local_left_id, temp_local_right_id);
+        if(swap_local) {
+            local_left_id_=temp_local_left_id;
+            local_right_id_=temp_local_right_id;
+            qDebug()<<"swap_local succ";
+        }
+        else{
+            qDebug()<<"swap_local erro";
+        }
+    } else if (spca_cameras.size() > 2) {
+        qWarning() << "Found more than 2 SPCA2100 cameras, please check hardware";
+    }
+    else{
+        qWarning() <<"没有找到两个局部相机";
     }
 
 }
@@ -371,6 +445,62 @@ bool cameraManager::start_right_capture()
                                                                         &cameraManager::capture_right,
                                                                         this);
         run_servo_task_right_->start();
+    }
+    return true;
+}
+
+bool cameraManager::start_local_left_capture()
+{
+    if (!capture_local_left_flag_) {
+        shutdown_localleftcapture();
+        init_cam();
+        if(local_left_id_==-1){
+            qWarning()<<"不存在相机设备请检查相机设备";
+            return false;
+        }
+        restart_local_left_cam();
+        //std::this_thread::sleep_for(50ms);
+        QThread::sleep(0.1);
+    }
+    failed_count_local_left_ = 0;
+    capture_local_left_flag_ = true;
+    if (run_servo_task_local_left_ == nullptr) {
+        int priority = 49;
+        run_servo_task_local_left_ = new RtPeriodicMemberFun2<cameraManager>(capture_period_,
+                                                                       "run_capture_local_left_task",
+                                                                       1024 * 1024,
+                                                                       priority,
+                                                                       &cameraManager::capture_local_left,
+                                                                       this);
+        run_servo_task_local_left_->start();
+    }
+    return true;
+}
+
+bool cameraManager::start_local_right_capture()
+{
+    if (!capture_local_right_flag_) {
+        shutdown_rightcapture();
+        init_cam();
+        if(local_right_id_==-1){
+            qWarning()<<"不存在相机设备请检查相机设备";
+            return false;
+        }
+        restart_right_cam();
+        //std::this_thread::sleep_for(50ms);
+        QThread::sleep(0.1);
+    }
+    failed_count_local_right_ = 0;
+    capture_local_right_flag_ = true;
+    if (run_servo_task_local_right_ == nullptr) {
+        int priority = 49;
+        run_servo_task_local_right_ = new RtPeriodicMemberFun2<cameraManager>(capture_period_,
+                                                                        "run_capture_local_right_task",
+                                                                        1024 * 1024,
+                                                                        priority,
+                                                                        &cameraManager::capture_local_right,
+                                                                        this);
+        run_servo_task_local_right_->start();
     }
     return true;
 }
@@ -441,13 +571,11 @@ void cameraManager::capture_left()
         }
         else {
             failed_count_left_ = 0;
-            restart_failed_left_ = 0;
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
-            suc_capture_left_flag_ = true;
             if (camera_left_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                // std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                std::lock_guard<std::mutex> lck{mtx_camera_left_};
                 vec_buff_left_->clear();
-                vec_buff_left_->resize(rsize + 1);
+                //vec_buff_left_->resize(rsize + 1);
                 vec_buff_left_->assign(buff_left_, buff_left_ + rsize);
                 try {
                     // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
@@ -456,10 +584,6 @@ void cameraManager::capture_left()
                     qWarning() << "cv::imdecode 异常:" << e.what();
                     return;
                 }
-                //if (left_image_0_.empty()) return;
-                // left_image_available_0_.pImage = &left_image_0_;
-                // left_image_available_0_.time = left_imgae_available_time_;
-                // UpdateLeftImage();
                 if(left_image_0_.empty())return;
                 if(is_left_fouc)EOG(left_image_0_);
                 QImage image(left_image_0_.data,
@@ -525,13 +649,11 @@ void cameraManager::capture_right()
         }
         else {
             failed_count_right_ = 0;
-            restart_failed_right_ = 0;
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
-            suc_capture_right_flag_ = true;
             if (camera_right_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                std::lock_guard<std::mutex> lck{mtx_camera_right_};
                 vec_buff_right_->clear();
-                vec_buff_right_->resize(rsize + 1);
+                //vec_buff_right_->resize(rsize + 1);
                 vec_buff_right_->assign(buff_right_, buff_right_ + rsize);
                 try {
                     // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
@@ -540,10 +662,6 @@ void cameraManager::capture_right()
                     qWarning() << "cv::imdecode 异常:" << e.what();
                     return;
                 }
-                //if (left_image_0_.empty()) return;
-                // left_image_available_0_.pImage = &left_image_0_;
-                // left_image_available_0_.time = left_imgae_available_time_;
-                // UpdateLeftImage();
                 if(right_image_0_.empty())return;
                 if(is_right_fouc)EOG(right_image_0_);
                 QImage image(right_image_0_.data,
@@ -568,6 +686,157 @@ void cameraManager::capture_right()
         if (failed_count_right_ >= 10) {
             capture_right_flag_ = false;
             //RCLCPP_INFO(kLogger, "cvcamera restart left 5");
+        }
+    }
+}
+
+void cameraManager::capture_local_left()
+{
+    if (!capture_local_left_flag_) return;
+    std::lock_guard<std::mutex> lck{mtx_restart_local_left_};
+    if (camera_local_left_ == nullptr) {
+        failed_count_local_left_++;
+        if (failed_count_local_left_ >= 10) {
+            capture_local_left_flag_ = false;
+            //RCLCPP_INFO(kLogger, "cvcamera restart left 1");
+        }
+        return;
+    }
+
+    tv_local_left_.tv_sec = 1;
+    tv_local_left_.tv_usec = 0;
+    if (camera_local_left_->isReadable(&tv_local_left_)) {
+        memset(buff_local_left_, 0, 998 * 998*3);
+        int rsize = camera_local_left_->read((char *)buff_local_left_, 998 * 998 - 1);
+        if (rsize == -1) {
+            ++failed_count_local_left_;
+            if (failed_count_local_left_ >= 10) {
+                qWarning() << "设备异常";
+                emit signalDeviceErro();
+                capture_local_left_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 2");
+            }
+            return;
+        }
+        else if (rsize == 0) {
+            ++failed_count_local_left_;
+            if (failed_count_local_left_ >= 10) {
+                capture_local_left_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 3");
+            }
+            return;
+        }
+        else {
+            failed_count_local_left_ = 0;
+            // left_imgae_available_time_ = std::chrono::steady_clock::now();
+            if (camera_local_left_->getFormat() == V4L2_PIX_FMT_MJPEG) {
+                std::lock_guard<std::mutex> lck{mtx_camera_local_left_};
+                vec_buff_local_left_->clear();
+                //vec_buff_local_left_->resize(rsize + 1);
+                vec_buff_local_left_->assign(buff_local_left_, buff_local_left_ + rsize);
+                try {
+                    // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
+                    local_left_image_0_ = cv::imdecode(*vec_buff_local_left_, cv::IMREAD_COLOR);
+                } catch (const std::exception &e) {
+                    qWarning() << "cv::imdecode 异常:" << e.what();
+                    return;
+                }
+                if(local_left_image_0_.empty())return;
+                QImage image(local_left_image_0_.data,
+                             local_left_image_0_.cols,
+                             local_left_image_0_.rows,
+                             static_cast<int>(local_left_image_0_.step),
+                             QImage::Format_BGR888);
+                emit signalSendLocalLeftImage(image);
+            }
+            else {
+                ++failed_count_local_left_;
+                if (failed_count_local_left_ >= 10) {
+                    capture_local_left_flag_ = false;
+                }
+            }
+        }
+    }
+    else {
+        ++failed_count_local_left_;
+        if (failed_count_local_left_ >= 10) {
+            capture_local_left_flag_ = false;
+        }
+    }
+}
+
+void cameraManager::capture_local_right()
+{
+    if (!capture_local_right_flag_) return;
+    std::lock_guard<std::mutex> lck{mtx_restart_local_right_};
+    if (camera_local_right_ == nullptr) {
+        failed_count_local_right_++;
+        if (failed_count_local_right_ >= 10) {
+            capture_local_right_flag_ = false;
+            //RCLCPP_INFO(kLogger, "cvcamera restart left 1");
+        }
+        return;
+    }
+
+    tv_local_right_.tv_sec = 1;
+    tv_local_right_.tv_usec = 0;
+    if (camera_local_right_->isReadable(&tv_local_right_)) {
+        memset(buff_local_right_, 0, 998 * 998*3);
+        int rsize = camera_local_right_->read((char *)buff_local_right_, 998 * 998 - 1);
+        if (rsize == -1) {
+            ++failed_count_local_right_;
+            if (failed_count_local_right_ >= 10) {
+                qWarning() << "设备异常";
+                emit signalDeviceErro();
+                capture_local_right_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 2");
+            }
+            return;
+        }
+        else if (rsize == 0) {
+            ++failed_count_local_right_;
+            if (failed_count_local_right_ >= 10) {
+                capture_local_right_flag_ = false;
+                //RCLCPP_INFO(kLogger, "cvcamera restart left 3");
+            }
+            return;
+        }
+        else {
+            failed_count_local_right_ = 0;
+            // left_imgae_available_time_ = std::chrono::steady_clock::now();
+            if (camera_local_right_->getFormat() == V4L2_PIX_FMT_MJPEG) {
+                std::lock_guard<std::mutex> lck{mtx_camera_local_right_};
+                vec_buff_local_right_->clear();
+                //vec_buff_local_right_->resize(rsize + 1);
+                vec_buff_local_right_->assign(buff_local_right_, buff_local_right_ + rsize);
+                try {
+                    // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
+                    local_right_image_0_ = cv::imdecode(*vec_buff_local_right_, cv::IMREAD_COLOR);
+                } catch (const std::exception &e) {
+                    qWarning() << "cv::imdecode 异常:" << e.what();
+                    return;
+                }
+                if(local_right_image_0_.empty())return;
+                QImage image(local_right_image_0_.data,
+                             local_right_image_0_.cols,
+                             local_right_image_0_.rows,
+                             static_cast<int>(local_right_image_0_.step),
+                             QImage::Format_BGR888);
+                emit signalSendLocalRightImage(image);
+            }
+            else {
+                ++failed_count_local_right_;
+                if (failed_count_local_right_ >= 10) {
+                    capture_local_right_flag_ = false;
+                }
+            }
+        }
+    }
+    else {
+        qWarning() << "isReadable erro";
+        ++failed_count_local_right_;
+        if (failed_count_local_right_ >= 10) {
+            capture_local_right_flag_ = false;
         }
     }
 }
@@ -610,12 +879,10 @@ void cameraManager::capture_middle()
         }
         else {
             failed_count_middle_ = 0;
-            restart_failed_middle_ = 0;
-            suc_capture_middle_flag_ = true;
             if (camera_middle_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                std::lock_guard<std::mutex> lck{mtx_camera_left_};
+                std::lock_guard<std::mutex> lck{mtx_camera_middle_};
                 vec_buff_middle_->clear();
-                vec_buff_middle_->resize(rsize + 1);
+                //vec_buff_middle_->resize(rsize + 1);
                 vec_buff_middle_->assign(buff_middle_, buff_middle_ + rsize);
                 try {
                     // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
@@ -712,6 +979,44 @@ void cameraManager::restart_middle_cam()
     camera_middle_ = V4l2Capture::create(param);
 }
 
+void cameraManager::restart_local_left_cam()
+{
+    std::lock_guard<std::mutex> lck{mtx_restart_local_left_};
+    if (camera_local_left_) {
+        delete camera_local_left_;
+        camera_local_left_ = nullptr;
+    }
+    std::ostringstream oss_left;
+    oss_left << "/dev/video" << local_left_id_;
+    int verbose = 0;
+    V4l2IoType ioTypeIn = IOTYPE_MMAP;
+    width_ = 998;
+    height_ = 998;
+    int fps = 60;
+    V4L2DeviceParameters param(
+        oss_left.str().c_str(), format_, width_, height_, fps, ioTypeIn, verbose);
+    camera_local_left_ = V4l2Capture::create(param);
+}
+
+void cameraManager::restart_local_right_cam()
+{
+    std::lock_guard<std::mutex> lck{mtx_restart_local_right_};
+    if (camera_local_right_) {
+        delete camera_local_right_;
+        camera_local_right_ = nullptr;
+    }
+    std::ostringstream oss_left;
+    oss_left << "/dev/video" << local_right_id_;
+    int verbose = 0;
+    V4l2IoType ioTypeIn = IOTYPE_MMAP;
+    width_ = 998;
+    height_ = 998;
+    int fps = 60;
+    V4L2DeviceParameters param(
+        oss_left.str().c_str(), format_, width_, height_, fps, ioTypeIn, verbose);
+    camera_local_right_ = V4l2Capture::create(param);
+}
+
 void cameraManager::shutdown_leftcapture()
 {
     capture_left_flag_ = false;
@@ -758,6 +1063,230 @@ void cameraManager::shutdown_middlecapture()
         delete camera_middle_;
         camera_middle_ = nullptr;
     }
+}
+
+void cameraManager::shutdown_localleftcapture()
+{
+    capture_local_left_flag_ = false;
+    std::lock_guard<std::mutex> lck{mtx_restart_local_left_};
+    if (run_servo_task_local_left_) {
+        run_servo_task_local_left_->stop();
+        delete run_servo_task_local_left_;
+        run_servo_task_local_left_ = nullptr;
+    }
+
+    if (camera_local_left_) {
+        delete camera_local_left_;
+        camera_local_left_ = nullptr;
+    }
+}
+
+void cameraManager::shutdown_localrightcapture()
+{
+    capture_local_right_flag_ = false;
+    std::lock_guard<std::mutex> lck{mtx_restart_local_right_};
+    if (run_servo_task_local_right_) {
+        run_servo_task_local_right_->stop();
+        delete run_servo_task_local_right_;
+        run_servo_task_local_right_ = nullptr;
+    }
+
+    if (camera_local_right_) {
+        delete camera_local_right_;
+        camera_local_right_ = nullptr;
+    }
+}
+
+bool cameraManager::set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<int, int> &right_pos)
+{
+    left_pos.first = -1;
+    left_pos.second = -1;
+    right_pos.first = -1;
+    right_pos.second = -1;
+
+    libusb_device **devs;
+    libusb_context *ctx = NULL;
+    libusb_device_handle *handle = nullptr;
+
+    int r = libusb_init(&ctx);
+    if (r < 0) {
+        //RCLCPP_ERROR_STREAM(kLogger, __FUNCTION__ << ": libusb_init ERROR!!");
+        return false;
+    }
+
+    auto cnt = libusb_get_device_list(ctx, &devs);
+    if (cnt < 0) {
+        //RCLCPP_ERROR_STREAM(kLogger, __FUNCTION__ << ": libusb_get_device_list ERROR!!");
+        return false;
+    }
+
+    //traverse dev list
+    for (ssize_t i = 0; i < cnt; i++) {
+        libusb_device *dev = devs[i];
+        libusb_device_descriptor desc;
+        auto bus_num = libusb_get_bus_number(dev);
+        //auto dev_addr = libusb_get_device_address(dev);
+        auto port_num = libusb_get_port_number(dev);
+        r = libusb_get_device_descriptor(dev, &desc);
+        if (r < 0) {
+            //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to get device descriptor");
+            continue;
+        }
+        if (desc.idProduct != 0x2ca9) {
+            //RCLCPP_INFO_STREAM(kLogger, __FUNCTION__ << ": jump non-SPCA2100 device.");
+            continue;
+        }
+
+        r = libusb_open(dev, &handle);
+        if (r < 0) {
+            //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to open device");
+            continue;
+        }
+
+        //Assuming we are interested in the first interface
+        libusb_config_descriptor *config;
+        r = libusb_get_active_config_descriptor(dev, &config);
+        if (r != LIBUSB_SUCCESS) {
+            //RCLCPP_WARN_STREAM(kLogger,
+            //                   __FUNCTION__ << ": libusb_get_active_config_descriptor() "
+            //                                << "failed on dev=" << dev);
+            libusb_close(handle);
+            continue;
+        }
+
+        for (int j = 0; j < config->bNumInterfaces; j++) {
+            const libusb_interface *interface = &config->interface[j];
+            for (int k = 0; k < interface->num_altsetting; k++) {
+                const libusb_interface_descriptor *interface_desc = &interface->altsetting[k];
+                if (interface_desc->iInterface != 0) {
+                    unsigned char serial[1024];
+                    int r = libusb_get_string_descriptor_ascii(
+                        handle, interface_desc->iInterface, serial, 1024);
+
+                    //std::cout << "r=" << r << ", serial=" << serial << std::endl;
+                    auto interface_str = std::string((char *)serial);
+                    if (interface_str.find("Left") != std::string::npos) {
+                        left_pos.first = bus_num;
+                        left_pos.second = port_num;
+                        {
+                        }
+                        break;
+                    }
+                    else if (interface_str.find("Right") != std::string::npos) {
+                        right_pos.first = bus_num;
+                        right_pos.second = port_num;
+                        break;
+                    }
+                }
+            }
+        }
+        libusb_free_config_descriptor(config);
+        libusb_close(handle);
+    }
+
+    libusb_free_device_list(devs, 1);
+    libusb_exit(ctx);
+
+    if (left_pos.first == -1) {
+        //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to find left_pos");
+    }
+    if (right_pos.first == -1) {
+        //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to find right_pos");
+    }
+
+    return left_pos.first != -1 && right_pos.first != -1;
+}
+
+std::pair<int, int> cameraManager::get_bus_position(const std::string camera_path)
+{
+    auto rt = std::pair<int, int>{};
+    if (camera_path.empty()) {
+        return rt;
+    }
+
+    struct udev *udev = udev_new();
+    if (!udev) {
+        std::cerr << "Cannot create udev context" << std::endl;
+        return rt;
+    }
+
+    struct udev_device *dev = udev_device_new_from_subsystem_sysname(
+        udev, "video4linux", camera_path.c_str());  //device_path.c_str());
+    if (!dev) {
+        std::cerr << "Cannot get udev device for " << camera_path << std::endl;
+        udev_unref(udev);
+        return rt;
+    }
+
+    //const char *syspath = udev_device_get_syspath(dev);
+
+    struct udev_device *parent =
+        udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
+    if (!parent) {
+        std::cerr << "Cannot find parent USB device" << std::endl;
+        udev_device_unref(dev);
+        udev_unref(udev);
+        return rt;
+    }
+
+    const char *busnum = udev_device_get_sysattr_value(parent, "busnum");
+    auto bus = atoi(busnum);
+
+    const char *devpath = udev_device_get_devpath(parent);
+    auto str_devpath = std::string(devpath);
+    auto pos_devaddr = str_devpath.find_last_of('-') + 1;
+    auto len_devaddr = str_devpath.size() - pos_devaddr;
+    auto add = std::stoi(str_devpath.substr(pos_devaddr, len_devaddr));
+
+    udev_device_unref(dev);
+    udev_unref(udev);
+
+    rt.first = bus;
+    rt.second = add;
+    return rt;
+}
+
+bool cameraManager::set_binocular_device_id(int &id_left, int &id_right)
+{
+    int id1 = id_left;
+    int id2 = id_right;
+    id_left = -1;
+    id_right = -1;
+
+    std::string name1 = "video" + std::to_string(id1);
+    std::string name2 = "video" + std::to_string(id2);
+
+    auto bus_pos1 = get_bus_position(name1);
+    auto bus_pos2 = get_bus_position(name2);
+
+    std::pair<int, int> left_pos, right_pos;
+    if (!set_bino_bus_addr(left_pos, right_pos)) {
+        //RCLCPP_ERROR_STREAM(kLogger, __FUNCTION__ << ": set_bino_bus_addr() failed!!");
+        return false;
+    }
+
+    if (left_pos == bus_pos1) {
+        id_left = id1;
+    }
+    else if (left_pos == bus_pos2) {
+        id_left = id2;
+    }
+
+    if (right_pos == bus_pos1) {
+        id_right = id1;
+    }
+    else if (right_pos == bus_pos2) {
+        id_right = id2;
+    }
+
+    if (id_left < 0 || id_right < 0) {
+        //RCLCPP_ERROR_STREAM(
+        //    kLogger, __FUNCTION__ << ": id_left < 0 || id_right < 0 !! using old id value...");
+        id_left = id1;
+        id_right = id2;
+        return false;
+    }
+    return true;
 }
 
 void cameraManager::EOG(const cv::Mat &mat)
@@ -826,7 +1355,7 @@ bool cameraManager::startCamera(const int l_r)
     case 2:
         return  start_left_capture()&&start_right_capture();
     case 3:
-        return start_middle_capture();
+        return  start_local_left_capture()&&start_local_right_capture();
     default:
         return false;
         break;

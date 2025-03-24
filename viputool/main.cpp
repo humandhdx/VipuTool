@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     UnixSignal::Register_Hookers();
 
     logger* logInstance = logger::instance();
-    //qInstallMessageHandler(logger::myMessageHandler);
+    qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
@@ -64,6 +64,8 @@ int main(int argc, char *argv[])
     //video
     ImageProvider *image_provider_gl = new ImageProvider();
     ImageProvider *image_provider_gr = new ImageProvider();
+    ImageProvider *image_provider_ll = new ImageProvider();
+    ImageProvider *image_provider_lr = new ImageProvider();
     ImageProvider *image_provider_ml = new ImageProvider();
     sshManager *my_ssh_manager=new sshManager();
     QObject::connect(
@@ -72,20 +74,31 @@ int main(int argc, char *argv[])
         m_cameraManager, &cameraManager::signalSendRightImage, image_provider_gr, &ImageProvider::recvEmitImg);
     QObject::connect(
         m_cameraManager, &cameraManager::signalSendMiddleImage, image_provider_ml, &ImageProvider::recvEmitImg);
+    QObject::connect(
+        m_cameraManager, &cameraManager::signalSendLocalLeftImage, image_provider_ll, &ImageProvider::recvEmitImg);
+    QObject::connect(
+        m_cameraManager, &cameraManager::signalSendLocalRightImage, image_provider_lr, &ImageProvider::recvEmitImg);
     //regester qml
     engine.rootContext()->setContextProperty("cameraManager", m_cameraManager);
     engine.rootContext()->setContextProperty("urtrobot_left", m_urtrobot_left);
     engine.rootContext()->setContextProperty("urtrobot_right", m_urtrobot_right);
+
     engine.rootContext()->setContextProperty("image_provider_gl", image_provider_gl);
     engine.rootContext()->setContextProperty("image_provider_gr", image_provider_gr);
+    engine.rootContext()->setContextProperty("image_provider_ll", image_provider_ll);
+    engine.rootContext()->setContextProperty("image_provider_lr", image_provider_lr);
     engine.rootContext()->setContextProperty("image_provider_ml", image_provider_ml);
+
     engine.rootContext()->setContextProperty("handeyeCulate", m_heculate);
     engine.rootContext()->setContextProperty("sshManager", my_ssh_manager);
     engine.rootContext()->setContextProperty("logger", logInstance);
     engine.rootContext()->setContextProperty("kinematiccalibqwrapper",m_kinematiccalibqwrapper);
     engine.rootContext()->setContextProperty("cameracalibqwrapper",m_cameracalibqwrapper);
+
     engine.addImageProvider(QLatin1String("GlImg"), image_provider_gl);
     engine.addImageProvider(QLatin1String("GrImg"), image_provider_gr);
+    engine.addImageProvider(QLatin1String("LlImg"), image_provider_ll);
+    engine.addImageProvider(QLatin1String("LrImg"), image_provider_lr);
     engine.addImageProvider(QLatin1String("MlImg"), image_provider_ml);
     QObject::connect(
         &engine,

@@ -97,6 +97,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     yaml-cpp
     cbdetect
     utapi
+    usb-1.0
+    udev
 )
 
 add_custom_command(

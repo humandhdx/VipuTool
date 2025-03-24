@@ -633,8 +633,8 @@ Item {
             Connections{
                 target: logger
                 function onSendLogMesseg (msg ,level){
-                    //loggerModel.append({"loginfo":msg,"level":level})
-                    //loglistview.positionViewAtEnd()
+                    loggerModel.append({"loginfo":msg,"level":level})
+                    loglistview.positionViewAtEnd()
                 }
             }
             Connections{

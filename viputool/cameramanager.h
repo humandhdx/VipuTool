@@ -46,7 +46,7 @@ public:
     void setCur_foc(double newCur_foc);
 
 public slots:
-    bool startCamera(const int l_r);//0-left 1-right 2-double
+    bool startCamera(const int l_r);//0-left 1-right 2-double 3-local lfet right
     void stopCamera();
     bool start_camera_capture(const QString &path, int type, int count);
     bool deleteFisterCaptureImage(QString path);
@@ -59,21 +59,38 @@ public slots:
     }
 private:
     void init_cam();
+
     bool start_left_capture();
     bool start_right_capture();
+    bool start_local_left_capture();
+    bool start_local_right_capture();
     bool start_middle_capture();
+
     void capture_left();
     void capture_right();
+    void capture_local_left();
+    void capture_local_right();
     void capture_middle();
+
     void restart_left_cam();
     void restart_right_cam();
     void restart_middle_cam();
+    void restart_local_left_cam();
+    void restart_local_right_cam();
+
     void shutdown_leftcapture();
     void shutdown_rightcapture();
     void shutdown_middlecapture();
+    void shutdown_localleftcapture();
+    void shutdown_localrightcapture();
+
+    bool set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<int, int> &right_pos);
+    std::pair<int, int> get_bus_position(const std::string camera_path);
+    bool set_binocular_device_id(int &id_left, int &id_right);
     void EOG(const cv::Mat &mat);
     bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
     bool captureImage(const std::string &path, int type, int count);
+
     std::atomic_bool is_left_fouc=false;
     std::atomic_bool is_right_fouc=false;
     double m_max_foc=0;
@@ -88,65 +105,75 @@ private:
     V4l2Capture *camera_left_ = nullptr;
     V4l2Capture *camera_middle_ = nullptr;
     V4l2Capture *camera_right_ = nullptr;
+    V4l2Capture *camera_local_left_ = nullptr;
+    V4l2Capture *camera_local_right_ = nullptr;
 
     cv::Mat left_image_0_;
     cv::Mat middle_image_0_;
     cv::Mat right_image_0_;
-    CImageTime left_image_available_0_;
-    CImageTime right_image_available_0_;
-    TimePoint left_imgae_available_time_;
-    TimePoint right_imgae_available_time_;
+    cv::Mat local_left_image_0_;
+    cv::Mat local_right_image_0_;
 
     uchar *buff_left_ = nullptr;
     uchar *buff_middle_ = nullptr;
     uchar *buff_right_ = nullptr;
+    uchar *buff_local_left_ = nullptr;
+    uchar *buff_local_right_ = nullptr;
+
     std::vector<uchar> *vec_buff_left_ = nullptr;
     std::vector<uchar> *vec_buff_middle_ = nullptr;
     std::vector<uchar> *vec_buff_right_ = nullptr;
-
-    std::unique_ptr<std::thread> thread_monitor_;
+    std::vector<uchar> *vec_buff_local_left_ = nullptr;
+    std::vector<uchar> *vec_buff_local_right_ = nullptr;
 
     timeval tv_left_;
     timeval tv_middle_;
     timeval tv_right_;
+    timeval tv_local_left_;
+    timeval tv_local_right_;
 
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_left_ = nullptr;
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_right_ = nullptr;
+    RtPeriodicMemberFun2<cameraManager> *run_servo_task_local_left_ = nullptr;
+    RtPeriodicMemberFun2<cameraManager> *run_servo_task_local_right_ = nullptr;
     RtPeriodicMemberFun2<cameraManager> *run_servo_task_middle_ = nullptr;
-    int left_id_, right_id_,middle_id_;
+
+    int left_id_, right_id_,middle_id_,local_left_id_,local_right_id_;
     //控制相关
     std::mutex mtx_restart_left_;
     std::mutex mtx_restart_middle_;
     std::mutex mtx_restart_right_;
+    std::mutex mtx_restart_local_left_;
+    std::mutex mtx_restart_local_right_;
+
     std::mutex mtx_camera_left_;
     std::mutex mtx_camera_middle_;
     std::mutex mtx_camera_right_;
-    std::mutex mtx_observer_camera_;
+    std::mutex mtx_camera_local_left_;
+    std::mutex mtx_camera_local_right_;
+
     std::atomic_bool capture_left_flag_ = false;
     std::atomic_bool capture_middle_flag_ = false;
     std::atomic_bool capture_right_flag_ = false;
-    std::atomic_bool suc_capture_left_flag_ = false;
-    std::atomic_bool suc_capture_middle_flag_ = false;
-    std::atomic_bool suc_capture_right_flag_ = false;
-    std::atomic_bool monite_flag_ = true;
-    std::atomic_bool update_flag_ = true;
+    std::atomic_bool capture_local_left_flag_ = false;
+    std::atomic_bool capture_local_right_flag_ = false;
+
     double capture_period_ = 0.003;
-    double capture_period_right_ = 0.003;
-    double capture_period_update_ = 0.003;
 
     int failed_count_left_ = 0;
     int failed_count_right_ = 0;
     int failed_count_middle_ = 0;
+    int failed_count_local_left_ = 0;
+    int failed_count_local_right_ = 0;
 
-    int restart_failed_left_ = 0;
-    int restart_failed_right_ = 0;
-    int restart_failed_middle_ = 0;
     QProcess *matlab_process;
 
 signals:
     void signalSendLeftImage(QImage image);
     void signalSendRightImage(QImage image);
     void signalSendMiddleImage(QImage image);
+    void signalSendLocalLeftImage(QImage image);
+    void signalSendLocalRightImage(QImage image);
     void signalDeviceErro();
     void max_focChanged();
     void min_focChanged();
