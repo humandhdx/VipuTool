@@ -41,7 +41,7 @@ Item {
         id:arm_cali
         Item {
             Component.onCompleted: {
-                kinematiccalibqwrapper.calibration_resource_load(true)
+                kinematiccalibqwrapper.calibration_resource_load(isLeft)
             }
             Component.onDestruction: {
                 kinematiccalibqwrapper.calibration_resource_unload(isLeft)
