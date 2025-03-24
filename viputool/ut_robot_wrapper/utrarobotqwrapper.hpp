@@ -15,6 +15,8 @@ class UtraRobot_QWrapper : public QObject, public UtraRobot
 public:
     UtraRobot_QWrapper(UtRobotConfig::TestConfig& config, QObject *parent = nullptr);
 
+    ~UtraRobot_QWrapper();
+
     Q_INVOKABLE bool robot_connect();
 
     Q_INVOKABLE bool robot_drag_activate(bool on);
