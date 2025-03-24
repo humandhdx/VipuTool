@@ -622,7 +622,7 @@ Item {
                             anchors.topMargin: 30
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 390
-                            height: 405
+                            height: 300
                             clip: true
                             orientation: ListView.Vertical
                             boundsBehavior: Flickable.StopAtBounds
@@ -1019,155 +1019,6 @@ Item {
                                     cameraManager.open_path(cameraManager.currentDirectory()+"/Local_Calibration")
                                 }
                             }
-                            Row{
-                                spacing: 20
-                                Rectangle{
-                                    width: 200
-                                    height: 40
-                                    radius: 5
-                                    color: "#fff"
-                                    Button{
-                                        anchors.fill: parent
-                                        enabled: false
-                                    }
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: qsTr("左目坐标"+cameracalibqwrapper.joint_pos_index_local_right_LeftEye)
-                                    }
-                                    Button{
-                                        anchors.left: parent.left
-                                        width: 50
-                                        height: 40
-                                        text: "-"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_local_right_LeftEye===0){
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_LeftEye--
-                                        }
-                                    }
-                                    Button{
-                                        anchors.right: parent.right
-                                        width: 50
-                                        height: 40
-                                        text: "+"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_LeftEye===(cameracalibqwrapper.joint_pos_total_num_global_right_LeftEye-1))
-                                            {
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_LeftEye++
-                                        }
-                                    }
-                                }
-                                Button{
-                                    width: 130
-                                    height: 40
-                                    text: "机械臂运动"
-                                    onClicked: {
-                                        mask.open()
-                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_LeftEye)
-                                        mask.close()
-                                    }
-                                }
-                            }
-                        }
-                        Row{
-                            spacing: 20
-                            Button{
-                                width: 200
-                                height: 40
-                                text: "连接机械臂"
-                                enabled: !urtrobot_right.arm_connect
-                                onClicked: {
-                                    mask.open()
-                                    var result= urtrobot_right.robot_connect()
-                                    if(result) console.log("机械臂成功连接")
-                                    else console.error("机械臂连接失败")
-                                    mask.close()
-                                }
-                            }
-                            Item {
-                                width: 200
-                                height: 40
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("连接状态:")
-                                    font.pixelSize: 12
-                                }
-                                Rectangle{
-                                    anchors.right: parent.right
-                                    width: 140
-                                    height: 40
-                                    radius: 5
-                                    color: "#F5F5F5"
-                                    border.width: 1
-                                    border.color: "#c9c9c9"
-                                    Text {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 20
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        text: urtrobot_right.arm_connect?qsTr("已连接"):qsTr("未连接")
-                                        color: urtrobot_right.arm_connect?"green":"red"
-                                    }
-                                }
-                            }
-                            Row{
-                                spacing: 20
-                                Rectangle{
-                                    width: 200
-                                    height: 40
-                                    radius: 5
-                                    color: "#fff"
-                                    Button{
-                                        anchors.fill: parent
-                                        enabled: false
-                                    }
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: qsTr("右目坐标"+cameracalibqwrapper.joint_pos_index_global_right_RightEye)
-                                    }
-                                    Button{
-                                        anchors.left: parent.left
-                                        width: 50
-                                        height: 40
-                                        text: "-"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===0){
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_RightEye--
-                                        }
-                                    }
-                                    Button{
-                                        anchors.right: parent.right
-                                        width: 50
-                                        height: 40
-                                        text: "+"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_RightEye===(cameracalibqwrapper.joint_pos_total_num_global_right_RightEye-1))
-                                            {
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_RightEye++
-                                        }
-                                    }
-                                }
-                                Button{
-                                    width: 130
-                                    height: 40
-                                    text: "机械臂运动"
-                                    onClicked: {
-                                        mask.open()
-                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_RightEye)
-                                        mask.close()
-                                    }
-                                }
-                            }
-                        }
-                        Row{
-                            spacing: 20
                             Item {
                                 width: 420
                                 height: 40
@@ -1180,64 +1031,11 @@ Item {
                                     }
                                 }
                             }
-                            Row{
-                                spacing: 20
-                                Rectangle{
-                                    width: 200
-                                    height: 40
-                                    radius: 5
-                                    color: "#fff"
-                                    Button{
-                                        anchors.fill: parent
-                                        enabled: false
-                                    }
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: qsTr("双目坐标"+cameracalibqwrapper.joint_pos_index_global_right_DuelEye)
-                                    }
-                                    Button{
-                                        anchors.left: parent.left
-                                        width: 50
-                                        height: 40
-                                        text: "-"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===0){
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_DuelEye--
-                                        }
-                                    }
-                                    Button{
-                                        anchors.right: parent.right
-                                        width: 50
-                                        height: 40
-                                        text: "+"
-                                        onClicked: {
-                                            if(cameracalibqwrapper.joint_pos_index_global_right_DuelEye===(cameracalibqwrapper.joint_pos_total_num_global_right_DuelEye-1))
-                                            {
-                                                return
-                                            }
-                                            cameracalibqwrapper.joint_pos_index_global_right_DuelEye++
-                                        }
-                                    }
-                                }
-                                Button{
-                                    width: 130
-                                    height: 40
-                                    text: "机械臂运动"
-                                    onClicked: {
-                                        mask.open()
-                                        var reslut=urtrobot_right.move_To_Joint_Position_Degree(cameracalibqwrapper.current_joint_pos_global_right_DuelEye)
-                                        mask.close()
-                                    }
-                                }
-                            }
                         }
                     }
                     Rectangle{
                         anchors.right: parent.right
                         anchors.rightMargin: 20
-                        anchors.verticalCenter: parent.verticalCenter
                         width:400
                         height: 350
                         radius: 5
@@ -1268,7 +1066,7 @@ Item {
                             anchors.topMargin: 30
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 390
-                            height: 405
+                            height: 300
                             clip: true
                             orientation: ListView.Vertical
                             boundsBehavior: Flickable.StopAtBounds
@@ -1671,7 +1469,7 @@ Item {
                             anchors.topMargin: 30
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: 390
-                            height: 405
+                            height: 300
                             clip: true
                             orientation: ListView.Vertical
                             boundsBehavior: Flickable.StopAtBounds
