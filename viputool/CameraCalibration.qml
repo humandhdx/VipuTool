@@ -1095,18 +1095,18 @@ Item {
                 }
             }
             Connections{
-                target: image_provider_gl
+                target: image_provider_ll
                 function onImgChanged (){
                     leftimage.source=""
-                    leftimage.source="image://GlImg/"
+                    leftimage.source="image://LlImg/"
                 }
 
             }
             Connections{
-                target: image_provider_gr
+                target: image_provider_lr
                 function onImgChanged (){
                     rightimage.source=""
-                    rightimage.source="image://GrImg/"
+                    rightimage.source="image://LrImg/"
                 }
             }
             Connections{
