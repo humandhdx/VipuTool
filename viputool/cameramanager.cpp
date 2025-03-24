@@ -1346,7 +1346,7 @@ bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, con
 
 bool cameraManager::startCamera(const int l_r)
 {
-    if(l_r>3||l_r<0){
+    if(l_r>4||l_r<0){
         return false;
     }
     switch (l_r) {
