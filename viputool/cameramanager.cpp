@@ -722,39 +722,32 @@ void cameraManager::capture_local_left()
         else if (rsize == 0) {
             ++failed_count_local_left_;
             if (failed_count_local_left_ >= 10) {
-                capture_local_left_flag_ = false;
+                //capture_local_left_flag_ = false;
                 //RCLCPP_INFO(kLogger, "cvcamera restart left 3");
             }
             return;
         }
         else {
-            qDebug()<<"开始获取画面1";
             failed_count_local_left_ = 0;
             // left_imgae_available_time_ = std::chrono::steady_clock::now();
             if (camera_local_left_->getFormat() == V4L2_PIX_FMT_MJPEG) {
-                            qDebug()<<"开始获取画面2";
                 std::lock_guard<std::mutex> lck{mtx_camera_local_left_};
                 vec_buff_local_left_->clear();
                 //vec_buff_local_left_->resize(rsize + 1);
                 vec_buff_local_left_->assign(buff_local_left_, buff_local_left_ + rsize);
-                 qDebug()<<"开始获取画面3";
                 try {
                     // 使用 cv::imdecode 解码 MJPEG 数据为 cv::Mat
                   local_left_image_0_ = cv::imdecode(*vec_buff_local_left_, cv::IMREAD_COLOR);
-                     qDebug()<<"开始获取画面4";
                 } catch (const std::exception &e) {
                     qWarning() << "cv::imdecode 异常:" << e.what();
                     return;
                 }
-                qDebug()<<"开始获取画面5"<<local_left_image_0_.data;
                 if(local_left_image_0_.empty())return;
-                qDebug()<<"开始获取画面6";
                 QImage image(local_left_image_0_.data,
                              local_left_image_0_.cols,
                              local_left_image_0_.rows,
                              static_cast<int>(local_left_image_0_.step),
                              QImage::Format_BGR888);
-                qDebug() << "发送local左图";
                 emit signalSendLocalLeftImage(image);
             }
             else {
@@ -804,7 +797,7 @@ void cameraManager::capture_local_right()
         else if (rsize == 0) {
             ++failed_count_local_right_;
             if (failed_count_local_right_ >= 10) {
-                capture_local_right_flag_ = false;
+                //capture_local_right_flag_ = false;
                 //RCLCPP_INFO(kLogger, "cvcamera restart left 3");
             }
             return;
