@@ -65,11 +65,11 @@ Item {
 
             }
             Component.onDestruction: {
-                cameraManager.stopCamera()
                 if(urtrobot_right.arm_connect){
                     urtrobot_right.robot_drag_activate(false)
                 }
                 cameracalibqwrapper.calibration_resource_unload()
+                cameraManager.stopCamera()
             }
             Row{
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -711,11 +711,11 @@ Item {
 
             }
             Component.onDestruction: {
-                cameraManager.stopCamera()
                 if(urtrobot_left.arm_connect){
                     urtrobot_left.robot_drag_activate(false)
                 }
                 cameracalibqwrapper.calibration_resource_unload()
+                cameraManager.stopCamera()
             }
             Row{
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -1146,11 +1146,11 @@ Item {
                 cameracalibqwrapper.calibration_resource_load()
             }
             Component.onDestruction: {
-                cameraManager.stopCamera()
                 if(urtrobot_right.arm_connect){
                     urtrobot_right.robot_drag_activate(false)
                 }
                 cameracalibqwrapper.calibration_resource_unload()
+                cameraManager.stopCamera()
             }
             Row{
                 anchors.horizontalCenter: parent.horizontalCenter
