@@ -676,7 +676,7 @@ void KinematicCalibQWrapper::set_joint_pos_index(int newJoint_pos_index)
     if(m_joint_pos_index < vector2d_jpos_list_right_.size())
     {
         QVariantList list_right;
-        for(auto singleJointPos: vector2d_jpos_list_left_[m_joint_pos_index])
+        for(auto singleJointPos: vector2d_jpos_list_right_[m_joint_pos_index])
         {
             list_right.append(singleJointPos);
         }
