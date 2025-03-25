@@ -15,9 +15,18 @@
 #define DALAY_MS_TEACH_TO_POSITION_MODE 1050
 
 #define UTR_ROBOT_SERVER_PORT 502
-
+#define JOIN_MOVE_DEFAULT_SPD 5.0/57.54
+#define JOIN_MOVE_DEFAULT_ACC 3.0
+#define CART_MOVE_DEFAULT_VEL 50.0
+#define CART_MOVE_DEFAULT_ACC 1000.0
 
 UtraRobot::UtraRobot(UtRobotConfig::TestConfig& config):config_{config} {
+    this->speed =JOIN_MOVE_DEFAULT_SPD;  // rad/s
+    this->acc   =JOIN_MOVE_DEFAULT_ACC;
+    this->mvvelo=CART_MOVE_DEFAULT_VEL;   // mm/s
+    this->mvacc =CART_MOVE_DEFAULT_ACC;  // mm/s
+    this->mvtime=0;
+
     memset(&this->rx_data_, 0x00, sizeof(this->rx_data_));
     thd_refresh_robot_status_ = std::thread(&UtraRobot::ThreadFunction_UpdateRobotStatus, this);
 }
@@ -297,11 +306,11 @@ bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_
     std::lock_guard lck_exclusive{this->mtx_exclusivity_command_};
     ubot_->reset_err();
     std::unique_lock lck{this->mtx_robotState_};
-    if(((uint8_t)(UtrRobotStatus::Standby) != this->robotState_.motion_status) 
+    if(((uint8_t)(UtrRobotStatus::Standby) != this->robotState_.motion_status)
         || (this->isDragging) || this->cmd_stop)
     {
         printf("%s - utr robot is not standy, motion status{%d}, isDragging{%d}, cmd_stop{%d}\r\n",
-        __FUNCTION__, this->robotState_.motion_status, this->isDragging, this->cmd_stop);
+               __FUNCTION__, this->robotState_.motion_status, this->isDragging, this->cmd_stop);
         this->cmd_stop = false;
         return false;
     }
@@ -310,7 +319,7 @@ bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_
     lck.unlock();
 
     printf("%s - target pos {%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f}\r\n",__FUNCTION__,
-    jPos[0], jPos[1], jPos[2], jPos[3], jPos[4], jPos[5], jPos[6]);
+           jPos[0], jPos[1], jPos[2], jPos[3], jPos[4], jPos[5], jPos[6]);
     if(ROBOT_NO_ERROR != ubot_->moveto_joint_p2p(jPos.data(), speed, acc, 0))
     {
         std::cout << __FUNCTION__ << " utr robot API 'moveto_joint_p2p' failed!"<<std::endl;
@@ -320,8 +329,8 @@ bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_
 
     lck.lock();
     bool waitStartMove_Success = this->cv_robotState_.wait_for(lck, std::chrono::milliseconds(TIMEOUT_MS_ROBOT_START_MOV),
-        [this](){return this->Predicate_Robot_Moving_Without_Error();
-    });
+                                                               [this](){return this->Predicate_Robot_Moving_Without_Error();
+                                                               });
     if(!waitStartMove_Success)
     {
         std::cout << __FUNCTION__ << " utr robot start move timeout!"<<std::endl;
@@ -330,7 +339,7 @@ bool UtraRobot::RobotCommand_JointPtp(UtRobotConfig::JointPos jPos, int timeout_
     }
     std::cout << __FUNCTION__ << " utr robot start to move!"<<std::endl;
     bool waitFinishMove_Success = this->cv_robotState_.wait_until(lck, timestamp_timeout,
-        [this](){ return this->Predicate_Robot_Standby_Or_Error() || this->cmd_stop;});
+                                                                  [this](){ return this->Predicate_Robot_Standby_Or_Error() || this->cmd_stop;});
 
     if(!waitFinishMove_Success)
     {
@@ -368,7 +377,7 @@ bool UtraRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int 
         || (this->isDragging) || this->cmd_stop)
     {
         printf("%s - utr robot is not standy, motion status{%d}, isDragging{%d}, cmd_stop{%d}\r\n",
-            __FUNCTION__, this->robotState_.motion_status, this->isDragging, this->cmd_stop);
+               __FUNCTION__, this->robotState_.motion_status, this->isDragging, this->cmd_stop);
         this->cmd_stop = false;
         return false;
     }
@@ -386,7 +395,7 @@ bool UtraRobot::RobotCommand_CartesianLine(UtRobotConfig::CartesianPos Pos, int 
 
     lck.lock();
     bool waitStartMove_Success = this->cv_robotState_.wait_for(lck, std::chrono::milliseconds(TIMEOUT_MS_ROBOT_START_MOV),
-        [this](){return this->Predicate_Robot_Moving_Without_Error();});
+                                                               [this](){return this->Predicate_Robot_Moving_Without_Error();});
     if(!waitStartMove_Success)
     {
         std::cout << __FUNCTION__ << " utr robot start move timeout!"<<std::endl;
@@ -572,7 +581,7 @@ bool UtraRobot::RobotCommand_Hold()
         lck.lock();
         bool waiStatusPausing_Success = this->cv_robotState_.wait_for(lck, std::chrono::seconds(5), [this](){
             return ((uint8_t)(ArmStatus::PAUSING) == this->robotState_.motion_mode)
-                || ((uint8_t)(UtrRobotStatus::Stopping) == this->robotState_.motion_status);//
+                   || ((uint8_t)(UtrRobotStatus::Stopping) == this->robotState_.motion_status);//
         });
         if(!waiStatusPausing_Success)
         {
@@ -602,7 +611,7 @@ bool UtraRobot::RobotCommand_Hold()
             return false;
         }
     }
-    else 
+    else
     {
         printf("%s - current robot not in teach or position mode!\r\n", __FUNCTION__);
         return false;
@@ -955,6 +964,14 @@ bool UtraRobot::Robot_Enable_Single_Axis(int axis_idex, bool enalbe)
     return true;
 }
 
+void UtraRobot::set_speed_override(double percent)
+{
+    this->speed =JOIN_MOVE_DEFAULT_SPD * percent/100.0;  // rad/s
+    this->acc   =JOIN_MOVE_DEFAULT_ACC * percent/100.0;
+    this->mvvelo=CART_MOVE_DEFAULT_VEL * percent/100.0;   // mm/s
+    this->mvacc =CART_MOVE_DEFAULT_ACC * percent/100.0;  // mm/s
+}
+
 uint32_t UtraRobot::get_enables_status()
 {
     return this->robotState_.mt_brake;
@@ -992,7 +1009,7 @@ void UtraRobot::ThreadFunction_UpdateRobotStatus()
                 (this->robotState_.mt_brake      ^ prev_state.mt_brake) ||
                 (this->robotState_.mt_able      ^ prev_state.mt_able)
                 ) {
-                
+
                 if(this->robotState_.motion_status ^ prev_state.motion_status)
                 {
                     printf("motion status changed from {%d}->{%d}\r\n",  prev_state.motion_status, this->robotState_.motion_status);

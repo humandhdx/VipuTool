@@ -101,6 +101,11 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
     }
 }
 
+void UtraRobot_QWrapper::robot_set_speed_override(double percent)
+{
+    this->set_speed_override(percent);
+}
+
 void UtraRobot_QWrapper::spin_until_all_action_finished()
 {
     QEventLoop spinner;

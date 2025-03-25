@@ -42,6 +42,8 @@ Item {
         Item {
             Component.onCompleted: {
                 kinematiccalibqwrapper.calibration_resource_load(isLeft)
+                urtrobot_left.robot_set_speed_override(200)
+                urtrobot_right.robot_set_speed_override(200)
             }
             Component.onDestruction: {
                 kinematiccalibqwrapper.calibration_resource_unload(isLeft)
