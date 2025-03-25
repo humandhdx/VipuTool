@@ -5,6 +5,7 @@ import QtQuick.Dialogs
 Item {
     anchors.fill: parent
     property bool isLeft: false
+    property bool firstPointReached: false
     Component.onCompleted: {
     }
     Component.onDestruction: {
@@ -42,6 +43,8 @@ Item {
         Item {
             Component.onCompleted: {
                 kinematiccalibqwrapper.calibration_resource_load(isLeft)
+                urtrobot_left.robot_set_speed_override(200)
+                urtrobot_right.robot_set_speed_override(200)
             }
             Component.onDestruction: {
                 kinematiccalibqwrapper.calibration_resource_unload(isLeft)
@@ -409,7 +412,7 @@ Item {
 
                                     // 执行关节移动
                                     var result = robot.move_To_Joint_Position(targetPose)
-
+                                    firstPointReached = firstPointReached || result;
                                     // 处理结果
                                     if (result) {
                                         kinematiccalibqwrapper.joint_pos_index += 1
@@ -429,10 +432,12 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-                                text: "标记当前点位("+kinematiccalibqwrapper.joint_pos_index+")无法观测"
-                                enabled: kinematiccalibqwrapper.joint_pos_index!==0&&robot.arm_connect&&!isComplete
+                                text: "标记当前点位("+((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
+                                                 %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))+")无法观测"
+                                enabled: firstPointReached&&robot.arm_connect
                                 onClicked: {
-                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index-1)
+                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
+                                                                                                %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                     maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
                                 }
                             }

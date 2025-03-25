@@ -6,6 +6,7 @@
 #include <QSet>
 #include <QTimer>
 #include "ut_robot_wrapper/kinematic_calibration/posefileparser.hpp"
+#include <QMutex>
 
 class KinematicCalibQWrapper : public QObject, KinematicCalibrator
 {
@@ -93,6 +94,8 @@ private:
     bool m_kinematic_calib_data_ready_right;
 
     QList<int> m_lst_masked_robot_pose_index;
+
+    QMutex mtx_mask_list_;
 
     int m_joint_pos_index;
 

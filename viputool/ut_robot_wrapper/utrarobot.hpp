@@ -94,8 +94,15 @@ public:
     //axis_idex start from 1
     bool Robot_Enable_Single_Axis(int axis_idex, bool enalbe);
 
+    void set_speed_override(double percent);
+
     uint32_t get_enables_status();
     uint32_t get_brake_status();
+
+    arm_report_status_t& Get_Rx_Data_Ref()
+    {
+        return this->rx_data_;
+    }
 
 protected:
     bool is_robot_connected{false};

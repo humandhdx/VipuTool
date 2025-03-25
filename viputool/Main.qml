@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-Window {
+ApplicationWindow {
     width: 1440
     height: 900
     maximumWidth: 1440
@@ -14,6 +14,15 @@ Window {
         anchors.fill: parent
         color: "#FFFFFF"
     }
+
+    onClosing: function(closeEvent){
+        mask.open()
+        urtrobot_left.robot_drag_activate(false)
+        urtrobot_right.robot_drag_activate(false)
+        mask.close()
+        // closeEvent.accepted=true
+    }
+
     Rectangle{
         width: parent.width/8
         height: parent.height
@@ -101,6 +110,8 @@ Window {
                         typelist.currentIndex=index
                         urtrobot_left.spin_until_all_action_finished()
                         urtrobot_right.spin_until_all_action_finished()
+                        urtrobot_left.robot_set_speed_override(100)
+                        urtrobot_right.robot_set_speed_override(100)
                         mask.close()
                     }
                 }

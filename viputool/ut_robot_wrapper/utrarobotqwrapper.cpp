@@ -52,17 +52,17 @@ bool UtraRobot_QWrapper::robot_connect()
 
 bool UtraRobot_QWrapper::robot_drag_activate(bool on)
 {
-    QMutexTryLocker lck{mutext};
-    if(!lck.isLocked())
-    {
-        qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
-        return false;
-    }
-    QEventLoop spinner;
-    bool executionResult = false;
-    std::future<bool> fut;
     if(on)
     {
+        QMutexTryLocker lck{mutext};
+        if(!lck.isLocked())
+        {
+            qDebug() << __FUNCTION__ << " - please wait other robot action finish, then call this funciton!";
+            return false;
+        }
+        QEventLoop spinner;
+        bool executionResult = false;
+        std::future<bool> fut;
         fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
             executionResult = this->RobotCommand_EnterTeachMode();
             spinner.exit();
@@ -82,6 +82,9 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
     }
     else
     {
+        QEventLoop spinner;
+        bool executionResult = false;
+        std::future<bool> fut;
         fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
             executionResult = this->RobotCommand_Hold();
             spinner.exit();
@@ -99,6 +102,11 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
             return false;
         }
     }
+}
+
+void UtraRobot_QWrapper::robot_set_speed_override(double percent)
+{
+    this->set_speed_override(percent);
 }
 
 void UtraRobot_QWrapper::spin_until_all_action_finished()
