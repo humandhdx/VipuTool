@@ -436,7 +436,7 @@ Item {
                                                  %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))+")无法观测"
                                 enabled: firstPointReached&&robot.arm_connect
                                 onClicked: {
-                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder((kinematiccalibqwrapper.joint_pos_index - 1 + isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right)
+                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                                                                                 %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                     maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
                                 }
