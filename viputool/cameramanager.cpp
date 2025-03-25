@@ -180,17 +180,23 @@ bool cameraManager::captureImage(const std::string &path, int type, int count)
     bool right_saved=false;
     switch (type) {
     case 0:
+    {
+        std::unique_lock lck{this->mtx_camera_left_};
         if (left_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
         return saveImage(path, left_image_0_, "Global_Left_Image", count);
+    }
     case 1:
+    {
+        std::unique_lock lck{this->mtx_camera_right_};
         if (right_image_0_.empty()) {
             qDebug() << "保存图像失败";
             return false;
         }
         return saveImage(path, right_image_0_, "Global_Right_Image", count);
+    }
     case 2:
         if (left_image_0_.empty() || right_image_0_.empty()) {
             qDebug() << "保存图像失败";
