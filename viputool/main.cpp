@@ -51,15 +51,18 @@ int main(int argc, char *argv[])
     UtraRobot_QWrapper *m_urtrobot_right=new UtraRobot_QWrapper(UtRobotConfig::TestConfig_RobotRight);
     KinematicCalibQWrapper *m_kinematiccalibqwrapper=new KinematicCalibQWrapper();
     CameraCalibQWrapper *m_cameracalibqwrapper=new CameraCalibQWrapper();
-    QObject::connect(&app, &QCoreApplication::aboutToQuit, [m_urtrobot_left, m_urtrobot_right](){
-        const char msg[] = "qt about to quit, now try to stop robot movements\n";
+
+    UnixSignal::Register_SystemInterrupt_Callback([&](int system_signal){
+        char msg[128];
+        sprintf(msg, "unix signal[%d] coming, now try to stop robot movements\r\n", system_signal);
         write(STDOUT_FILENO, msg, sizeof(msg) - 1);
         std::thread thread_robot_hold_left{&UtraRobot::RobotCommand_Hold, m_urtrobot_left};
         std::thread thread_robot_hold_right{&UtraRobot::RobotCommand_Hold, m_urtrobot_right};
         thread_robot_hold_left.join();
         thread_robot_hold_right.join();
-        const char msg_end[] = "Robot Stoped\n";
+        const char msg_end[] = "Robot Stoped, about to quit Qapp!\r\n";
         write(STDOUT_FILENO, msg_end, sizeof(msg_end) - 1);
+        qApp->exit(0);
     });
     //video
     ImageProvider *image_provider_gl = new ImageProvider();

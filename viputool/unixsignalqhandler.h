@@ -4,16 +4,27 @@
 #include <signal.h>
 #include <stdio.h>
 #include <QApplication>
+#include <functional>
+#include <list>
 
 namespace UnixSignal {
 
+    std::list<std::function<void(int)>> callbacks_system_interrupt;
+
     void SignalHanlder(int sig)
     {
-        // std::cerr << "system signal " << sig << std::endl;
-        char msg[34];
-        sprintf(msg, "unix signal[%d] coming, quit Qapp\n", sig);
+        // qApp->exit(0);
+        const char msg[] = "system interrupt is comming\r\n";
         write(STDOUT_FILENO, msg, sizeof(msg) - 1);
-        qApp->exit(0);
+        for(auto cb: callbacks_system_interrupt)
+        {
+            cb(sig);
+        }
+    }
+
+    void Register_SystemInterrupt_Callback(std::function<void(int)> cb)
+    {
+        callbacks_system_interrupt.emplace_back(cb);
     }
 
     void Register_Hookers()

@@ -505,7 +505,7 @@ bool UtraRobot::RobotCommand_Hold()
 {
     if(!this->is_robot_connected)
     {
-        std::cout << __FUNCTION__ << " - connect robot before call this function!";
+        std::cout << __FUNCTION__ << " - connect robot before call this function!"<<std::endl;
         return false;
     }
     std::unique_lock lck{this->mtx_robotState_};
