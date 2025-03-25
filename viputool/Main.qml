@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-Window {
+ApplicationWindow {
     width: 1440
     height: 900
     maximumWidth: 1440
@@ -14,6 +14,15 @@ Window {
         anchors.fill: parent
         color: "#FFFFFF"
     }
+
+    onClosing: function(closeEvent){
+        mask.open()
+        urtrobot_left.robot_drag_activate(false)
+        urtrobot_right.robot_drag_activate(false)
+        mask.close()
+        // closeEvent.accepted=true
+    }
+
     Rectangle{
         width: parent.width/8
         height: parent.height
