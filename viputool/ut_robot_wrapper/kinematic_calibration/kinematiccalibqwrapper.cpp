@@ -85,6 +85,7 @@ void KinematicCalibQWrapper::reset_kinematic_calib()
 
 bool KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index_of_position_record)
 {
+    QMutexLocker lck{&this->mtx_mask_list_};
     if(!m_lst_masked_robot_pose_index.contains(index_of_position_record))
     {
         m_lst_masked_robot_pose_index.append(index_of_position_record);
@@ -97,6 +98,7 @@ bool KinematicCalibQWrapper::add_mask_index_for_position_recorder(uint32_t index
 
 bool KinematicCalibQWrapper::remove_mask_index_for_position_recorder(uint32_t index_of_position_record)
 {
+    QMutexLocker lck{&this->mtx_mask_list_};
     if(0 != m_lst_masked_robot_pose_index.removeAll(index_of_position_record))
     {
         emit lst_masked_robot_pose_index_changed();
