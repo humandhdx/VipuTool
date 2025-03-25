@@ -432,10 +432,8 @@ Item {
                                 text: "标记当前点位("+kinematiccalibqwrapper.joint_pos_index+")无法观测"
                                 enabled: kinematiccalibqwrapper.joint_pos_index!==0&&robot.arm_connect&&!isComplete
                                 onClicked: {
-                                    var result=kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index-1)
-                                    if(result){
-                                        maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
-                                    }
+                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index-1)
+                                    maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
                                 }
                             }
                         }
