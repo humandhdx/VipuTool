@@ -15,7 +15,41 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
 endif()
 add_subdirectory(3rdparty/cbdetect)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utapi)
+
+add_subdirectory(3rdparty/utapi)
+
+
+# 建议将第三方库解压到构建目录
+set(THIRD_PARTY_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/third_party)
+set(LIBSSH_SOURCE_DIR ${THIRD_PARTY_BUILD_DIR}/libssh-0.9.6)  # 根据实际解压目录名调整
+
+# 检查是否已解压
+if(NOT EXISTS ${LIBSSH_SOURCE_DIR})
+    # 创建目标目录并解压
+    file(MAKE_DIRECTORY ${THIRD_PARTY_BUILD_DIR})
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libssh-0.9.6.tar.xz
+        WORKING_DIRECTORY ${THIRD_PARTY_BUILD_DIR}  # 解压到构建目录
+        RESULT_VARIABLE result
+    )
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "Failed to extract libssh: ${result}")
+    endif()
+endif()
+
+# 添加子项目（假设解压后目录包含CMakeLists.txt）
+#add_subdirectory(${LIBSSH_SOURCE_DIR} ${THIRD_PARTY_BUILD_DIR}/libssh-build)
+#链接源码头文件
+include_directories(${LIBSSH_SOURCE_DIR} ${THIRD_PARTY_BUILD_DIR}/libssh-build/include/)
+#链接编译后的源码头文件
+include_directories(${LIBSSH_SOURCE_DIR} ${THIRD_PARTY_BUILD_DIR}/libssh-0.9.6/include/)
+# 添加第三方库的子项目
+add_subdirectory(
+    ${LIBSSH_SOURCE_DIR}
+    ${THIRD_PARTY_BUILD_DIR}/libssh-build  # 指定构建目录
+)
+
+# 链接libssh提供的目标（需确认目标名称，如libssh::libssh）
 
 set(src_robot_wrapper
     ${CMAKE_CURRENT_SOURCE_DIR}/utils/ReadAndWriteFile.cpp
@@ -99,6 +133,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     utapi
     usb-1.0
     udev
+    libssh
 )
 
 add_custom_command(

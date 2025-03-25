@@ -10,6 +10,16 @@ ApplicationWindow {
     visible: true
     title: qsTr("Vipu Tool")
     // VideoOutput 用于显示视频流，source 指定为 cameraManager.camera
+    onClosing: function(closeEvent) {
+        console.log("Window is attempting to close.")
+
+        // 弹出一个对话框，提示用户确认是否关闭
+        //confirmDialog.open()
+
+        // 阻止窗口立即关闭（通过将 `closeEvent.accepted` 设置为 false）
+        closeEvent.accepted = false
+    }
+
     Rectangle{
         anchors.fill: parent
         color: "#FFFFFF"

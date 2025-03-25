@@ -740,6 +740,7 @@ Item {
                         cameraManager.clearCaptureCount(capturePath)
                         handeyeCulate.resetCalibration()
                         captureCount=0
+                        armParamePath=""
                         isCamera=false
                     }
                     else{
@@ -1509,6 +1510,7 @@ Item {
                         capturePath=localFolder
                         cameraManager.clearCaptureCount(capturePath)
                         handeyeCulate.resetCalibration()
+                        armParamePath=""
                         captureCount=0
                         isCamera=false
                     }
