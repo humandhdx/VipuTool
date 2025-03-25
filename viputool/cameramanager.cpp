@@ -1302,34 +1302,50 @@ void cameraManager::EOG(const cv::Mat &mat)
     cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
     cv::Mat kernely = (cv::Mat_<char>(2, 1) << -1, 1);
     cv::Mat kernelx = (cv::Mat_<char>(1, 2) << -1, 1);
-    cv::Mat engx, engy;
-    filter2D(gray, engx, CV_32F, kernelx);
-    filter2D(gray, engy, CV_32F, kernely);
+    auto canny = canny_edge_detection(gray);
+    // cv::Mat engx, engy;
+    // filter2D(gray, engx, CV_32F, kernelx);
+    // filter2D(gray, engy, CV_32F, kernely);
 
-    cv::Mat result = engx.mul(engx) + engy.mul(engy);
-    double focus_metric = cv::mean(result)[0];
+   // cv::Mat result = engx.mul(engx) + engy.mul(engy);
+   // double focus_metric = cv::mean(result)[0];
     // 初始化 min_foc 和 max_foc（如果是第一次调用）
-    if (min_foc() == 0 && max_foc() == 0) {
-        setMin_foc(focus_metric);
-        setMax_foc(focus_metric);
-        qDebug() << "First run: Initialized min_foc and max_foc to: " << focus_metric;
-        return;
-    }
+    // if (min_foc() == 0 && max_foc() == 0) {
+    //     setMin_foc(focus_metric);
+    //     setMax_foc(focus_metric);
+    //     qDebug() << "First run: Initialized min_foc and max_foc to: " << focus_metric;
+    //     return;
+    // }
 
     // 更新最小和最大清晰度值
-    if (focus_metric < min_foc()) {
-        setMin_foc(focus_metric);
-    }
+    // if (focus_metric < min_foc()) {
+    //     setMin_foc(focus_metric);
+    // }
 
-    if (focus_metric > max_foc()) {
-        setMax_foc(focus_metric);
-    }
-    setCur_foc(focus_metric);
+    // if (focus_metric > max_foc()) {
+    //     setMax_foc(focus_metric);
+    // }
+    setCur_foc(canny);
 
     // 输出当前的清晰度信息
     // qDebug() << "当前图像清晰度为:" << focus_metric;
     // qDebug() << "最小清晰度为:" << min_foc;
     // qDebug() << "最大清晰度为:" << max_foc;
+}
+
+double cameraManager::canny_edge_detection(const cv::Mat &mat)
+{
+   // Canny 边缘检测
+    double threshold1 = 100.0; // threshold1 参数
+    double threshold2 = 200.0; // threshold2 参数
+    auto edges =cv::Canny(mat,threshold1, threshold2); //cv2.Canny(gray, threshold1=100, threshold2=200)
+    //cv::Canny(gray, edges, threshold1, threshold2);
+
+    // 计算边缘强度：边缘像素的总和
+    double edge_strength = cv::sum(edges)[0]; // sum 函数返回一个 Scalar，取第一个通道值即可
+
+    // 将结果缩放
+    return edge_strength * 1e-4;
 }
 
 bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)

@@ -88,6 +88,7 @@ private:
     std::pair<int, int> get_bus_position(const std::string camera_path);
     bool set_binocular_device_id(int &id_left, int &id_right);
     void EOG(const cv::Mat &mat);
+    double canny_edge_detection(const cv::Mat &mat);
     bool saveImage(const std::string& path, const cv::Mat& image, const std::string& prefix, int count) ;
     bool captureImage(const std::string &path, int type, int count);
 
