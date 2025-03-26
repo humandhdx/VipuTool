@@ -15,6 +15,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC)
 endif()
 add_subdirectory(3rdparty/cbdetect)
+add_subdirectory(3rdparty/libssh-0.9.6)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/utapi)
 
 set(src_robot_wrapper
@@ -77,16 +78,18 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
-
+set(LIBSSH_BUILD_INCLUDE_DIR ${CMAKE_BINARY_DIR}/3rdparty/libssh-0.9.6/include)
+include_directories(${LIBSSH_BUILD_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nlohmann
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libssh-0.9.6/include  # 添加 libssh 头文件路径
     $<TARGET_PROPERTY:utapi,INTERFACE_INCLUDE_DIRECTORIES>
     ${EIGEN3_INCLUDE_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} PUBLIC libssh.so)
+#target_link_libraries(${PROJECT_NAME} PUBLIC libssh.so)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt6::Quick
@@ -99,6 +102,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     utapi
     usb-1.0
     udev
+    ssh
 )
 
 add_custom_command(
