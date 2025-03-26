@@ -171,7 +171,7 @@ void KinematicCalibrator::SourceDataInjection_right()
 {
     // inject joint pos list data
     std::vector<std::vector<double>> data_vector_2d_filted;
-    filtered_data(vector2d_jpos_list_left_, disable_data_set_, data_vector_2d_filted);
+    filtered_data(vector2d_jpos_list_right_, disable_data_set_, data_vector_2d_filted);
     size_t rows = data_vector_2d_filted.size();
     size_t cols = rows > 0 ? data_vector_2d_filted[0].size() : 0;
     calib_info_right_.joint_theta.resize(rows, cols);

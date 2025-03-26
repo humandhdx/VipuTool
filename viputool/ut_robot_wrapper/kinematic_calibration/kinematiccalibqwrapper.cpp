@@ -250,7 +250,7 @@ bool KinematicCalibQWrapper::export_Calib_Result(bool isLeftArm, QString export_
 
 
     QDir export_sn_dir{export_dir_path+'/'+robot_serial_number};
-    if(QDir().mkdir(export_dir_path+'/'+robot_serial_number))
+    if(!QDir().mkdir(export_dir_path+'/'+robot_serial_number))
     {
         qWarning()<<"fail to create dir "<< (export_dir_path+'/'+robot_serial_number) <<"!";
         return false;

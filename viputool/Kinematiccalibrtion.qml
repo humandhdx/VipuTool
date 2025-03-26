@@ -6,6 +6,8 @@ Item {
     anchors.fill: parent
     property bool isLeft: false
     property bool firstPointReached: false
+    property int current_jpos_index: ((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
+                                      %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
     Component.onCompleted: {
     }
     Component.onDestruction: {
@@ -432,13 +434,11 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-                                text: "标记当前点位("+((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
-                                                 %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))+")无法观测"
+                                text: "标记当前点位("+ current_jpos_index +")无法观测"
                                 enabled: firstPointReached&&robot.arm_connect
                                 onClicked: {
-                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
-                                                                                                %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
-                                    maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
+                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder(current_jpos_index)
+                                    maskmodel.append({maskid:current_jpos_index})
                                 }
                             }
                         }
@@ -704,6 +704,7 @@ Item {
                 anchors.centerIn: parent
                 placeholderText: "请输入15位字符"
                 // 限制最大输入长度为 15
+                text: qsTr("DUMMYSERIALCODE")
                 maximumLength: 15
             }
             Row{
@@ -720,7 +721,7 @@ Item {
                         {
                             return
                         }
-                        input_cn_popup.snNub=isLeft?"CL"+sninput.text:"CR"+sninput.text
+                        input_cn_popup.snNub=isLeft?("CL"+sninput.text):("CR"+sninput.text)
                         console.log(input_cn_popup.snNub)
                         pageLoader.sourceComponent=arm_cali
                         input_cn_popup.close()
