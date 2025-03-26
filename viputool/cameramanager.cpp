@@ -1335,17 +1335,21 @@ void cameraManager::EOG(const cv::Mat &mat)
 
 double cameraManager::canny_edge_detection(const cv::Mat &mat)
 {
-   // Canny 边缘检测
-    double threshold1 = 100.0; // threshold1 参数
-    double threshold2 = 200.0; // threshold2 参数
-    auto edges =cv::Canny(mat,threshold1, threshold2); //cv2.Canny(gray, threshold1=100, threshold2=200)
-    //cv::Canny(gray, edges, threshold1, threshold2);
+    // 参数配置
+    const double threshold1 = 100.0;
+    const double threshold2 = 200.0;
+    const int apertureSize = 3;    // Sobel算子孔径
+    const bool useL2 = false;      // 使用L1范数计算梯度（更快）
 
-    // 计算边缘强度：边缘像素的总和
-    double edge_strength = cv::sum(edges)[0]; // sum 函数返回一个 Scalar，取第一个通道值即可
+    // 边缘检测（严格遵循C++ API规范）
+    cv::Mat edges;
+    cv::Canny(mat, edges, threshold1, threshold2, apertureSize, useL2);
 
-    // 将结果缩放
-    return edge_strength * 1e-4;
+    // 边缘强度计算（带数值稳定性检查）
+    if (edges.empty()) {
+        return 0.0;  // 安全处理
+    }
+    return cv::sum(edges)[0] * 1e-4;
 }
 
 bool cameraManager::saveImage(const std::string &path, const cv::Mat &image, const std::string &prefix, int count)
