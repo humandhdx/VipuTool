@@ -27,24 +27,24 @@ bool KinematicCalibrator::calibration_and_output(bool isLeftArm, std::string& fa
 {
     std::string mdh_json_template_path;
     std::string mdh_json_output_path;
-    std::string urdf_xml_oupput_path;
-    std::string residual_oupput_path;
+    std::string urdf_xml_output_path;
+    std::string residual_output_path;
 
     if(isLeftArm)
     {
         SourceDataInjection_left();
         mdh_json_template_path  = CONFIG_JSON_TEMPALTE_left_arm_info;
         mdh_json_output_path    = OUTPUT_JSON_left_arm_info;
-        urdf_xml_oupput_path    = OUTPUT_XML_left_arm_urdf;
-        residual_oupput_path    = OUTPUT_left_arm_residual;
+        urdf_xml_output_path    = OUTPUT_XML_left_arm_urdf;
+        residual_output_path    = OUTPUT_left_arm_residual;
     }
     else
     {
         SourceDataInjection_right();
         mdh_json_template_path  = CONFIG_JSON_TEMPALTE_right_arm_info;
         mdh_json_output_path    = OUTPUT_JSON_right_arm_info;
-        urdf_xml_oupput_path    = OUTPUT_XML_right_arm_urdf;
-        residual_oupput_path    = OUTPUT_right_arm_residual;
+        urdf_xml_output_path    = OUTPUT_XML_right_arm_urdf;
+        residual_output_path    = OUTPUT_right_arm_residual;
     }
 
     Kinematic_Calib_Info& calib_info = isLeftArm?calib_info_left_:calib_info_right_;
@@ -69,13 +69,13 @@ bool KinematicCalibrator::calibration_and_output(bool isLeftArm, std::string& fa
         result = false;
     }
 
-    if(!write_urdf_file(calib_info, isLeftArm, OUTPUT_XML_left_arm_urdf))
+    if(!write_urdf_file(calib_info, isLeftArm, urdf_xml_output_path))
     {
         failed_info += info_prefix + "kinematics calibration 'write urdf file' failed!\r\n";
         result = false;
     }
 
-    if(!write_residual_file(calib_info, residual_oupput_path))
+    if(!write_residual_file(calib_info, residual_output_path))
     {
         failed_info += info_prefix + "kinematics calibration 'write residual file' failed!\r\n";
         result = false;

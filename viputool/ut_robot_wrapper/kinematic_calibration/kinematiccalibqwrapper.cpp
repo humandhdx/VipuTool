@@ -281,19 +281,11 @@ bool KinematicCalibQWrapper::export_Calib_Result(bool isLeftArm, QString export_
     {
         if(!QFile::exists(output_file_path))
         {
-            qWarning()<<"the calibration output file:"<< robot_serial_number <<"exist!";
+            qWarning()<<"the calibration output file: '"<< output_file_path <<"' not exist!";
             return false;
         }
     }
 
-    for(auto output_file_path : output_files_path)
-    {
-        if(!QFile::exists(output_file_path))
-        {
-            qWarning()<<"the calibration output file:"<< robot_serial_number <<"exist!";
-            return false;
-        }
-    }
     QString target_dir_path = export_dir_path+'/'+robot_serial_number+'/';
     for(auto output_file_path : output_files_path)
     {
