@@ -1310,27 +1310,27 @@ void cameraManager::EOG(const cv::Mat &mat)
    // cv::Mat result = engx.mul(engx) + engy.mul(engy);
    // double focus_metric = cv::mean(result)[0];
     // 初始化 min_foc 和 max_foc（如果是第一次调用）
-    // if (min_foc() == 0 && max_foc() == 0) {
-    //     setMin_foc(focus_metric);
-    //     setMax_foc(focus_metric);
-    //     qDebug() << "First run: Initialized min_foc and max_foc to: " << focus_metric;
-    //     return;
-    // }
+    if (min_foc() == 0 && max_foc() == 0) {
+        setMin_foc(canny);
+        setMax_foc(canny);
+        qDebug() << "First run: Initialized min_foc and max_foc to: " << canny;
+        return;
+    }
 
     // 更新最小和最大清晰度值
-    // if (focus_metric < min_foc()) {
-    //     setMin_foc(focus_metric);
-    // }
+    if (canny < min_foc()) {
+        setMin_foc(canny);
+    }
 
-    // if (focus_metric > max_foc()) {
-    //     setMax_foc(focus_metric);
-    // }
+    if (canny > max_foc()) {
+        setMax_foc(canny);
+    }
     setCur_foc(canny);
 
     // 输出当前的清晰度信息
-    // qDebug() << "当前图像清晰度为:" << focus_metric;
-    // qDebug() << "最小清晰度为:" << min_foc;
-    // qDebug() << "最大清晰度为:" << max_foc;
+    qDebug() << "当前图像清晰度为:" << canny;
+    qDebug() << "最小清晰度为:" << min_foc();
+    qDebug() << "最大清晰度为:" << max_foc();
 }
 
 double cameraManager::canny_edge_detection(const cv::Mat &mat)
