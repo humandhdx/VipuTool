@@ -363,7 +363,7 @@ bool KinematicCalibQWrapper::copy_replace_file(QString &path_sourceFile, QString
         return false;
     }
 
-    if(sourceFile.copy(path_targetFile))
+    if(!sourceFile.copy(path_targetFile))
     {
         qWarning()<<"failed to copy source file"<< path_sourceFile ;
     }
