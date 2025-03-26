@@ -14,31 +14,39 @@ logger *logger::instance()
 
 void logger::myMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    // 1. 先调用默认处理器，确保输出到终端/调试窗口
-    QtMessageHandler defaultHandler = qInstallMessageHandler(nullptr); // 临时恢复默认处理器
-    if (defaultHandler) {
-        defaultHandler(type, context, msg); // 输出到原有位置
-    }
-    qInstallMessageHandler(myMessageHandler); // 重新注册我们的处理器
+    // 静态变量标记是否在处理中（线程安全版本）
+    static QAtomicInt handling(0);
 
-    // 2. 您的自定义逻辑（保持不变）
-    QString level;
-    int levelnum = 0;
-    switch (type) {
-    case QtDebugMsg: level = "DEBUG"; levelnum = QtDebugMsg; break;
-    case QtWarningMsg: level = "WARNING"; levelnum = QtWarningMsg; break;
-    case QtCriticalMsg: level = "CRITICAL"; levelnum = QtCriticalMsg; break;
-    case QtFatalMsg: level = "FATAL"; levelnum = QtFatalMsg; break;
-    default: level = "INFO"; break;
+    // 如果已经在处理中，直接调用默认处理器后返回
+    if (handling.fetchAndAddRelaxed(1) > 0) {
+        QtMessageHandler defaultHandler = qInstallMessageHandler(nullptr);
+        if (defaultHandler) defaultHandler(type, context, msg);
+        qInstallMessageHandler(myMessageHandler);
+        handling.fetchAndSubRelaxed(1);
+        return;
     }
-    emit instance()->sendLogMesseg(msg, levelnum); // 发送信号
 
-    // 追加到日志文件
-    // QFile file("app_log.txt");
-    // if (file.open(QIODevice::Append | QIODevice::Text)) {
-    //     QTextStream out(&file);
-    //     out << logMessage << "\n";
-    //     file.close();
-    // }
+    // 主处理逻辑（保证只执行一次）
+    int levelnum = [](QtMsgType t){
+        switch(t) {
+        case QtDebugMsg:    return QtDebugMsg;
+        case QtWarningMsg:  return QtWarningMsg;
+        case QtCriticalMsg: return QtCriticalMsg;
+        case QtFatalMsg:    return QtFatalMsg;
+        default:            return QtInfoMsg;
+        }
+    }(type);
+
+    // 发送信号（此时确保不会递归）
+    emit instance()->sendLogMesseg(msg, levelnum);
+
+    // 调用默认处理器输出到控制台
+    QtMessageHandler defaultHandler = qInstallMessageHandler(nullptr);
+    if (defaultHandler) defaultHandler(type, context, msg);
+    qInstallMessageHandler(myMessageHandler);
+
+    // 重置处理标志
+    handling.fetchAndSubRelaxed(1);
+
 
 }

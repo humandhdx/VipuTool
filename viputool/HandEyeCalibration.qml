@@ -1501,7 +1501,7 @@ Item {
             }
             FolderDialog {
                 id: folderDialog
-                title: qsTr("选择随动相机图片保存路径")
+                title: isCamera?qsTr("选择随动相机图片保存路径"):qsTr("选择随动相机手眼参数保存路径")
                 property bool isCamera: false
                 onAccepted: {
                     if(isCamera){
