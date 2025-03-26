@@ -14,35 +14,24 @@ logger *logger::instance()
 
 void logger::myMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    // 时间戳
-    QString timeStamp = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss");
-
-    // 消息级别
-    QString level="";
-    int levelnum=0;
-    switch (type) {
-    case QtDebugMsg:
-        level = "DEBUG";
-        levelnum=QtDebugMsg;
-        break;
-    case QtWarningMsg:
-        level = "WARNING";
-        levelnum=QtWarningMsg;
-        break;
-    case QtCriticalMsg:
-        level = "CRITICAL";
-        levelnum=QtCriticalMsg;
-        break;
-    case QtFatalMsg:
-        level = "FATAL";
-        levelnum=QtFatalMsg;
-        break;
-    default:
-        level = "INFO";
-        break;
+    // 1. 先调用默认处理器，确保输出到终端/调试窗口
+    QtMessageHandler defaultHandler = qInstallMessageHandler(nullptr); // 临时恢复默认处理器
+    if (defaultHandler) {
+        defaultHandler(type, context, msg); // 输出到原有位置
     }
+    qInstallMessageHandler(myMessageHandler); // 重新注册我们的处理器
 
-    emit  instance()->sendLogMesseg(msg,levelnum);
+    // 2. 您的自定义逻辑（保持不变）
+    QString level;
+    int levelnum = 0;
+    switch (type) {
+    case QtDebugMsg: level = "DEBUG"; levelnum = QtDebugMsg; break;
+    case QtWarningMsg: level = "WARNING"; levelnum = QtWarningMsg; break;
+    case QtCriticalMsg: level = "CRITICAL"; levelnum = QtCriticalMsg; break;
+    case QtFatalMsg: level = "FATAL"; levelnum = QtFatalMsg; break;
+    default: level = "INFO"; break;
+    }
+    emit instance()->sendLogMesseg(msg, levelnum); // 发送信号
 
     // 追加到日志文件
     // QFile file("app_log.txt");
