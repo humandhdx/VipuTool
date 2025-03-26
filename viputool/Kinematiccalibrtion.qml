@@ -432,7 +432,6 @@ Item {
                             Button{
                                 width: 200
                                 height: 40
-<<<<<<< Updated upstream
                                 text: "标记当前点位("+((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                                  %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))+")无法观测"
                                 enabled: firstPointReached&&robot.arm_connect
@@ -440,15 +439,6 @@ Item {
                                     kinematiccalibqwrapper.add_mask_index_for_position_recorder((kinematiccalibqwrapper.joint_pos_index - 1 + (isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                                                                                 %(isLeft?kinematiccalibqwrapper.joint_pos_total_num_left:kinematiccalibqwrapper.joint_pos_total_num_right))
                                     maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
-=======
-                                text: kinematiccalibqwrapper.joint_pos_index===0?"没有运行点位":"标记当前点位("+(kinematiccalibqwrapper.joint_pos_index-1)+")无法观测"
-                                enabled: kinematiccalibqwrapper.joint_pos_index!==0&&robot.arm_connect&&!isComplete
-                                onClicked: {
-                                    kinematiccalibqwrapper.add_mask_index_for_position_recorder(kinematiccalibqwrapper.joint_pos_index-1)
-                                    if(result){
-                                        maskmodel.append({maskid:kinematiccalibqwrapper.joint_pos_index-1})
-                                    }
->>>>>>> Stashed changes
                                 }
                             }
                         }
