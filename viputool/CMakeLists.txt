@@ -78,13 +78,12 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
-set(LIBSSH_BUILD_INCLUDE_DIR ${CMAKE_BINARY_DIR}/3rdparty/libssh-0.9.6/include)
-include_directories(${LIBSSH_BUILD_INCLUDE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/nlohmann
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libssh-0.9.6/include  # 添加 libssh 头文件路径
+    ${CMAKE_BINARY_DIR}/3rdparty/libssh-0.9.6/include  # 添加 libssh 编译后的头文件路径
     $<TARGET_PROPERTY:utapi,INTERFACE_INCLUDE_DIRECTORIES>
     ${EIGEN3_INCLUDE_DIR}
 )
