@@ -106,10 +106,14 @@ ApplicationWindow {
                     anchors.fill: parent
                     onClicked: {
                         mask.open()
+                        console.log("begin load new page")
                         loader.source=pageurl
+                        console.log("finish load new page")
                         typelist.currentIndex=index
+                        console.log("begin wait arm action finishe")
                         urtrobot_left.spin_until_all_action_finished()
                         urtrobot_right.spin_until_all_action_finished()
+                        console.log("finish wait arm action finishe")
                         urtrobot_left.robot_set_speed_override(100)
                         urtrobot_right.robot_set_speed_override(100)
                         mask.close()
