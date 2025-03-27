@@ -31,10 +31,10 @@ namespace UnixSignal {
     {
         //中断信号 trigger by 'Ctrl+C'
         signal(SIGINT, SignalHanlder);
-        //终止信号 trigger by 'kill'
-        signal(SIGTERM, SignalHanlder);
-        //段错误信号 trigger by segment fault
-        signal(SIGSEGV, SignalHanlder);
+        // //终止信号 trigger by 'kill'
+        // signal(SIGTERM, SignalHanlder);
+        // //段错误信号 trigger by segment fault
+        // signal(SIGSEGV, SignalHanlder);
     }
 
 }
