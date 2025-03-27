@@ -295,7 +295,7 @@ void cameraManager::openMalLab()
         qWarning()<<"matlab 运行中，请勿重复启动";
         return;
     }
-    QString matlabPath = "/home/vipu/testmatlab/bin/matlab";  // 如果 PATH 中有 matlab，否则用完整路径
+    QString matlabPath = "matlab";  // 如果 PATH 中有 matlab，否则用完整路径
     QStringList arguments;
     arguments << "-desktop";
     matlab_process->start(matlabPath, arguments);
@@ -1117,12 +1117,14 @@ bool cameraManager::set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<i
 
     int r = libusb_init(&ctx);
     if (r < 0) {
+        qDebug()<<"libusb_init ERROR!";
         //RCLCPP_ERROR_STREAM(kLogger, __FUNCTION__ << ": libusb_init ERROR!!");
         return false;
     }
 
     auto cnt = libusb_get_device_list(ctx, &devs);
     if (cnt < 0) {
+        qDebug()<<"libusb_get_device_list ERROR!!";
         //RCLCPP_ERROR_STREAM(kLogger, __FUNCTION__ << ": libusb_get_device_list ERROR!!");
         return false;
     }
@@ -1136,16 +1138,20 @@ bool cameraManager::set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<i
         auto port_num = libusb_get_port_number(dev);
         r = libusb_get_device_descriptor(dev, &desc);
         if (r < 0) {
+            qDebug()<<"Failed to get device descriptor";
             //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to get device descriptor");
             continue;
         }
+        qDebug()<<"SPCA2100 device id:"<<desc.idProduct;
         if (desc.idProduct != 0x2ca9) {
+            qDebug()<<"jump non-SPCA2100 device.";
             //RCLCPP_INFO_STREAM(kLogger, __FUNCTION__ << ": jump non-SPCA2100 device.");
             continue;
         }
 
         r = libusb_open(dev, &handle);
         if (r < 0) {
+            qDebug()<<"Failed to open device";
             //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to open device");
             continue;
         }
@@ -1154,6 +1160,7 @@ bool cameraManager::set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<i
         libusb_config_descriptor *config;
         r = libusb_get_active_config_descriptor(dev, &config);
         if (r != LIBUSB_SUCCESS) {
+            qDebug()<<"libusb_get_active_config_descriptor";
             //RCLCPP_WARN_STREAM(kLogger,
             //                   __FUNCTION__ << ": libusb_get_active_config_descriptor() "
             //                                << "failed on dev=" << dev);
@@ -1195,9 +1202,11 @@ bool cameraManager::set_bino_bus_addr(std::pair<int, int> &left_pos, std::pair<i
     libusb_exit(ctx);
 
     if (left_pos.first == -1) {
+        qDebug()<<"Failed to find left_pos";
         //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to find left_pos");
     }
     if (right_pos.first == -1) {
+        qDebug()<<"Failed to find right_pos";
         //RCLCPP_WARN_STREAM(kLogger, __FUNCTION__ << ": Failed to find right_pos");
     }
 
@@ -1213,14 +1222,14 @@ std::pair<int, int> cameraManager::get_bus_position(const std::string camera_pat
 
     struct udev *udev = udev_new();
     if (!udev) {
-        std::cerr << "Cannot create udev context" << std::endl;
+        qDebug()<<"Cannot create udev context" ;
         return rt;
     }
 
     struct udev_device *dev = udev_device_new_from_subsystem_sysname(
         udev, "video4linux", camera_path.c_str());  //device_path.c_str());
     if (!dev) {
-        std::cerr << "Cannot get udev device for " << camera_path << std::endl;
+        qDebug()<< "Cannot get udev device for " ;
         udev_unref(udev);
         return rt;
     }
@@ -1230,7 +1239,7 @@ std::pair<int, int> cameraManager::get_bus_position(const std::string camera_pat
     struct udev_device *parent =
         udev_device_get_parent_with_subsystem_devtype(dev, "usb", "usb_device");
     if (!parent) {
-        std::cerr << "Cannot find parent USB device" << std::endl;
+        qDebug()<< "Cannot find parent USB device" ;
         udev_device_unref(dev);
         udev_unref(udev);
         return rt;
@@ -1259,7 +1268,7 @@ bool cameraManager::set_binocular_device_id(int &id_left, int &id_right)
     int id2 = id_right;
     id_left = -1;
     id_right = -1;
-
+    qDebug()<<"log1";
     std::string name1 = "video" + std::to_string(id1);
     std::string name2 = "video" + std::to_string(id2);
 
