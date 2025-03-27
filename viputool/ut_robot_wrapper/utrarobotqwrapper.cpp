@@ -3,8 +3,9 @@
 #include <QDebug>
 #include <QEventLoop>
 #include <future>
-
+using namespace std::chrono_literals;
 #define RAD_TO_DEGREE (180.0/3.14)
+#define SLEEP_FOR_SPINNER_START std::this_thread::sleep_for(10ms)
 
 UtraRobot_QWrapper::UtraRobot_QWrapper(UtRobotConfig::TestConfig& config, QObject *parent):QObject(parent), UtraRobot(config)
 {
@@ -40,6 +41,7 @@ bool UtraRobot_QWrapper::robot_connect()
         qDebug() << "Robot UUID:" << QString::fromStdString(this->config_.identity_Info.UUID);
         qDebug() << "Robot SW version:" << QString::fromStdString(this->config_.identity_Info.VERSION_SW);
         qDebug() << "Robot HW version:" << QString::fromStdString(this->config_.identity_Info.VERSION_HW);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
@@ -47,8 +49,17 @@ bool UtraRobot_QWrapper::robot_connect()
     setArm_connect(executionResult);
     emit Robot_Connection_State_Updated(this->is_robot_connected);
 
-    return executionResult;
+    return fut.get();
 }
+
+// class QMutexTryLocker {
+//     QMutex &m_;
+//     bool locked_;
+// public:
+//     QMutexTryLocker(QMutex &m) : m_(m), locked_(m.tryLock()) {}
+//     ~QMutexTryLocker() { if (locked_) m_.unlock(); }
+//     bool isLocked() const { return locked_; }
+// };
 
 bool UtraRobot_QWrapper::robot_drag_activate(bool on)
 {
@@ -65,11 +76,12 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
         std::future<bool> fut;
         fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
             executionResult = this->RobotCommand_EnterTeachMode();
+            SLEEP_FOR_SPINNER_START;
             spinner.exit();
             return executionResult;
         });
         spinner.exec();
-        if(executionResult)
+        if(fut.get())
         {
             qDebug() << "开启拖拽，成功";
             return true;
@@ -87,11 +99,12 @@ bool UtraRobot_QWrapper::robot_drag_activate(bool on)
         std::future<bool> fut;
         fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
             executionResult = this->RobotCommand_Hold();
+            SLEEP_FOR_SPINNER_START;
             spinner.exit();
             return executionResult;
         });
         spinner.exec();
-        if(executionResult)
+        if(fut.get())
         {
             qDebug() << "关闭拖拽，成功";
             return true;
@@ -115,6 +128,7 @@ void UtraRobot_QWrapper::spin_until_all_action_finished()
     std::future<void> fut = std::async(std::launch::async, [&spinner, this](){
         this->mutext.lock();
         this->mutext.unlock();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return ;
     });
@@ -133,10 +147,11 @@ bool UtraRobot_QWrapper::test_graivty_and_spin()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->RobotTest_Gravity();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "机械臂负载测试，走位成功";
         return true;
@@ -160,11 +175,12 @@ bool UtraRobot_QWrapper::test_accuracy_and_spin()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->RobotTest_Accuracy();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "机械臂位置准确性测试，走位成功";
         return true;
@@ -188,11 +204,12 @@ bool UtraRobot_QWrapper::test_workspace_and_spin()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->RobotTest_Workspace();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "机械臂工作空间运动测试，走位成功";
         return true;
@@ -216,11 +233,12 @@ bool UtraRobot_QWrapper::test_repeatability_and_spin()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->RobotTest_Repeat();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "机械臂位置重复性测试，走位成功";
         return true;
@@ -287,11 +305,12 @@ bool UtraRobot_QWrapper::laserCalib_Robot_MoveTo_NextPos_and_spin()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, &jointPose, this](){
         executionResult = this->RobotCommand_JointPtp(jointPose);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         context_laser_calib_.current_index_preteached_Jpose++;
         emit laserCalib_next_pos_updated(context_laser_calib_.current_index_preteached_Jpose
@@ -306,11 +325,12 @@ bool UtraRobot_QWrapper::postLaserCalib_Write_MDH_offset()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->Robot_Set_Mdh_Offset_With_Calib_Result();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "机械臂标定参数已经写入控制器，接下来重启机械臂控制器";
         return reboot_Robot_And_Wait_Reconnect();
@@ -334,11 +354,12 @@ bool UtraRobot_QWrapper::check_MDH_Offset_Parm_All_Zero()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->Robot_Check_Mdh_Offset_Are_All_Zero();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qWarning() << "MDH参数补偿值为零，说明未进行过机械臂标定，请进行机械臂标定后再使用";
         return true;
@@ -362,11 +383,12 @@ bool UtraRobot_QWrapper::zeroOut_MDH_offset()
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this](){
         executionResult = this->Robot_ZeroOut_Mdh_offset();
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "Mdh参数已经清零, 请调用功能Reboot_Robot_And_Wait_Reconnect来进行重启";
         return true;
@@ -394,7 +416,7 @@ bool UtraRobot_QWrapper::reboot_Robot_And_Wait_Reconnect()
         return executionResult;
     });
     spinner_cmd_reboot.exec();
-    if(!executionResult)
+    if(!fut_reboot.get())
     {
         qWarning() << __FUNCTION__ << " - failed to send reboot command to controller!";
         return false;
@@ -408,7 +430,7 @@ bool UtraRobot_QWrapper::reboot_Robot_And_Wait_Reconnect()
         return executionResult;
     });
     spinner_disconnect.exec();
-    if(!executionResult)
+    if(!fut_diconnect.get())
     {
         qWarning() << __FUNCTION__ << " - wait controller disconnection timeout!";
         return false;
@@ -422,7 +444,7 @@ bool UtraRobot_QWrapper::reboot_Robot_And_Wait_Reconnect()
         return executionResult;
     });
     spinner_connect.exec();
-    if(!executionResult)
+    if(!fut_connect.get())
     {
         qWarning() << __FUNCTION__ << " - wait controller reconnection timeout!";
         return false;
@@ -436,7 +458,7 @@ bool UtraRobot_QWrapper::reboot_Robot_And_Wait_Reconnect()
         return executionResult;
     });
     spinner_init.exec();
-    if(!executionResult)
+    if(!fut.get())
     {
         qWarning() << __FUNCTION__ << " - 机械臂初始化失败，建议重新打开程序!";
         return false;
@@ -473,11 +495,12 @@ bool UtraRobot_QWrapper::move_To_Joint_Position(QVariantList jointpos)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, &target_jpos, this](){
         executionResult = this->RobotCommand_JointPtp(target_jpos);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "Robot Arm move to given joint position of radian:" << joint_pos_str;
         return true;
@@ -519,11 +542,12 @@ bool UtraRobot_QWrapper::move_To_Joint_Position_Degree(QVariantList jointpos)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, &target_jpos, this](){
         executionResult = this->RobotCommand_JointPtp(target_jpos);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    if(executionResult)
+    if(fut.get())
     {
         qDebug() << "Robot Arm move to given joint position of dgree:" << joint_pos_str;
         return true;
@@ -635,11 +659,12 @@ bool UtraRobot_QWrapper::enable_axis_1(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(1, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_2() const
@@ -659,11 +684,12 @@ bool UtraRobot_QWrapper::enable_axis_2(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(2, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_3() const
@@ -683,11 +709,12 @@ bool UtraRobot_QWrapper::enable_axis_3(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(3, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_4() const
@@ -707,11 +734,12 @@ bool UtraRobot_QWrapper::enable_axis_4(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(4, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_5() const
@@ -731,11 +759,12 @@ bool UtraRobot_QWrapper::enable_axis_5(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(5, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_6() const
@@ -755,11 +784,12 @@ bool UtraRobot_QWrapper::enable_axis_6(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(6, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
 
 bool UtraRobot_QWrapper::axis_enabled_7() const
@@ -779,9 +809,10 @@ bool UtraRobot_QWrapper::enable_axis_7(bool enable)
     bool executionResult = false;
     std::future<bool> fut = std::async(std::launch::async, [&spinner, &executionResult, this, enable](){
         executionResult = this->Robot_Enable_Single_Axis(7, enable);
+        SLEEP_FOR_SPINNER_START;
         spinner.exit();
         return executionResult;
     });
     spinner.exec();
-    return executionResult;
+    return fut.get();
 }
