@@ -1250,7 +1250,9 @@ std::pair<int, int> cameraManager::get_bus_position(const std::string camera_pat
 
     const char *devpath = udev_device_get_devpath(parent);
     auto str_devpath = std::string(devpath);
-    auto pos_devaddr = str_devpath.find_last_of('-') + 1;
+    auto last_position_=str_devpath.find_last_of('-');
+    auto last_point_position=str_devpath.find_last_of('.');
+    auto pos_devaddr = last_position_>last_point_position?last_position_+ 1:last_point_position+ 1;
     auto len_devaddr = str_devpath.size() - pos_devaddr;
     auto add = std::stoi(str_devpath.substr(pos_devaddr, len_devaddr));
 
