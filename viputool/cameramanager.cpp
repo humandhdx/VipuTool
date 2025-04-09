@@ -754,7 +754,7 @@ void cameraManager::capture_local_left()
                              local_left_image_0_.rows,
                              static_cast<int>(local_left_image_0_.step),
                              QImage::Format_BGR888);
-                emit signalSendLocalLeftImage(image);
+                emit signalSendLocalLeftImage(image.copy());
             }
             else {
                 ++failed_count_local_left_;
@@ -829,7 +829,7 @@ void cameraManager::capture_local_right()
                              local_right_image_0_.rows,
                              static_cast<int>(local_right_image_0_.step),
                              QImage::Format_BGR888);
-                emit signalSendLocalRightImage(image);
+                emit signalSendLocalRightImage(image.copy());
             }
             else {
                 ++failed_count_local_right_;
