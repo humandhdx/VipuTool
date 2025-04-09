@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtMultimedia
 import Qt.labs.platform
 import QtQuick.Dialogs
+import PaintImageItemModule 1.0
 Item {
     Column{
         visible: pageLoader.sourceComponent?false:true
@@ -80,18 +81,40 @@ Item {
                     width: 620
                     height: 465
                     color: "#D9D9D9"
-                    Image {
-                        id:leftimage
-                        anchors.fill: parent
+                    // Image {
+                    //     id:leftimage
+                    //     anchors.fill: parent
+                    // }
+                    ImagePaintItem {
+                        id:leftpaint
+                        width: 620
+                        height: 465
+                        Connections {
+                            target: cameraManager
+                            function onSignalSendLeftImage (paintimage) {
+                                leftpaint.recvEmitImg(paintimage);
+                            }
+                        }
                     }
                 }
                 Rectangle{
                     width: 620
                     height: 465
                     color: "#D9D9D9"
-                    Image {
-                        id:rightimage
-                        anchors.fill: parent
+                    // Image {
+                    //     id:rightimage
+                    //     anchors.fill: parent
+                    // }
+                    ImagePaintItem {
+                        id:rightpaint
+                        width: 620
+                        height: 465
+                        Connections {
+                            target: cameraManager
+                            function onSignalSendRightImage (paintimage) {
+                                rightpaint.recvEmitImg(paintimage);
+                            }
+                        }
                     }
                 }
             }
@@ -650,21 +673,21 @@ Item {
                     }
                 }
             }
-            Connections{
-                target: image_provider_gl
-                function onImgChanged (){
-                    leftimage.source=""
-                    leftimage.source="image://GlImg/"
-                }
+            // Connections{
+            //     target: image_provider_gl
+            //     function onImgChanged (){
+            //         leftimage.source=""
+            //         leftimage.source="image://GlImg/"
+            //     }
 
-            }
-            Connections{
-                target: image_provider_gr
-                function onImgChanged (){
-                    rightimage.source=""
-                    rightimage.source="image://GrImg/"
-                }
-            }
+            // }
+            // Connections{
+            //     target: image_provider_gr
+            //     function onImgChanged (){
+            //         rightimage.source=""
+            //         rightimage.source="image://GrImg/"
+            //     }
+            // }
             Connections{
                 target: logger
                 function onSendLogMesseg (msg ,level){
@@ -726,18 +749,40 @@ Item {
                     width: 500
                     height: 500
                     color: "#D9D9D9"
-                    Image {
-                        id:leftimage
-                        anchors.fill: parent
+                    // Image {
+                    //     id:leftimage
+                    //     anchors.fill: parent
+                    // }
+                    ImagePaintItem {
+                        id:leftpaint
+                        width: 620
+                        height: 465
+                        Connections {
+                            target: cameraManager
+                            function onSignalSendLocalLeftImage (paintimage) {
+                                leftpaint.recvEmitImg(paintimage);
+                            }
+                        }
                     }
                 }
                 Rectangle{
                     width: 500
                     height: 500
                     color: "#D9D9D9"
-                    Image {
-                        id:rightimage
-                        anchors.fill: parent
+                    // Image {
+                    //     id:rightimage
+                    //     anchors.fill: parent
+                    // }
+                    ImagePaintItem {
+                        id:rightpaint
+                        width: 620
+                        height: 465
+                        Connections {
+                            target: cameraManager
+                            function onSignalSendLocalRightImage (paintimage) {
+                                rightpaint.recvEmitImg(paintimage);
+                            }
+                        }
                     }
                 }
             }
@@ -1094,21 +1139,21 @@ Item {
                     }
                 }
             }
-            Connections{
-                target: image_provider_ll
-                function onImgChanged (){
-                    leftimage.source=""
-                    leftimage.source="image://LlImg/"
-                }
+            // Connections{
+            //     target: image_provider_ll
+            //     function onImgChanged (){
+            //         leftimage.source=""
+            //         leftimage.source="image://LlImg/"
+            //     }
 
-            }
-            Connections{
-                target: image_provider_lr
-                function onImgChanged (){
-                    rightimage.source=""
-                    rightimage.source="image://LrImg/"
-                }
-            }
+            // }
+            // Connections{
+            //     target: image_provider_lr
+            //     function onImgChanged (){
+            //         rightimage.source=""
+            //         rightimage.source="image://LrImg/"
+            //     }
+            // }
             Connections{
                 target: logger
                 function onSendLogMesseg (msg ,level){
@@ -1161,9 +1206,20 @@ Item {
                     width: 620
                     height: 465
                     color: "#D9D9D9"
-                    Image {
-                        id:image
-                        anchors.fill: parent
+                    // Image {
+                    //     id:image
+                    //     anchors.fill: parent
+                    // }
+                    ImagePaintItem {
+                        id:midpaint
+                        width: 620
+                        height: 465
+                        Connections {
+                            target: cameraManager
+                            function onSignalSendMiddleImage (paintimage) {
+                                midpaint.recvEmitImg(paintimage);
+                            }
+                        }
                     }
                 }
             }
@@ -1497,14 +1553,14 @@ Item {
                     }
                 }
             }
-            Connections{
-                target: image_provider_ml
-                function onImgChanged (){
-                    image.source=""
-                    image.source="image://MlImg/"
-                }
+            // Connections{
+            //     target: image_provider_ml
+            //     function onImgChanged (){
+            //         image.source=""
+            //         image.source="image://MlImg/"
+            //     }
 
-            }
+            // }
             Connections{
                 target: logger
                 function onSendLogMesseg (msg ,level){

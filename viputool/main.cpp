@@ -16,6 +16,7 @@
 #include "ut_robot_wrapper/kinematic_calibration/kinematiccalibqwrapper.hpp"
 #include "ut_robot_wrapper/camera_calibration/cameracalibqwrapper.h"
 #include "unixsignalqhandler.h"
+#include "imagepaintitem.h"
 
 // #define TEST_MAIN
 
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     logger* logInstance = logger::instance();
     qInstallMessageHandler(logger::myMessageHandler);
     qmlRegisterType<FileDialogWrap>("VTool", 1, 0, "VFileDialog");
+    qmlRegisterType<ImagePaintItem>("PaintImageItemModule", 1, 0, "ImagePaintItem");
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/Main.qml"));
     //camera
@@ -70,6 +72,13 @@ int main(int argc, char *argv[])
     ImageProvider *image_provider_ll = new ImageProvider();
     ImageProvider *image_provider_lr = new ImageProvider();
     ImageProvider *image_provider_ml = new ImageProvider();
+    // ImagePaintItem *image_painter_gl = new ImagePaintItem();
+    // ImagePaintItem *image_painter_gr = new ImagePaintItem();
+    // ImagePaintItem *image_painter_ll = new ImagePaintItem();
+    // ImagePaintItem *image_painter_lr = new ImagePaintItem();
+    // ImagePaintItem *image_painter_ml = new ImagePaintItem();
+
+
     sshManager *my_ssh_manager=new sshManager();
     QObject::connect(
         m_cameraManager, &cameraManager::signalSendLeftImage, image_provider_gl, &ImageProvider::recvEmitImg);
