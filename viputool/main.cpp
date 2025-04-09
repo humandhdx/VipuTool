@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-    QQuickWindow::setSceneGraphBackend("software");
+    // QQuickWindow::setSceneGraphBackend("software");
     //QGuiApplication  app(argc, argv);
     QApplication app(argc, argv);
     UnixSignal::Register_Hookers();
