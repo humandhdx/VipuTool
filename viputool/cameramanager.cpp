@@ -298,6 +298,7 @@ void cameraManager::openMalLab()
     QString matlabPath = "matlab";  // 如果 PATH 中有 matlab，否则用完整路径
     QStringList arguments;
     arguments << "-desktop";
+    arguments << "-softwareopengl";
     matlab_process->start(matlabPath, arguments);
 }
 
